@@ -224,7 +224,6 @@ export const translations = {
         missingBookingInfo: "Missing booking information.",
         profileError: "Could not retrieve user profile.",
         noBookingsFoundForAgency: "No bookings found.",
-        // --- Review Feature Keys ---
         leaveAReview: "Leave a Review",
         yourRating: "Your Rating",
         selectARating: "Please select a rating.",
@@ -234,6 +233,9 @@ export const translations = {
         loadingReviews: "Loading reviews...",
         noReviewsYet: "No reviews yet for this vehicle.",
         reviewsTitle: "Reviews ({count})",
+        reviewFormTitle: "Leave a Review",
+        monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        dayNamesShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     },
     fr: {
         appName: "Sayara",
@@ -460,7 +462,6 @@ export const translations = {
         missingBookingInfo: "Informations de réservation manquantes.",
         profileError: "Impossible de récupérer le profil utilisateur.",
         noBookingsFoundForAgency: "Aucune réservation trouvée.",
-        // --- Review Feature Keys ---
         leaveAReview: "Laisser un avis",
         yourRating: "Votre note",
         selectARating: "Veuillez sélectionner une note.",
@@ -470,5 +471,8 @@ export const translations = {
         loadingReviews: "Chargement des avis...",
         noReviewsYet: "Aucun avis pour ce véhicule pour le moment.",
         reviewsTitle: "Avis ({count})",
+        reviewFormTitle: "Laissez un avis",
+        monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
+        dayNamesShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
     }
 };

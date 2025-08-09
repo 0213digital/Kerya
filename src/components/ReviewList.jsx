@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { useTranslation } from '../contexts/LanguageContext';
 import { Star } from 'lucide-react';
 
 const StarRating = ({ rating }) => (
@@ -11,6 +12,7 @@ const StarRating = ({ rating }) => (
 );
 
 export function ReviewList({ vehicleId }) {
+    const { t } = useTranslation();
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -34,12 +36,12 @@ export function ReviewList({ vehicleId }) {
         fetchReviews();
     }, [vehicleId]);
 
-    if (loading) return <p>Loading reviews...</p>;
-    if (reviews.length === 0) return <p>No reviews yet for this vehicle.</p>;
+    if (loading) return <p>{t('loadingReviews')}</p>;
+    if (reviews.length === 0) return <p>{t('noReviewsYet')}</p>;
 
     return (
         <div className="space-y-6">
-            <h2 className="text-2xl font-bold">Reviews ({reviews.length})</h2>
+            <h2 className="text-2xl font-bold">{t('reviewsTitle', { count: reviews.length })}</h2>
             {reviews.map(review => (
                 <div key={review.id} className="border-b pb-4">
                     <div className="flex items-center mb-2">
