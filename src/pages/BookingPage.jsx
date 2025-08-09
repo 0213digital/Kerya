@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { CreditCard, Banknote } from 'lucide-react';
 
 export function BookingPage() {
-    const { session } = useAuth();
+    const { session, isAgencyOwner, loading: authLoading } = useAuth();
     const { t } = useTranslation();
     const navigate = useNavigate();
     const { vehicleId } = useParams();
@@ -21,12 +21,23 @@ export function BookingPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        // Wait for auth context to initialize
+        if (authLoading) {
+            return;
+        }
+
+        // Redirect if user is not logged in or is an agency owner
         if (!session) {
             navigate('/login');
             return;
         }
+        if (isAgencyOwner) {
+            navigate('/'); // Redirect agencies away from booking page
+            return;
+        }
+
         if (!vehicleId || !startDate || !endDate) {
-            setError("Missing booking information.");
+            setError(t('missingBookingInfo'));
             setLoading(false);
             return;
         }
@@ -42,17 +53,17 @@ export function BookingPage() {
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 const diffTime = Math.abs(end - start);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                const days = diffDays > 0 ? diffDays : 1;
-                setTotalPrice(days * data.daily_rate_dzd);
+                // Ensure at least 1 day is calculated
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+                setTotalPrice(diffDays * data.daily_rate_dzd);
             }
             setLoading(false);
         };
         fetchVehicleAndCalculatePrice();
-    }, [vehicleId, startDate, endDate, session, navigate]);
+    }, [vehicleId, startDate, endDate, session, navigate, t, isAgencyOwner, authLoading]);
 
     const handleConfirmBooking = async () => {
-        if (!session || !vehicle) return;
+        if (!session || !vehicle || isAgencyOwner) return;
         setProcessing(true);
         setError('');
 
@@ -85,7 +96,8 @@ export function BookingPage() {
         setProcessing(false);
     };
 
-    if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
+    if (loading || authLoading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
+    if (error) return <div className="container mx-auto p-4 text-center text-red-500">{error}</div>;
     if (!vehicle) return <div className="container mx-auto p-4 text-center">{t('noVehiclesFound')}</div>;
 
     return (

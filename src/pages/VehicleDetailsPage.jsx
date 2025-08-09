@@ -3,14 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react'; // Import AlertCircle
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info } from 'lucide-react';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { ReviewList } from '../components/ReviewList'; 
 
 export function VehicleDetailsPage() {
     const { id: vehicleId } = useParams();
     const navigate = useNavigate();
-    const { session, profile } = useAuth();
+    const { session, profile, isAgencyOwner } = useAuth();
     const { t } = useTranslation();
     const [vehicle, setVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export function VehicleDetailsPage() {
     
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
-    const [contactError, setContactError] = useState(''); // New state for contact error
+    const [contactError, setContactError] = useState('');
 
     useEffect(() => {
         const fetchVehicle = async () => {
@@ -67,6 +67,7 @@ export function VehicleDetailsPage() {
             navigate('/login');
             return;
         }
+        if (isAgencyOwner) return; // Extra guard
         if (!startDate || !endDate) {
             alert(t('alertSelectDates'));
             return;
@@ -80,8 +81,9 @@ export function VehicleDetailsPage() {
             navigate('/login');
             return;
         }
+        if (isAgencyOwner) return; // Extra guard
         setIsContacting(true);
-        setContactError(''); // Reset error on new attempt
+        setContactError('');
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
             p_vehicle_id: vehicle.id,
             p_user_id: session.user.id
@@ -89,7 +91,7 @@ export function VehicleDetailsPage() {
 
         if (error) {
             console.error('Error starting conversation:', error);
-            setContactError(t('error') + ': ' + error.message); // Show error to user
+            setContactError(t('error') + ': ' + error.message);
         } else {
             navigate('/dashboard/messages');
         }
@@ -110,6 +112,7 @@ export function VehicleDetailsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
+                    {/* Image slider and vehicle details */}
                     <div className="relative mb-4">
                         <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
                         {images.length > 1 && (
@@ -144,12 +147,12 @@ export function VehicleDetailsPage() {
                             <p className="text-slate-600">{`${vehicle.agencies.city}, ${vehicle.agencies.wilaya}`}</p>
                         </div>
                     </div>
-                    
                     <div className="mt-12">
                         <ReviewList vehicleId={vehicle.id} />
                     </div>
-
                 </div>
+
+                {/* Booking Widget */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
                         <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
@@ -166,7 +169,7 @@ export function VehicleDetailsPage() {
                         )}
                         <button 
                             onClick={handleBookingRequest} 
-                            disabled={!startDate || !endDate}
+                            disabled={!startDate || !endDate || isAgencyOwner}
                             className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                         >
                             {session ? t('requestToBook') : t('loginToBook')}
@@ -175,8 +178,8 @@ export function VehicleDetailsPage() {
                         {!isOwner && (
                             <button
                                 onClick={handleContactAgency}
-                                disabled={isContacting}
-                                className="mt-4 w-full flex items-center justify-center bg-slate-600 text-white py-3 rounded-md font-semibold hover:bg-slate-700 disabled:bg-slate-400"
+                                disabled={isContacting || isAgencyOwner}
+                                className="mt-4 w-full flex items-center justify-center bg-slate-600 text-white py-3 rounded-md font-semibold hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
                             >
                                 <MessageSquare size={18} className="mr-2" />
                                 {isContacting ? t('loading') : t('contactAgency')}
@@ -186,6 +189,12 @@ export function VehicleDetailsPage() {
                             <div className="mt-4 text-red-600 text-sm flex items-center">
                                 <AlertCircle size={16} className="mr-2" />
                                 {contactError}
+                            </div>
+                        )}
+                        {isAgencyOwner && !isOwner && (
+                            <div className="mt-4 text-amber-800 bg-amber-100 p-3 rounded-md text-sm flex items-start">
+                                <Info size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+                                <span>{t('agencyCannotRent')}</span>
                             </div>
                         )}
                     </div>

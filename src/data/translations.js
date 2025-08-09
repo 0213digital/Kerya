@@ -281,6 +281,8 @@ export const translations = {
         sendMessage: "Send", // new
         conversationWith: "Conversation with {name}", // new
         regarding: "Regarding: {make} {model}", // new
+        regarding: "Regarding: {make} {model}", // new
+        agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.", // ADD THIS LINE
     },
     fr: {
         appName: "Sayara",
@@ -564,5 +566,7 @@ export const translations = {
         sendMessage: "Envoyer", // new
         conversationWith: "Conversation avec {name}", // new
         regarding: "Concernant : {make} {model}", // new
+        regarding: "Concernant : {make} {model}", // new
+        agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.", // ADD THIS LINE
     }
 };
