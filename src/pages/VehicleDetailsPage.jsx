@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Wind, Droplets, ChevronLeft, ChevronRight } from 'lucide-react';
+import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 
 export function VehicleDetailsPage() {
     const { id: vehicleId } = useParams();
@@ -14,13 +15,10 @@ export function VehicleDetailsPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
-    const today = new Date().toISOString().split('T')[0];
-    const [startDate, setStartDate] = useState(today);
-    const [endDate, setEndDate] = useState(() => {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        return tomorrow.toISOString().split('T')[0];
-    });
+    
+    // State for dates, now controlled by the calendar
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
 
     useEffect(() => {
         const fetchVehicle = async () => {
@@ -42,11 +40,17 @@ export function VehicleDetailsPage() {
         fetchVehicle();
     }, [vehicleId]);
 
+    // This function receives the selected dates from the AvailabilityCalendar component
+    const handleDateSelection = (end, start) => {
+        setStartDate(start.toISOString().split('T')[0]);
+        setEndDate(end.toISOString().split('T')[0]);
+    };
+
     const calculateDays = () => {
         if (!startDate || !endDate) return 0;
         const start = new Date(startDate);
         const end = new Date(endDate);
-        if (end <= start) return 1;
+        if (end <= start) return 1; // Should not happen with calendar logic, but safe
         const diffTime = Math.abs(end - start);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays > 0 ? diffDays : 1;
@@ -58,6 +62,11 @@ export function VehicleDetailsPage() {
     const handleBookingRequest = () => {
         if (!session) {
             navigate('/login');
+            return;
+        }
+        if (!startDate || !endDate) {
+            // This alert is a fallback, the button should be disabled
+            alert('Please select a start and end date from the calendar.');
             return;
         }
         const searchParams = new URLSearchParams({ startDate, endDate }).toString();
@@ -114,23 +123,20 @@ export function VehicleDetailsPage() {
                 <div className="lg:col-span-1">
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
                         <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium">{t('pickupDate')}</label>
-                                <input type="date" value={startDate} min={today} onChange={e => setStartDate(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium">{t('returnDate')}</label>
-                                <input type="date" value={endDate} min={startDate || today} onChange={e => setEndDate(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" />
-                            </div>
-                        </div>
+                        
+                        <AvailabilityCalendar vehicleId={vehicle.id} onDateChange={handleDateSelection} />
+                        
                         <div className="mt-6 pt-4 border-t border-slate-200">
                             <div className="flex justify-between items-center text-lg">
                                 <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? 'days' : 'day'})</span>
                                 <span className="font-bold">{totalPrice.toLocaleString()} DZD</span>
                             </div>
                         </div>
-                        <button onClick={handleBookingRequest} className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400">
+                        <button 
+                            onClick={handleBookingRequest} 
+                            disabled={!startDate || !endDate}
+                            className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                        >
                             {session ? t('requestToBook') : t('loginToBook')}
                         </button>
                     </div>
