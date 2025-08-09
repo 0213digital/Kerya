@@ -11,8 +11,11 @@ export function ConversationList({ conversations, activeConversationId, onSelect
     return (
         <ul className="divide-y divide-slate-200">
             {conversations.map(convo => {
-                const otherParticipant = currentUserId === convo.user_id ? convo.agencies.profiles : convo.profiles;
-                const otherName = currentUserId === convo.user_id ? convo.agencies.agency_name : otherParticipant.full_name;
+                // Simplified logic to identify the other participant
+                const isCurrentUserRenter = currentUserId === convo.user.id;
+                const otherParticipant = isCurrentUserRenter ? convo.agency : convo.user;
+                const displayName = isCurrentUserRenter ? otherParticipant.agency_name : otherParticipant.full_name;
+                const avatarUrl = isCurrentUserRenter ? otherParticipant.owner.avatar_url : otherParticipant.avatar_url;
 
                 return (
                     <li
@@ -22,12 +25,12 @@ export function ConversationList({ conversations, activeConversationId, onSelect
                     >
                         <div className="flex items-center space-x-3">
                             <img
-                                src={otherParticipant.avatar_url || convo.agencies.profiles.avatar_url || `https://placehold.co/40x40/e2e8f0/64748b?text=${otherName?.[0] || 'A'}`}
+                                src={avatarUrl || `https://placehold.co/40x40/e2e8f0/64748b?text=${displayName?.[0] || 'A'}`}
                                 alt="avatar"
                                 className="h-10 w-10 rounded-full object-cover"
                             />
-                            <div className="flex-1">
-                                <p className="font-semibold text-slate-800">{otherName}</p>
+                            <div className="flex-1 overflow-hidden">
+                                <p className="font-semibold text-slate-800 truncate">{displayName}</p>
                                 <p className="text-sm text-slate-600 truncate">{t('regarding', { make: convo.vehicles.make, model: convo.vehicles.model })}</p>
                             </div>
                         </div>

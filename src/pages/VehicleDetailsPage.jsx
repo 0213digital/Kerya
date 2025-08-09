@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'; // Import MessageSquare
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle } from 'lucide-react'; // Import AlertCircle
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { ReviewList } from '../components/ReviewList'; 
 
@@ -18,9 +18,9 @@ export function VehicleDetailsPage() {
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [isContacting, setIsContacting] = useState(false);
     
-    // State for dates, now controlled by the calendar
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
+    const [contactError, setContactError] = useState(''); // New state for contact error
 
     useEffect(() => {
         const fetchVehicle = async () => {
@@ -42,10 +42,11 @@ export function VehicleDetailsPage() {
         fetchVehicle();
     }, [vehicleId]);
 
-    // This function receives the selected dates from the AvailabilityCalendar component
     const handleDateSelection = (end, start) => {
         setStartDate(start.toISOString().split('T')[0]);
-        setEndDate(end.toISOString().split('T')[0]);
+        if (end) {
+            setEndDate(end.toISOString().split('T')[0]);
+        }
     };
 
     const calculateDays = () => {
@@ -80,6 +81,7 @@ export function VehicleDetailsPage() {
             return;
         }
         setIsContacting(true);
+        setContactError(''); // Reset error on new attempt
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
             p_vehicle_id: vehicle.id,
             p_user_id: session.user.id
@@ -87,13 +89,12 @@ export function VehicleDetailsPage() {
 
         if (error) {
             console.error('Error starting conversation:', error);
-            // Handle error (show a toast, etc.)
+            setContactError(t('error') + ': ' + error.message); // Show error to user
         } else {
             navigate('/dashboard/messages');
         }
         setIsContacting(false);
     };
-
 
     if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
     if (error) return <div className="container mx-auto p-4 text-center text-red-500">{t('error')}: {error}</div>;
@@ -102,15 +103,13 @@ export function VehicleDetailsPage() {
     const transmissionText = vehicle.transmission === 'manual' ? t('manual') : t('automatic');
     const fuelText = vehicle.fuel_type === 'gasoline' ? t('gasoline') : t('diesel');
     const images = vehicle.image_urls && vehicle.image_urls.length > 0 ? vehicle.image_urls : [`https://placehold.co/800x600/e2e8f0/64748b?text=${vehicle.make}+${vehicle.model}`];
-
-    // Ne pas afficher le bouton "Contacter l'agence" si l'utilisateur est le propriétaire de l'agence
+    
     const isOwner = profile && profile.id === vehicle.agencies.owner_id;
 
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
-                    {/* ... (le reste du code de l'image slider reste inchangé) ... */}
                     <div className="relative mb-4">
                         <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
                         {images.length > 1 && (
@@ -157,12 +156,14 @@ export function VehicleDetailsPage() {
                         
                         <AvailabilityCalendar vehicleId={vehicle.id} onDateChange={handleDateSelection} />
                         
-                        <div className="mt-6 pt-4 border-t border-slate-200">
-                            <div className="flex justify-between items-center text-lg">
-                                <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? t('days') : t('day')})</span>
-                                <span className="font-bold">{totalPrice.toLocaleString()} DZD</span>
+                        {totalPrice > 0 && (
+                            <div className="mt-6 pt-4 border-t border-slate-200">
+                                <div className="flex justify-between items-center text-lg">
+                                    <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? t('days') : t('day')})</span>
+                                    <span className="font-bold">{totalPrice.toLocaleString()} DZD</span>
+                                </div>
                             </div>
-                        </div>
+                        )}
                         <button 
                             onClick={handleBookingRequest} 
                             disabled={!startDate || !endDate}
@@ -170,7 +171,7 @@ export function VehicleDetailsPage() {
                         >
                             {session ? t('requestToBook') : t('loginToBook')}
                         </button>
-
+                        
                         {!isOwner && (
                             <button
                                 onClick={handleContactAgency}
@@ -180,6 +181,12 @@ export function VehicleDetailsPage() {
                                 <MessageSquare size={18} className="mr-2" />
                                 {isContacting ? t('loading') : t('contactAgency')}
                             </button>
+                        )}
+                         {contactError && (
+                            <div className="mt-4 text-red-600 text-sm flex items-center">
+                                <AlertCircle size={16} className="mr-2" />
+                                {contactError}
+                            </div>
                         )}
                     </div>
                 </div>
