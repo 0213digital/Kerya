@@ -4,7 +4,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders, status: 204 }); // CORRECTED
   }
 
   try {
@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    // --- SECURITY FIX: Check the user's role from the 'profiles' table ---
+    // Check the user's role from the 'profiles' table
     const { data: profile, error: profileError } = await supabaseClient
       .from('profiles')
       .select('role')
@@ -38,7 +38,6 @@ Deno.serve(async (req) => {
         status: 403,
       });
     }
-    // --- END SECURITY FIX ---
 
     // Create a Supabase client with the service_role key to bypass RLS
     const supabaseAdmin = createClient(

@@ -3,14 +3,14 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders, status: 204 }); // CORRECTED
   }
 
   try {
     const { email } = await req.json()
     if (!email) throw new Error("User email is required.")
 
-    // Admin authorization check (same as delete function)
+    // Admin authorization check
     const authHeader = req.headers.get('Authorization')!
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',

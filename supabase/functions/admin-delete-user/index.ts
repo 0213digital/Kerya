@@ -8,10 +8,9 @@ const corsHeaders = {
 };
 
 Deno.serve(async (req) => {
-  // This is the most critical part for solving CORS issues.
-  // It handles the browser's "preflight" check before making the actual request.
+  // Handle the browser's "preflight" check before making the actual request.
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders, status: 204 }); // Use 204 No Content for preflight
+    return new Response(null, { headers: corsHeaders, status: 204 }); // CORRECTED: Body is null
   }
 
   try {
