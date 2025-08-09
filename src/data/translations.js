@@ -1,9 +1,9 @@
 export const translations = {
     en: {
-        appName: "Sayara",
+        appName: "KERYA",
         navHome: "Home",
         navSearch: "Find a Car",
-        navMessages: "Messages", // new
+        navMessages: "Messages",
         login: "Login",
         signup: "Sign Up",
         dashboard: "Dashboard",
@@ -272,34 +272,23 @@ export const translations = {
         deleteUser: "Delete User",
         deleteUserConfirmText: "This will permanently delete the user and all their associated data. This action cannot be undone.",
         saveChanges: "Save Changes",
-        contactAgency: "Contact Agency", // new
-        messagesTitle: "My Messages", // new
-        messagesDesc: "View and reply to conversations with agencies and renters.", // new
-        noConversations: "You have no messages yet.", // new
-        noMessagesInConversation: "Select a conversation to see messages.", // new
-        typeYourMessage: "Type your message...", // new
-        sendMessage: "Send", // new
-        conversationWith: "Conversation with {name}", // new
-        regarding: "Regarding: {make} {model}", // new
-        regarding: "Regarding: {make} {model}", // new
-        agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.", // ADD THIS LINE
+        contactAgency: "Contact Agency",
+        messagesTitle: "My Messages",
+        messagesDesc: "View and reply to conversations with agencies and renters.",
+        noConversations: "You have no messages yet.",
+        noMessagesInConversation: "Select a conversation to see messages.",
+        typeYourMessage: "Type your message...",
+        sendMessage: "Send",
+        conversationWith: "Conversation with {name}",
+        regarding: "Regarding: {make} {model}",
         agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.",
-        cancelBooking: "Cancel Booking", // ADD THIS
-        cancellationReason: "Reason for cancellation", // ADD THIS
-        confirmCancellation: "Confirm Cancellation", // ADD THIS
-        reasonPlaceholder: "e.g., Vehicle unforeseen maintenance...", // ADD THIS
-        bookingCancelled: "Booking Cancelled", // ADD THIS
-        cancelledByAgency: "Cancelled by agency: ", // ADD THIS
-        statusCancelled: "Cancelled", // ADD THIS
-         agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.",
-        cancelBooking: "Cancel Booking",
+        cancelBooking: "Cancel Booking", 
         cancellationReason: "Reason for cancellation",
         confirmCancellation: "Confirm Cancellation",
         reasonPlaceholder: "e.g., Vehicle unforeseen maintenance...",
         bookingCancelled: "Booking Cancelled",
         cancelledByAgency: "Cancelled by agency: ",
         statusCancelled: "Cancelled",
-        // ADD THESE NEW TRANSLATIONS
         statusPickedUp: "Picked Up",
         statusReturned: "Returned",
         markAsPickedUp: "Mark as Picked Up",
@@ -310,10 +299,10 @@ export const translations = {
         confirmReturnText: "Are you sure you want to mark this booking as 'Returned'?",
     },
     fr: {
-        appName: "Sayara",
+        appName: "KERYA",
         navHome: "Accueil",
         navSearch: "Trouver une voiture",
-        navMessages: "Messagerie", // new
+        navMessages: "Messagerie",
         login: "Connexion",
         signup: "S'inscrire",
         dashboard: "Tableau de bord",
@@ -582,26 +571,16 @@ export const translations = {
         deleteUser: "Supprimer l'utilisateur",
         deleteUserConfirmText: "Ceci supprimera définitivement l'utilisateur et toutes ses données associées. Cette action est irréversible.",
         saveChanges: "Enregistrer les modifications",
-        contactAgency: "Contacter l'agence", // new
-        messagesTitle: "Mes Messages", // new
-        messagesDesc: "Voir et répondre aux conversations avec les agences et les locataires.", // new
-        noConversations: "Vous n'avez aucun message pour le moment.", // new
-        noMessagesInConversation: "Sélectionnez une conversation pour voir les messages.", // new
-        typeYourMessage: "Écrivez votre message...", // new
-        sendMessage: "Envoyer", // new
-        conversationWith: "Conversation avec {name}", // new
-        regarding: "Concernant : {make} {model}", // new
-        regarding: "Concernant : {make} {model}", // new
-        agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.", // ADD THIS LINE
+        contactAgency: "Contacter l'agence",
+        messagesTitle: "Mes Messages",
+        messagesDesc: "Voir et répondre aux conversations avec les agences et les locataires.",
+        noConversations: "Vous n'avez aucun message pour le moment.",
+        noMessagesInConversation: "Sélectionnez une conversation pour voir les messages.",
+        typeYourMessage: "Écrivez votre message...",
+        sendMessage: "Envoyer",
+        conversationWith: "Conversation avec {name}",
+        regarding: "Concernant : {make} {model}",
         agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.",
-        cancelBooking: "Annuler la réservation", // ADD THIS
-        cancellationReason: "Raison de l'annulation", // ADD THIS
-        confirmCancellation: "Confirmer l'annulation", // ADD THIS
-        reasonPlaceholder: "ex: Maintenance imprévue du véhicule...", // ADD THIS
-        bookingCancelled: "Réservation annulée", // ADD THIS
-        cancelledByAgency: "Annulée par l'agence : ", // ADD THIS
-        statusCancelled: "Annulée", // ADD THIS
-         agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.",
         cancelBooking: "Annuler la réservation",
         cancellationReason: "Raison de l'annulation",
         confirmCancellation: "Confirmer l'annulation",
@@ -609,7 +588,6 @@ export const translations = {
         bookingCancelled: "Réservation annulée",
         cancelledByAgency: "Annulée par l'agence : ",
         statusCancelled: "Annulée",
-        // ADD THESE NEW TRANSLATIONS
         statusPickedUp: "Récupérée",
         statusReturned: "Retournée",
         markAsPickedUp: "Marquer comme Récupérée",

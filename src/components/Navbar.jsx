@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-// The 'Users' icon has been added to the import list below
 import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users } from 'lucide-react';
 
 export function Navbar() {
@@ -32,7 +31,7 @@ export function Navbar() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <Link to="/" className="flex-shrink-0 cursor-pointer" onClick={closeMenu}>
-                        <img src="https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png" alt="Sayara Logo" className="h-10" />
+                        <img src="https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png" alt="KERYA Logo" className="h-10" />
                     </Link>
                     <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
                         <Link to="/" className="hover:text-indigo-500">{t('navHome')}</Link>
