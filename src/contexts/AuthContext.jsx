@@ -33,11 +33,9 @@ export function AuthProvider({ children }) {
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
-            setProfile(null); // Reset profile on auth change
             if (session?.user) {
                 fetchProfile(session.user);
             } else {
-                // Ensure profile is cleared on logout
                 setProfile(null);
             }
         });
