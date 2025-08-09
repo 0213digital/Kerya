@@ -1,17 +1,16 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { AppContext } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBox } from '../components/modals';
 import { algeriaGeoData } from '../data/geoAndCarData';
-import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, ShieldAlert, XCircle, CheckCircle, Clock } from 'lucide-react';
+import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle } from 'lucide-react';
 
-// --- AgencyDashboardPage ---
 export function AgencyDashboardPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { profile } = useAuth();
     const [stats, setStats] = useState({ listings: 0, activeRentals: 0, totalRevenue: 0 });
     const [loading, setLoading] = useState(true);
 
@@ -72,10 +71,9 @@ export function AgencyDashboardPage() {
     );
 }
 
-// --- AgencyVehiclesPage ---
 export function AgencyVehiclesPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { profile } = useAuth();
     const navigate = useNavigate();
     const [vehicles, setVehicles] = useState([]);
     const [agency, setAgency] = useState(null);
@@ -136,10 +134,9 @@ export function AgencyVehiclesPage() {
     );
 }
 
-// --- AgencyBookingsPage ---
 export function AgencyBookingsPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { profile } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -183,10 +180,9 @@ export function AgencyBookingsPage() {
     );
 }
 
-// --- AgencyOnboardingPage ---
 export function AgencyOnboardingPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { profile } = useAuth();
     const navigate = useNavigate();
     const [formState, setFormState] = useState({ agency_name: '', address: '', city: '', wilaya: '', trade_register_number: '', trade_register_url: '', id_card_url: '', selfie_url: '' });
     const [cities, setCities] = useState([]);
@@ -265,10 +261,9 @@ export function AgencyOnboardingPage() {
     );
 }
 
-// --- AdminDashboardPage (Enhanced) ---
 export function AdminDashboardPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { isAdmin } = useAuth();
     const navigate = useNavigate();
     
     const [stats, setStats] = useState({ users: 0, agencies: 0, bookings: 0, listings: 0, revenue: 0 });
@@ -276,38 +271,35 @@ export function AdminDashboardPage() {
     const [pendingAgencies, setPendingAgencies] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    const isAdmin = profile?.id === '08116ec7-be3f-43fb-a7c8-c1e76c9540de';
-
     useEffect(() => {
-        if (profile === null) return;
-        if (!isAdmin) { navigate('/'); return; }
+        if (isAdmin === false) { navigate('/'); return; }
+        if (isAdmin === true) {
+            const fetchAllData = async () => {
+                 setLoading(true);
+                 const [agenciesRes, usersRes, bookingsRes, listingsRes] = await Promise.all([
+                     supabase.from('agencies').select('*, profiles(full_name)'),
+                     supabase.from('profiles').select('id', { count: 'exact' }),
+                     supabase.from('bookings').select('total_price'),
+                     supabase.from('vehicles').select('id', { count: 'exact' })
+                 ]);
 
-        const fetchAllData = async () => {
-             setLoading(true);
-             const [agenciesRes, usersRes, bookingsRes, listingsRes] = await Promise.all([
-                 supabase.from('agencies').select('*, profiles(full_name)'),
-                 supabase.from('profiles').select('id', { count: 'exact' }),
-                 supabase.from('bookings').select('total_price'),
-                 supabase.from('vehicles').select('id', { count: 'exact' })
-             ]);
-
-             const agenciesData = agenciesRes.data || [];
-             setAllAgencies(agenciesData);
-             setPendingAgencies(agenciesData.filter(a => a.verification_status === 'pending'));
-             const bookingsData = bookingsRes.data || [];
-             const totalRevenue = bookingsData.reduce((sum, booking) => sum + booking.total_price, 0);
-             setStats({
-                 users: usersRes.count || 0,
-                 agencies: agenciesData.length,
-                 bookings: bookingsData.length,
-                 listings: listingsRes.count || 0,
-                 revenue: totalRevenue
-             });
-             setLoading(false);
-        };
-        
-        fetchAllData();
-    }, [profile, isAdmin, navigate]);
+                 const agenciesData = agenciesRes.data || [];
+                 setAllAgencies(agenciesData);
+                 setPendingAgencies(agenciesData.filter(a => a.verification_status === 'pending'));
+                 const bookingsData = bookingsRes.data || [];
+                 const totalRevenue = bookingsData.reduce((sum, booking) => sum + booking.total_price, 0);
+                 setStats({
+                     users: usersRes.count || 0,
+                     agencies: agenciesData.length,
+                     bookings: bookingsData.length,
+                     listings: listingsRes.count || 0,
+                     revenue: totalRevenue
+                 });
+                 setLoading(false);
+            };
+            fetchAllData();
+        }
+    }, [isAdmin, navigate]);
 
     if (loading) return <DashboardLayout title={t('adminDashboardTitle')} description={t('adminDashboardDesc')}><p>{t('loading')}</p></DashboardLayout>;
 
@@ -336,7 +328,6 @@ export function AdminDashboardPage() {
     );
 }
 
-// --- AdminAgencyDetailsPage ---
 export function AdminAgencyDetailsPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();

@@ -1,13 +1,20 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
+import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { supabase } from '../lib/supabaseClient';
 import { CreditCard, Banknote } from 'lucide-react';
 
-export function BookingPage({ params }) {
-    const { supabase, session, navigate } = useContext(AppContext);
+export function BookingPage() {
+    const { session } = useAuth();
     const { t } = useTranslation();
-    const { vehicleId, startDate, endDate, totalPrice } = params;
+    const navigate = useNavigate();
+    const { vehicleId } = useParams();
+    const [searchParams] = useSearchParams();
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
     const [vehicle, setVehicle] = useState(null);
+    const [totalPrice, setTotalPrice] = useState(0);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -15,26 +22,40 @@ export function BookingPage({ params }) {
 
     useEffect(() => {
         if (!session) {
-            navigate('login');
+            navigate('/login');
             return;
         }
-        const fetchVehicle = async () => {
-            if (!supabase || !vehicleId) return;
+        if (!vehicleId || !startDate || !endDate) {
+            setError("Missing booking information.");
+            setLoading(false);
+            return;
+        }
+
+        const fetchVehicleAndCalculatePrice = async () => {
             setLoading(true);
             const { data, error } = await supabase.from('vehicles').select('*, agencies(*)').eq('id', vehicleId).single();
-            if (error) console.error("Error fetching vehicle for booking:", error);
-            else setVehicle(data);
+            if (error) {
+                console.error("Error fetching vehicle for booking:", error);
+                setError(error.message);
+            } else {
+                setVehicle(data);
+                const start = new Date(startDate);
+                const end = new Date(endDate);
+                const diffTime = Math.abs(end - start);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                const days = diffDays > 0 ? diffDays : 1;
+                setTotalPrice(days * data.daily_rate_dzd);
+            }
             setLoading(false);
         };
-        fetchVehicle();
-    }, [supabase, vehicleId, session, navigate]);
+        fetchVehicleAndCalculatePrice();
+    }, [vehicleId, startDate, endDate, session, navigate]);
 
     const handleConfirmBooking = async () => {
         if (!session || !vehicle) return;
         setProcessing(true);
         setError('');
 
-        // Final availability check to prevent race conditions
         const { data: availableVehicles, error: rpcError } = await supabase.rpc('get_available_vehicles', {
             start_date_in: startDate,
             end_date_in: endDate
@@ -54,12 +75,12 @@ export function BookingPage({ params }) {
             total_price: totalPrice,
             payment_method: paymentMethod,
             status: 'confirmed'
-        }]).select('*, vehicles(*, agencies(*)), profiles(*)').single();
+        }]).select().single();
 
         if (insertError) {
             setError(t('error') + ': ' + insertError.message);
-        } else {
-            navigate('booking-confirmation', { booking: newBooking });
+        } else if (newBooking) {
+            navigate(`/booking-confirmation/${newBooking.id}`);
         }
         setProcessing(false);
     };

@@ -1,16 +1,14 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { AppContext } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext'; // Updated import
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, Users as UsersIcon } from 'lucide-react';
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe } from 'lucide-react';
 
 export function Navbar() {
-    const { session, profile, handleLogout } = useContext(AppContext);
+    // Use the custom hook to get all auth-related data and functions
+    const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
     const { t, language, setLanguage } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const isAuthenticated = !!session;
-    const isAgencyOwner = profile?.is_agency_owner || false;
-    const isAdmin = session?.user?.id === '08116ec7-be3f-43fb-a7c8-c1e76c9540de';
 
     const toggleLanguage = () => setLanguage(language === 'en' ? 'fr' : 'en');
     const closeMenu = () => setIsMenuOpen(false);
@@ -20,7 +18,8 @@ export function Navbar() {
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <Link to="/" className="flex-shrink-0 cursor-pointer" onClick={closeMenu}>
-                        <img src="https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/trade_registers/603c677d-4617-44df-be77-030de2f94546/Gemini_Generated_Image_3wxqoy3wxqoy3wxq__1_-removebg-preview.png" alt="Sayara Logo" className="h-10" />
+                        {/* Corrected the image URL to a more stable path */}
+                        <img src="https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png" alt="Sayara Logo" className="h-10" />
                     </Link>
                     <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
                         <Link to="/" className="hover:text-indigo-500">{t('navHome')}</Link>

@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useContext } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useTranslation } from '../../contexts/LanguageContext';
-import { AppContext } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ConfirmationModal } from '../../components/modals';
 import { User, Mail, Phone, Calendar, Shield, Ban, CheckCircle } from 'lucide-react';
@@ -10,34 +10,24 @@ import { User, Mail, Phone, Calendar, Shield, Ban, CheckCircle } from 'lucide-re
 export function UserDetailsPage() {
     const { t } = useTranslation();
     const { id: userId } = useParams();
-    const { profile } = useContext(AppContext);
+    const { isAdmin, profile } = useAuth();
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-    // Hardcoded admin ID for authorization check.
-    const isAdmin = profile?.id === '08116ec7-be3f-43fb-a7c8-c1e76c9540de';
-
-    // This effect runs to check if the current user is an admin.
-    // If not, it redirects them to the home page.
     useEffect(() => {
-        if (profile === null) {
-            // Wait for the profile to be loaded before checking permissions.
-            return;
-        }
+        if (profile === null) return;
         if (!isAdmin) {
             navigate('/');
         }
     }, [profile, isAdmin, navigate]);
 
     const fetchUserData = useCallback(async () => {
-        // Ensure we only fetch data if the user is an admin.
         if (!isAdmin || !userId) return;
         setLoading(true);
 
-        // This RPC call correctly fetches the full user profile including the email.
         const [usersRes, bookingsRes] = await Promise.all([
             supabase.rpc('get_all_users_with_profiles'),
             supabase.from('bookings').select('*, vehicles(make, model)').eq('user_id', userId).order('created_at', { ascending: false })
@@ -50,7 +40,6 @@ export function UserDetailsPage() {
             console.error('Error fetching user data:', usersError);
             setUser(null);
         } else {
-            // Find the specific user from the list returned by the RPC call.
             const currentUser = usersData?.find(u => u.id === userId);
             setUser(currentUser || null);
         }
@@ -66,13 +55,11 @@ export function UserDetailsPage() {
     }, [userId, isAdmin]);
 
     useEffect(() => {
-        // Only fetch data if the admin status is determined.
-        if (profile) {
+        if (profile && isAdmin) {
             fetchUserData();
         }
-    }, [fetchUserData, profile]);
+    }, [fetchUserData, profile, isAdmin]);
 
-    // This is the simplified handler that only updates the user's status in the database.
     const handleToggleSuspend = async () => {
         if (!user) return;
         const newStatus = !user.is_suspended;
@@ -85,13 +72,11 @@ export function UserDetailsPage() {
             alert('Error updating user status.');
             console.error(error);
         } else {
-            // Refresh the user data on the page to show the new status.
             fetchUserData();
         }
         setShowConfirmModal(false);
     };
 
-    // If the user is not an admin, we show a loading state while redirecting.
     if (!isAdmin) {
         return <DashboardLayout title={t('loading')} description="..." />;
     }

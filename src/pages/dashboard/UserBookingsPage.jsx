@@ -1,12 +1,13 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
+import { supabase } from '../../lib/supabaseClient';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Download } from 'lucide-react';
 
 export function UserBookingsPage({ generateInvoice }) {
     const { t } = useTranslation();
-    const { supabase, session } = useContext(AppContext);
+    const { session } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processingInvoice, setProcessingInvoice] = useState(null);
@@ -19,7 +20,7 @@ export function UserBookingsPage({ generateInvoice }) {
 
     useEffect(() => {
         const fetchBookings = async () => {
-            if (!supabase || !session) return;
+            if (!session) return;
             setLoading(true);
             const { data, error } = await supabase
                 .from('bookings')
@@ -35,7 +36,7 @@ export function UserBookingsPage({ generateInvoice }) {
             setLoading(false);
         };
         fetchBookings();
-    }, [supabase, session]);
+    }, [session]);
 
     return (
         <DashboardLayout title={t('dashboardTitle')} description={t('dashboardDesc')}>

@@ -1,23 +1,15 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { AppContext } from '../contexts/AppContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
+import { supabase } from '../lib/supabaseClient';
 import { Users, Wind, Droplets, ChevronLeft, ChevronRight } from 'lucide-react';
 
-/**
- * VehicleDetailsPage Component
- * Displays the details of a single vehicle, including an image gallery and a booking widget.
- * It fetches the vehicle ID from the URL using the `useParams` hook.
- * It uses the `useNavigate` hook to redirect to the login or booking page.
- */
 export function VehicleDetailsPage() {
-    // --- Hooks ---
-    const { id: vehicleId } = useParams(); // Get vehicleId from the URL, e.g., "/vehicle/123"
+    const { id: vehicleId } = useParams();
     const navigate = useNavigate();
-    const { supabase, session } = useContext(AppContext);
+    const { session } = useAuth();
     const { t } = useTranslation();
-
-    // --- State ---
     const [vehicle, setVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -30,10 +22,9 @@ export function VehicleDetailsPage() {
         return tomorrow.toISOString().split('T')[0];
     });
 
-    // --- Data Fetching ---
     useEffect(() => {
         const fetchVehicle = async () => {
-            if (!supabase || !vehicleId) return;
+            if (!vehicleId) return;
             setLoading(true);
             const { data, error } = await supabase
                 .from('vehicles')
@@ -49,9 +40,8 @@ export function VehicleDetailsPage() {
             setLoading(false);
         };
         fetchVehicle();
-    }, [supabase, vehicleId]);
+    }, [vehicleId]);
 
-    // --- Computed Values & Helpers ---
     const calculateDays = () => {
         if (!startDate || !endDate) return 0;
         const start = new Date(startDate);
@@ -65,24 +55,15 @@ export function VehicleDetailsPage() {
     const rentalDays = calculateDays();
     const totalPrice = vehicle ? rentalDays * vehicle.daily_rate_dzd : 0;
 
-    // --- Event Handlers ---
     const handleBookingRequest = () => {
         if (!session) {
-            navigate('/login'); // Redirect to login if not authenticated
+            navigate('/login');
             return;
         }
-        // Navigate to the booking page and pass data via router state
-        navigate('/book', {
-            state: {
-                vehicleId: vehicle.id,
-                startDate,
-                endDate,
-                totalPrice
-            }
-        });
+        const searchParams = new URLSearchParams({ startDate, endDate }).toString();
+        navigate(`/book/${vehicle.id}?${searchParams}`);
     };
 
-    // --- Render Logic ---
     if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
     if (error) return <div className="container mx-auto p-4 text-center text-red-500">{t('error')}: {error}</div>;
     if (!vehicle) return <div className="container mx-auto p-4 text-center">{t('noVehiclesFound')}</div>;
@@ -94,7 +75,6 @@ export function VehicleDetailsPage() {
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Image Gallery */}
                 <div className="lg:col-span-2">
                     <div className="relative mb-4">
                         <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
@@ -108,7 +88,7 @@ export function VehicleDetailsPage() {
                     {images.length > 1 && (
                         <div className="flex space-x-2 overflow-x-auto">
                             {images.map((img, index) => (
-                                <img key={index} src={img} onClick={() => setActiveImageIndex(index)} className={`w-24 h-24 object-cover rounded-md cursor-pointer ${index === activeImageIndex ? 'ring-2 ring-indigo-500' : ''}`} />
+                                <img key={index} src={img} onClick={() => setActiveImageIndex(index)} alt={`Thumbnail ${index + 1}`} className={`w-24 h-24 object-cover rounded-md cursor-pointer ${index === activeImageIndex ? 'ring-2 ring-indigo-500' : ''}`} />
                             ))}
                         </div>
                     )}
@@ -131,11 +111,9 @@ export function VehicleDetailsPage() {
                         </div>
                     </div>
                 </div>
-
-                {/* Booking Widget */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
-                        <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
+                        <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium">{t('pickupDate')}</label>

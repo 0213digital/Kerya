@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { AppContext } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { User, Edit } from 'lucide-react';
@@ -9,8 +9,7 @@ const AVATARS_BUCKET = 'avatars';
 
 export function ProfilePage() {
     const { t } = useTranslation();
-    // Get the fetchProfile function from the context
-    const { profile, session, fetchProfile } = useContext(AppContext);
+    const { profile, session, fetchProfile } = useAuth();
     
     const [loading, setLoading] = useState(false);
     const [uploading, setUploading] = useState(false);
@@ -58,7 +57,6 @@ export function ProfilePage() {
                     setErrorMessage(updateError.message);
                 } else {
                     setSuccessMessage(t('profileUpdated'));
-                    // Re-fetch the profile to update the UI instantly
                     fetchProfile(session.user);
                 }
             }
@@ -83,19 +81,13 @@ export function ProfilePage() {
             setErrorMessage(error.message);
         } else {
             setSuccessMessage(t('profileUpdated'));
-            // Re-fetch the profile to update the UI instantly
             fetchProfile(session.user);
         }
         setLoading(false);
     };
 
-    /**
-     * Handles changes to the phone number input.
-     * It removes any non-digit characters and limits the length.
-     */
     const handlePhoneChange = (e) => {
-        const value = e.target.value.replace(/\D/g, ''); // Remove any non-digit characters
-        // Algerian numbers are 9 digits after the country code
+        const value = e.target.value.replace(/\D/g, '');
         if (value.length <= 9) {
             setPhoneNumber(value);
         }

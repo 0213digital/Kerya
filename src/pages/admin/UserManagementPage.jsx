@@ -18,7 +18,7 @@ export function UserManagementPage() {
     const [roleFilter, setRoleFilter] = useState('all'); // 'all', 'renter', 'agencyOwner'
 
 
-    const isAdmin = profile?.id === '08116ec7-be3f-43fb-a7c8-c1e76c9540de';
+    const isAdmin = profile?.role === 'admin';
 
     useEffect(() => {
         if (profile === null) return;

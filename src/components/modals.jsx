@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../contexts/LanguageContext';
-import { AppContext } from '../contexts/AppContext';
 import { supabase } from '../lib/supabaseClient';
 import { carData } from '../data/geoAndCarData';
 import { X, UploadCloud } from 'lucide-react';
@@ -113,7 +112,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
                     <p className="text-xs text-slate-500">{t('carRegistrationCardDesc')}</p>
                     <FileUploadBox type="image" label={t('vehicleImages')} url={null} uploading={isUploading} onChange={(e) => handleFileUpload(e, 'image')} />
                     <div className="mt-2 flex flex-wrap gap-2">
-                        {formState.image_urls.map(url => <img key={url} src={url} className="h-20 w-20 object-cover rounded-md" />)}
+                        {formState.image_urls.map(url => <img key={url} src={url} className="h-20 w-20 object-cover rounded-md" alt="Vehicle" />)}
                     </div>
                     <div className="p-4 border-t border-slate-200 flex justify-end space-x-2">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200">{t('cancel')}</button>

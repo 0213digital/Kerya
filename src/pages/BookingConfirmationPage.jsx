@@ -1,25 +1,59 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { AppContext } from '../contexts/AppContext';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
 import { PartyPopper, Download } from 'lucide-react';
 
-// This function needs to be passed through props or context if it's not defined here.
-// For now, we assume it's passed via AppContext.
-export function BookingConfirmationPage({ params, generateInvoice }) {
-    const { navigate } = useContext(AppContext);
+export function BookingConfirmationPage({ generateInvoice }) {
+    const navigate = useNavigate();
     const { t } = useTranslation();
-    const { booking } = params;
+    const { bookingId } = useParams();
+    const [booking, setBooking] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
 
+    useEffect(() => {
+        const fetchBookingDetails = async () => {
+            if (!bookingId) {
+                navigate('/');
+                return;
+            }
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('bookings')
+                .select('*, vehicles(*, agencies(*))')
+                .eq('id', bookingId)
+                .single();
+            
+            if (error || !data) {
+                console.error("Could not fetch booking confirmation:", error);
+                navigate('/');
+            } else {
+                setBooking(data);
+            }
+            setLoading(false);
+        };
+
+        fetchBookingDetails();
+    }, [bookingId, navigate]);
+
     const handleDownload = async () => {
+        if (!booking) return;
         setIsProcessing(true);
         await generateInvoice(booking, t);
         setIsProcessing(false);
     };
 
-    if (!booking) { // Handle case where user lands here directly
-        useEffect(() => { navigate('home'); }, [navigate]);
-        return null;
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
+    }
+
+    if (!booking) {
+        return (
+            <div className="container mx-auto max-w-2xl py-16 px-4 text-center">
+                <p>Booking not found.</p>
+            </div>
+        );
     }
 
     return (
@@ -41,7 +75,7 @@ export function BookingConfirmationPage({ params, generateInvoice }) {
                     <Download size={20} className="mr-2" />
                     {isProcessing ? t('processing') : t('downloadInvoice')}
                 </button>
-                <button onClick={() => navigate('dashboard/bookings')} className="mt-4 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700">
+                <button onClick={() => navigate('/dashboard/bookings')} className="mt-4 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700">
                     {t('backToMyBookings')}
                 </button>
             </div>
