@@ -5,6 +5,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
 import { Users, Wind, Droplets, ChevronLeft, ChevronRight } from 'lucide-react';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
+import { ReviewList } from '../components/ReviewList'; // Import the new component
 
 export function VehicleDetailsPage() {
     const { id: vehicleId } = useParams();
@@ -50,7 +51,7 @@ export function VehicleDetailsPage() {
         if (!startDate || !endDate) return 0;
         const start = new Date(startDate);
         const end = new Date(endDate);
-        if (end <= start) return 1; // Should not happen with calendar logic, but safe
+        if (end <= start) return 1;
         const diffTime = Math.abs(end - start);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         return diffDays > 0 ? diffDays : 1;
@@ -65,7 +66,6 @@ export function VehicleDetailsPage() {
             return;
         }
         if (!startDate || !endDate) {
-            // This alert is a fallback, the button should be disabled
             alert('Please select a start and end date from the calendar.');
             return;
         }
@@ -119,6 +119,12 @@ export function VehicleDetailsPage() {
                             <p className="text-slate-600">{`${vehicle.agencies.city}, ${vehicle.agencies.wilaya}`}</p>
                         </div>
                     </div>
+                    
+                    {/* Display the list of reviews */}
+                    <div className="mt-12">
+                        <ReviewList vehicleId={vehicle.id} />
+                    </div>
+
                 </div>
                 <div className="lg:col-span-1">
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
@@ -128,7 +134,7 @@ export function VehicleDetailsPage() {
                         
                         <div className="mt-6 pt-4 border-t border-slate-200">
                             <div className="flex justify-between items-center text-lg">
-                                <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? 'days' : 'day'})</span>
+                                <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? t('days') : t('day')})</span>
                                 <span className="font-bold">{totalPrice.toLocaleString()} DZD</span>
                             </div>
                         </div>

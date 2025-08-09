@@ -208,7 +208,6 @@ export const translations = {
         tryAdjustingFilters: "Try adjusting your search or filter criteria.",
         allStatuses: "All Statuses",
         allRoles: "All Roles",
-        // --- New Keys ---
         day: "day",
         days: "days",
         bookingSummary: "Booking Summary",
@@ -225,6 +224,16 @@ export const translations = {
         missingBookingInfo: "Missing booking information.",
         profileError: "Could not retrieve user profile.",
         noBookingsFoundForAgency: "No bookings found.",
+        // --- Review Feature Keys ---
+        leaveAReview: "Leave a Review",
+        yourRating: "Your Rating",
+        selectARating: "Please select a rating.",
+        yourCommentOptional: "Your Comment (optional)",
+        howWasYourExperience: "How was your experience?",
+        submitReview: "Submit Review",
+        loadingReviews: "Loading reviews...",
+        noReviewsYet: "No reviews yet for this vehicle.",
+        reviewsTitle: "Reviews ({count})",
     },
     fr: {
         appName: "Sayara",
@@ -435,7 +444,6 @@ export const translations = {
         tryAdjustingFilters: "Essayez de modifier vos critères de recherche ou de filtrage.",
         allStatuses: "Tous les statuts",
         allRoles: "Tous les rôles",
-        // --- New Keys ---
         day: "jour",
         days: "jours",
         bookingSummary: "Résumé de la réservation",
@@ -452,5 +460,15 @@ export const translations = {
         missingBookingInfo: "Informations de réservation manquantes.",
         profileError: "Impossible de récupérer le profil utilisateur.",
         noBookingsFoundForAgency: "Aucune réservation trouvée.",
+        // --- Review Feature Keys ---
+        leaveAReview: "Laisser un avis",
+        yourRating: "Votre note",
+        selectARating: "Veuillez sélectionner une note.",
+        yourCommentOptional: "Votre commentaire (facultatif)",
+        howWasYourExperience: "Comment était votre expérience ?",
+        submitReview: "Soumettre l'avis",
+        loadingReviews: "Chargement des avis...",
+        noReviewsYet: "Aucun avis pour ce véhicule pour le moment.",
+        reviewsTitle: "Avis ({count})",
     }
 };
