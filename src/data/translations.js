@@ -241,6 +241,8 @@ export const translations = {
         agencyNotFound: "Agency not found.",
         alertSelectDates: "Please select a start and end date from the calendar.",
         pleaseUploadRegCard: "Please upload the car registration card.",
+        list: "List",
+        map: "Map",
     },
     fr: {
         appName: "Sayara",
@@ -484,5 +486,7 @@ export const translations = {
         agencyNotFound: "Agence non trouvée.",
         alertSelectDates: "Veuillez sélectionner une date de début et de fin dans le calendrier.",
         pleaseUploadRegCard: "Veuillez télécharger la carte grise.",
+        list: "Liste",
+        map: "Carte",
     }
 };
