@@ -4,7 +4,52 @@ import { supabase } from '../lib/supabaseClient';
 import { carData } from '../data/geoAndCarData';
 import { X, UploadCloud } from 'lucide-react';
 
-// --- FileUploadBox (Helper for VehicleFormModal and AgencyOnboardingPage) ---
+// --- EditUserModal (New) ---
+export function EditUserModal({ user, onSave, onClose }) {
+    const { t } = useTranslation();
+    const [fullName, setFullName] = useState(user.full_name || '');
+    const [phoneNumber, setPhoneNumber] = useState(user.phone_number || '');
+    const [loading, setLoading] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        await onSave({ full_name: fullName, phone_number: phoneNumber });
+        setLoading(false);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div className="p-6 border-b flex justify-between items-center">
+                    <h3 className="text-xl font-bold">{t('editProfile')}</h3>
+                    <button onClick={onClose}><X /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium">{t('fullName')}</label>
+                        <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium">{t('phoneNumber')}</label>
+                        <div className="relative mt-1">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">+213</span>
+                            <input type="tel" value={phoneNumber} onChange={e => setPhoneNumber(e.target.value.replace(/\D/g, ''))} className="w-full p-2 pl-12 border border-slate-300 rounded-md bg-white" />
+                        </div>
+                    </div>
+                    <div className="flex justify-end space-x-2">
+                        <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200">{t('cancel')}</button>
+                        <button type="submit" disabled={loading} className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400">{loading ? t('processing') : t('saveChanges')}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    );
+}
+
+
+// --- FileUploadBox, VehicleFormModal, DeleteConfirmationModal, RejectionModal, ConfirmationModal (Unchanged) ---
+// ... (Keep the existing code for these modals here)
 export const FileUploadBox = ({ type, label, url, uploading, onChange }) => {
     const { t } = useTranslation();
     return (
@@ -25,8 +70,6 @@ export const FileUploadBox = ({ type, label, url, uploading, onChange }) => {
         </div>
     );
 };
-
-// --- VehicleFormModal ---
 export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
     const { t } = useTranslation();
     const [formState, setFormState] = useState({
@@ -127,8 +170,6 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         </div>
     );
 }
-
-// --- DeleteConfirmationModal ---
 export function DeleteConfirmationModal({ item, onCancel, onConfirm }) {
     const { t } = useTranslation();
     if (!item) return null;
@@ -147,8 +188,6 @@ export function DeleteConfirmationModal({ item, onCancel, onConfirm }) {
         </div>
     );
 }
-
-// --- RejectionModal ---
 export function RejectionModal({ onCancel, onSubmit, processing }) {
     const { t } = useTranslation();
     const [reason, setReason] = useState('');
@@ -168,8 +207,6 @@ export function RejectionModal({ onCancel, onSubmit, processing }) {
         </div>
     );
 }
-
-// --- ConfirmationModal ---
 export function ConfirmationModal({ title, text, confirmText, onConfirm, onCancel, isDestructive = false }) {
     const { t } = useTranslation();
     return (

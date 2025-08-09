@@ -265,6 +265,12 @@ export const translations = {
         priceLowHigh: "Price: Low to High",
         priceHighLow: "Price: High to Low",
         ratingHighLow: "Rating: High to Low",
+        edit: "Edit",
+        editProfile: "Edit Profile",
+        sendPasswordReset: "Send Password Reset",
+        deleteUser: "Delete User",
+        deleteUserConfirmText: "This will permanently delete the user and all their associated data. This action cannot be undone.",
+        saveChanges: "Save Changes",
     },
     fr: {
         appName: "Sayara",
@@ -532,5 +538,11 @@ export const translations = {
         priceLowHigh: "Prix : Croissant",
         priceHighLow: "Prix : Décroissant",
         ratingHighLow: "Note : Décroissant",
+        edit: "Modifier",
+        editProfile: "Modifier le Profil",
+        sendPasswordReset: "Envoyer un lien de réinitialisation",
+        deleteUser: "Supprimer l'utilisateur",
+        deleteUserConfirmText: "Ceci supprimera définitivement l'utilisateur et toutes ses données associées. Cette action est irréversible.",
+        saveChanges: "Enregistrer les modifications",
     }
 };
