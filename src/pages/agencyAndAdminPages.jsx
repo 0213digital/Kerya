@@ -4,13 +4,13 @@ import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { DashboardLayout } from '../components/DashboardLayout';
-import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBox } from '../components/modals';
+import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBox, CancellationModal, ConfirmationModal } from '../components/modals';
 import { algeriaGeoData } from '../data/geoAndCarData';
-import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2 } from 'lucide-react';
+import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo } from 'lucide-react';
 
-// A simple bar chart component for demonstration
+// ... (Le composant AgencyDashboardPage reste inchangé)
 const MonthlyRevenueChart = ({ data, t }) => {
-    const maxValue = Math.max(...data.map(d => d.revenue), 1); // Avoid division by zero
+    const maxValue = Math.max(...data.map(d => d.revenue), 1);
     return (
         <div className="bg-white p-6 rounded-lg shadow-md h-full">
             <h3 className="text-lg font-semibold mb-4">{t('monthlyRevenue')}</h3>
@@ -31,7 +31,6 @@ const MonthlyRevenueChart = ({ data, t }) => {
         </div>
     );
 };
-
 export function AgencyDashboardPage() {
     const { t } = useTranslation();
     const { profile } = useAuth();
@@ -206,6 +205,7 @@ export function AgencyDashboardPage() {
 }
 
 export function AgencyVehiclesPage() {
+    // ... (This component remains unchanged)
     const { t } = useTranslation();
     const { profile } = useAuth();
     const navigate = useNavigate();
@@ -273,47 +273,142 @@ export function AgencyBookingsPage() {
     const { profile } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showCancelModal, setShowCancelModal] = useState(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(null);
+    const [processing, setProcessing] = useState(false);
+
+    const fetchBookings = useCallback(async () => {
+        if (!profile) return;
+        setLoading(true);
+        const { data: agencyData } = await supabase.from('agencies').select('id').eq('owner_id', profile.id).single();
+        if (!agencyData) { setLoading(false); return; }
+        const { data: vehicleData } = await supabase.from('vehicles').select('id').eq('agency_id', agencyData.id);
+        if (!vehicleData || vehicleData.length === 0) { setLoading(false); return; }
+        const vehicleIds = vehicleData.map(v => v.id);
+        const { data } = await supabase.from('bookings').select('*, vehicles(make, model), profiles(*)').in('vehicle_id', vehicleIds).order('start_date', { ascending: false });
+        setBookings(data || []);
+        setLoading(false);
+    }, [profile]);
 
     useEffect(() => {
-        const fetchBookings = async () => {
-            if (!profile) return;
-            setLoading(true);
-            const { data: agencyData } = await supabase.from('agencies').select('id').eq('owner_id', profile.id).single();
-            if (!agencyData) { setLoading(false); return; }
-            const { data: vehicleData } = await supabase.from('vehicles').select('id').eq('agency_id', agencyData.id);
-            if (!vehicleData || vehicleData.length === 0) { setLoading(false); return; }
-            const vehicleIds = vehicleData.map(v => v.id);
-            const { data } = await supabase.from('bookings').select('*, vehicles(make, model), profiles(*)').in('vehicle_id', vehicleIds).order('start_date', { ascending: false });
-            setBookings(data || []);
-            setLoading(false);
-        };
         fetchBookings();
-    }, [profile]);
+    }, [fetchBookings]);
+
+    const handleStatusUpdate = async (bookingId, newStatus) => {
+        setProcessing(true);
+        const { error } = await supabase.rpc('update_booking_status_by_agency', {
+            p_booking_id: bookingId,
+            p_new_status: newStatus,
+        });
+        if (error) {
+            alert(t('error') + ': ' + error.message);
+        } else {
+            setShowConfirmModal(null);
+            fetchBookings();
+        }
+        setProcessing(false);
+    };
+
+    const handleCancelBooking = async (reason) => {
+        if (!showCancelModal || !reason.trim()) return;
+        setProcessing(true);
+        const { error } = await supabase.rpc('cancel_booking_by_agency', {
+            p_booking_id: showCancelModal.id,
+            p_reason: reason,
+        });
+        if (error) {
+            alert(t('error') + ': ' + error.message);
+        } else {
+            setShowCancelModal(null);
+            fetchBookings();
+        }
+        setProcessing(false);
+    };
+
+    const StatusBadge = ({ status }) => {
+        const statusMap = {
+            confirmed: { text: t('statusActive'), color: 'green' },
+            cancelled: { text: t('statusCancelled'), color: 'red' },
+            'picked-up': { text: t('statusPickedUp'), color: 'blue' },
+            returned: { text: t('statusReturned'), color: 'slate' },
+        };
+        const currentStatus = statusMap[status] || { text: status, color: 'slate' };
+        return (
+            <span className={`px-3 py-1 text-xs font-semibold rounded-full bg-${currentStatus.color}-100 text-${currentStatus.color}-800 capitalize`}>
+                {currentStatus.text}
+            </span>
+        );
+    };
+
+    const today = new Date().setHours(0, 0, 0, 0);
 
     return (
         <DashboardLayout title={t('agencyBookings')} description={t('agencyBookingsDesc')}>
             <div className="bg-white rounded-lg shadow-md overflow-x-auto">
                 <table className="w-full text-left">
-                    <thead className="bg-slate-50"><tr><th className="p-4 font-semibold">{t('customer')}</th><th className="p-4 font-semibold">{t('vehicle')}</th><th className="p-4 font-semibold">{t('dates')}</th><th className="p-4 font-semibold">{t('price')}</th><th className="p-4 font-semibold">{t('status')}</th></tr></thead>
+                    <thead className="bg-slate-50">
+                        <tr>
+                            <th className="p-4 font-semibold">{t('customer')}</th>
+                            <th className="p-4 font-semibold">{t('vehicle')}</th>
+                            <th className="p-4 font-semibold">{t('dates')}</th>
+                            <th className="p-4 font-semibold">{t('price')}</th>
+                            <th className="p-4 font-semibold">{t('status')}</th>
+                            <th className="p-4 font-semibold text-right">{t('actions')}</th>
+                        </tr>
+                    </thead>
                     <tbody>
-                        {loading ? (<tr><td colSpan="5" className="p-4 text-center">{t('loading')}</td></tr>) : bookings.length > 0 ? (
-                            bookings.map(b => (
+                        {loading ? (<tr><td colSpan="6" className="p-4 text-center">{t('loading')}</td></tr>) : bookings.length > 0 ? (
+                            bookings.map(b => {
+                                const bookingStartDate = new Date(b.start_date).setHours(0, 0, 0, 0);
+                                const bookingEndDate = new Date(b.end_date).setHours(0, 0, 0, 0);
+                                return (
                                 <tr key={b.id} className="border-b border-slate-200">
                                     <td className="p-4"><div>{b.profiles.full_name}</div><div className="text-sm text-slate-500">{b.profiles.email}</div></td>
                                     <td className="p-4">{b.vehicles.make} {b.vehicles.model}</td>
                                     <td className="p-4">{new Date(b.start_date).toLocaleDateString()} - {new Date(b.end_date).toLocaleDateString()}</td>
                                     <td className="p-4">{b.total_price.toLocaleString()} DZD</td>
-                                    <td className="p-4"><span className="px-3 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800 capitalize">{b.status}</span></td>
+                                    <td className="p-4"><StatusBadge status={b.status} /></td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex justify-end items-center space-x-2">
+                                            {b.status === 'confirmed' && today >= bookingStartDate && (
+                                                <button onClick={() => setShowConfirmModal({ booking: b, status: 'picked-up' })} className="text-blue-600 hover:text-blue-800 font-semibold flex items-center text-sm"><Check size={14} className="mr-1"/>{t('markAsPickedUp')}</button>
+                                            )}
+                                            {b.status === 'picked-up' && today >= bookingEndDate && (
+                                                 <button onClick={() => setShowConfirmModal({ booking: b, status: 'returned' })} className="text-slate-600 hover:text-slate-800 font-semibold flex items-center text-sm"><Undo size={14} className="mr-1"/>{t('markAsReturned')}</button>
+                                            )}
+                                            {b.status === 'confirmed' && (
+                                                <button onClick={() => setShowCancelModal(b)} className="text-red-600 hover:text-red-800 font-semibold flex items-center text-sm"><Ban size={14} className="mr-1"/>{t('cancel')}</button>
+                                            )}
+                                        </div>
+                                    </td>
                                 </tr>
-                            ))
-                        ) : (<tr><td colSpan="5" className="p-4 text-center">{t('noBookingsFoundForAgency')}</td></tr>)}
+                            )})
+                        ) : (<tr><td colSpan="6" className="p-4 text-center">{t('noBookingsFoundForAgency')}</td></tr>)}
                     </tbody>
                 </table>
             </div>
+            {showCancelModal && (
+                <CancellationModal
+                    booking={showCancelModal}
+                    onClose={() => setShowCancelModal(null)}
+                    onConfirm={handleCancelBooking}
+                    processing={processing}
+                />
+            )}
+            {showConfirmModal && (
+                 <ConfirmationModal
+                    title={showConfirmModal.status === 'picked-up' ? t('confirmPickupTitle') : t('confirmReturnTitle')}
+                    text={showConfirmModal.status === 'picked-up' ? t('confirmPickupText') : t('confirmReturnText')}
+                    confirmText={showConfirmModal.status === 'picked-up' ? t('markAsPickedUp') : t('markAsReturned')}
+                    onConfirm={() => handleStatusUpdate(showConfirmModal.booking.id, showConfirmModal.status)}
+                    onCancel={() => setShowConfirmModal(null)}
+                />
+            )}
         </DashboardLayout>
     );
 }
 
+// ... (Le reste du fichier reste inchangé)
 export function AgencyOnboardingPage() {
     const { t } = useTranslation();
     const { profile } = useAuth();
@@ -394,7 +489,6 @@ export function AgencyOnboardingPage() {
         </DashboardLayout>
     );
 }
-
 export function AdminDashboardPage() {
     const { t } = useTranslation();
     const { isAdmin } = useAuth();
@@ -522,7 +616,6 @@ export function AdminDashboardPage() {
         </DashboardLayout>
     );
 }
-
 export function AdminAgencyDetailsPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();

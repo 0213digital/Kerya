@@ -283,6 +283,31 @@ export const translations = {
         regarding: "Regarding: {make} {model}", // new
         regarding: "Regarding: {make} {model}", // new
         agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.", // ADD THIS LINE
+        agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.",
+        cancelBooking: "Cancel Booking", // ADD THIS
+        cancellationReason: "Reason for cancellation", // ADD THIS
+        confirmCancellation: "Confirm Cancellation", // ADD THIS
+        reasonPlaceholder: "e.g., Vehicle unforeseen maintenance...", // ADD THIS
+        bookingCancelled: "Booking Cancelled", // ADD THIS
+        cancelledByAgency: "Cancelled by agency: ", // ADD THIS
+        statusCancelled: "Cancelled", // ADD THIS
+         agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.",
+        cancelBooking: "Cancel Booking",
+        cancellationReason: "Reason for cancellation",
+        confirmCancellation: "Confirm Cancellation",
+        reasonPlaceholder: "e.g., Vehicle unforeseen maintenance...",
+        bookingCancelled: "Booking Cancelled",
+        cancelledByAgency: "Cancelled by agency: ",
+        statusCancelled: "Cancelled",
+        // ADD THESE NEW TRANSLATIONS
+        statusPickedUp: "Picked Up",
+        statusReturned: "Returned",
+        markAsPickedUp: "Mark as Picked Up",
+        markAsReturned: "Mark as Returned",
+        confirmPickupTitle: "Confirm Vehicle Pickup",
+        confirmPickupText: "Are you sure you want to mark this booking as 'Picked Up'?",
+        confirmReturnTitle: "Confirm Vehicle Return",
+        confirmReturnText: "Are you sure you want to mark this booking as 'Returned'?",
     },
     fr: {
         appName: "Sayara",
@@ -568,5 +593,30 @@ export const translations = {
         regarding: "Concernant : {make} {model}", // new
         regarding: "Concernant : {make} {model}", // new
         agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.", // ADD THIS LINE
+        agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.",
+        cancelBooking: "Annuler la réservation", // ADD THIS
+        cancellationReason: "Raison de l'annulation", // ADD THIS
+        confirmCancellation: "Confirmer l'annulation", // ADD THIS
+        reasonPlaceholder: "ex: Maintenance imprévue du véhicule...", // ADD THIS
+        bookingCancelled: "Réservation annulée", // ADD THIS
+        cancelledByAgency: "Annulée par l'agence : ", // ADD THIS
+        statusCancelled: "Annulée", // ADD THIS
+         agencyCannotRent: "En tant que propriétaire d'agence, vous ne pouvez pas réserver ou contacter d'autres agences.",
+        cancelBooking: "Annuler la réservation",
+        cancellationReason: "Raison de l'annulation",
+        confirmCancellation: "Confirmer l'annulation",
+        reasonPlaceholder: "ex: Maintenance imprévue du véhicule...",
+        bookingCancelled: "Réservation annulée",
+        cancelledByAgency: "Annulée par l'agence : ",
+        statusCancelled: "Annulée",
+        // ADD THESE NEW TRANSLATIONS
+        statusPickedUp: "Récupérée",
+        statusReturned: "Retournée",
+        markAsPickedUp: "Marquer comme Récupérée",
+        markAsReturned: "Marquer comme Retournée",
+        confirmPickupTitle: "Confirmer la récupération du véhicule",
+        confirmPickupText: "Voulez-vous vraiment marquer cette réservation comme 'Récupérée' ?",
+        confirmReturnTitle: "Confirmer le retour du véhicule",
+        confirmReturnText: "Voulez-vous vraiment marquer cette réservation comme 'Retournée' ?",
     }
 };

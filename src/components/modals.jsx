@@ -4,7 +4,48 @@ import { supabase } from '../lib/supabaseClient';
 import { carData } from '../data/geoAndCarData';
 import { X, UploadCloud } from 'lucide-react';
 
-// --- EditUserModal (New) ---
+// --- CancellationModal (New) ---
+export function CancellationModal({ booking, onClose, onConfirm, processing }) {
+    const { t } = useTranslation();
+    const [reason, setReason] = useState('');
+
+    return (
+        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
+            <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+                <div className="p-6 border-b flex justify-between items-center">
+                    <h3 className="text-xl font-bold">{t('cancelBooking')}</h3>
+                    <button onClick={onClose}><X /></button>
+                </div>
+                <div className="p-6 space-y-4">
+                    <div>
+                        <label htmlFor="reason" className="block text-sm font-medium">{t('cancellationReason')}</label>
+                        <textarea
+                            id="reason"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder={t('reasonPlaceholder')}
+                            rows="4"
+                            className="mt-1 w-full p-2 border border-slate-300 rounded-md"
+                        />
+                    </div>
+                </div>
+                <div className="bg-slate-50 px-6 py-3 flex justify-end space-x-3">
+                    <button onClick={onClose} type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">{t('cancel')}</button>
+                    <button
+                        onClick={() => onConfirm(reason)}
+                        disabled={!reason || processing}
+                        type="button"
+                        className="px-4 py-2 text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 disabled:bg-red-400"
+                    >
+                        {processing ? t('processing') : t('confirmCancellation')}
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+// --- EditUserModal ---
 export function EditUserModal({ user, onSave, onClose }) {
     const { t } = useTranslation();
     const [fullName, setFullName] = useState(user.full_name || '');
@@ -49,7 +90,6 @@ export function EditUserModal({ user, onSave, onClose }) {
 
 
 // --- FileUploadBox, VehicleFormModal, DeleteConfirmationModal, RejectionModal, ConfirmationModal (Unchanged) ---
-// ... (Keep the existing code for these modals here)
 export const FileUploadBox = ({ type, label, url, uploading, onChange }) => {
     const { t } = useTranslation();
     return (
@@ -218,9 +258,9 @@ export function ConfirmationModal({ title, text, confirmText, onConfirm, onCance
                 </div>
                 <div className="bg-slate-50 px-6 py-3 flex justify-end space-x-3">
                     <button onClick={onCancel} type="button" className="px-4 py-2 text-sm font-medium rounded-md bg-white text-slate-700 border border-slate-300 hover:bg-slate-50">{t('cancel')}</button>
-                    <button 
-                        onClick={onConfirm} 
-                        type="button" 
+                    <button
+                        onClick={onConfirm}
+                        type="button"
                         className={`px-4 py-2 text-sm font-medium rounded-md text-white ${isDestructive ? 'bg-red-600 hover:bg-red-700' : 'bg-indigo-600 hover:bg-indigo-700'}`}
                     >
                         {confirmText}
