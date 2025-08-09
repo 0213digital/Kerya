@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext'; // Updated import
+import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare } from 'lucide-react'; // Import MessageSquare
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power } from 'lucide-react';
 
 export function Navbar() {
-    // Use the custom hook to get all auth-related data and functions
     const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
     const { t, language, setLanguage } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -13,12 +12,25 @@ export function Navbar() {
     const toggleLanguage = () => setLanguage(language === 'en' ? 'fr' : 'en');
     const closeMenu = () => setIsMenuOpen(false);
 
+    const MobileNavLink = ({ to, icon, children }) => (
+        <Link to={to} onClick={closeMenu} className="flex items-center px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:bg-slate-100">
+            {icon}
+            <span className="ml-3">{children}</span>
+        </Link>
+    );
+
+    const MobileNavButton = ({ onClick, icon, children }) => (
+         <button onClick={onClick} className="w-full flex items-center px-3 py-2 rounded-md text-base font-medium text-red-600 hover:bg-slate-100">
+            {icon}
+            <span className="ml-3">{children}</span>
+        </button>
+    );
+
     return (
         <header className="fixed top-0 left-0 right-0 z-50 shadow-md bg-white/80 backdrop-blur-sm">
             <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                     <Link to="/" className="flex-shrink-0 cursor-pointer" onClick={closeMenu}>
-                        {/* Corrected the image URL to a more stable path */}
                         <img src="https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png" alt="Sayara Logo" className="h-10" />
                     </Link>
                     <nav className="hidden md:flex items-center space-x-6 text-sm font-medium text-slate-600">
@@ -36,7 +48,7 @@ export function Navbar() {
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
                                         <Link to="/profile" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('myProfile')}</Link>
-                                        <Link to="/dashboard/messages" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('navMessages')}</Link> {/* New Link */}
+                                        <Link to="/dashboard/messages" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('navMessages')}</Link>
                                         
                                         {isAdmin && (
                                             <>
@@ -71,7 +83,39 @@ export function Navbar() {
                     </div>
                 </div>
                 {isMenuOpen && (
-                    <div className="md:hidden"><div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">{/* Mobile links should also use <Link> */}</div></div>
+                    <div className="md:hidden">
+                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                             <MobileNavLink to="/" icon={<Home size={20} />}>{t('navHome')}</MobileNavLink>
+                             <MobileNavLink to="/search" icon={<Search size={20} />}>{t('navSearch')}</MobileNavLink>
+                             <div className="border-t border-slate-200 my-2"></div>
+                             {isAuthenticated ? (
+                                <>
+                                    <MobileNavLink to="/profile" icon={<UserIcon size={20} />}>{t('myProfile')}</MobileNavLink>
+                                    <MobileNavLink to="/dashboard/messages" icon={<MessageSquare size={20} />}>{t('navMessages')}</MobileNavLink>
+                                    {isAdmin && (
+                                        <>
+                                            <MobileNavLink to="/admin/dashboard" icon={<Shield size={20} />}>{t('adminDashboard')}</MobileNavLink>
+                                            <MobileNavLink to="/admin/users" icon={<Users size={20} />}>{t('userManagement')}</MobileNavLink>
+                                        </>
+                                    )}
+                                    {isAgencyOwner ? (
+                                        <>
+                                             <MobileNavLink to="/dashboard/agency" icon={<Briefcase size={20} />}>{t('agencyDashboard')}</MobileNavLink>
+                                             <MobileNavLink to="/dashboard/agency/vehicles" icon={<Car size={20} />}>{t('myVehicles')}</MobileNavLink>
+                                             <MobileNavLink to="/dashboard/agency/bookings" icon={<Briefcase size={20} />}>{t('bookings')}</MobileNavLink>
+                                        </>
+                                    ) : (!isAdmin && <MobileNavLink to="/dashboard/bookings" icon={<Briefcase size={20} />}>{t('myBookings')}</MobileNavLink>)}
+                                    <div className="border-t border-slate-200 my-2"></div>
+                                    <MobileNavButton onClick={() => { handleLogout(); closeMenu(); }} icon={<Power size={20} />}>{t('logout')}</MobileNavButton>
+                                </>
+                             ) : (
+                                <>
+                                    <MobileNavLink to="/login" icon={<LogIn size={20} />}>{t('login')}</MobileNavLink>
+                                    <MobileNavLink to="/signup" icon={<UserIcon size={20} />}>{t('signup')}</MobileNavLink>
+                                </>
+                             )}
+                        </div>
+                    </div>
                 )}
             </div>
         </header>
