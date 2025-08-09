@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power } from 'lucide-react';
+// The 'Users' icon has been added to the import list below
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users } from 'lucide-react';
 
 export function Navbar() {
     const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
