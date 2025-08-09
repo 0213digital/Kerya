@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext'; // Updated import
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe } from 'lucide-react';
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare } from 'lucide-react'; // Import MessageSquare
 
 export function Navbar() {
     // Use the custom hook to get all auth-related data and functions
@@ -36,6 +36,8 @@ export function Navbar() {
                                 {isMenuOpen && (
                                     <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
                                         <Link to="/profile" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('myProfile')}</Link>
+                                        <Link to="/dashboard/messages" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('navMessages')}</Link> {/* New Link */}
+                                        
                                         {isAdmin && (
                                             <>
                                                 <Link to="/admin/dashboard" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('adminDashboard')}</Link>

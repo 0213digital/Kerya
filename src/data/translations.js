@@ -3,6 +3,7 @@ export const translations = {
         appName: "Sayara",
         navHome: "Home",
         navSearch: "Find a Car",
+        navMessages: "Messages", // new
         login: "Login",
         signup: "Sign Up",
         dashboard: "Dashboard",
@@ -271,11 +272,21 @@ export const translations = {
         deleteUser: "Delete User",
         deleteUserConfirmText: "This will permanently delete the user and all their associated data. This action cannot be undone.",
         saveChanges: "Save Changes",
+        contactAgency: "Contact Agency", // new
+        messagesTitle: "My Messages", // new
+        messagesDesc: "View and reply to conversations with agencies and renters.", // new
+        noConversations: "You have no messages yet.", // new
+        noMessagesInConversation: "Select a conversation to see messages.", // new
+        typeYourMessage: "Type your message...", // new
+        sendMessage: "Send", // new
+        conversationWith: "Conversation with {name}", // new
+        regarding: "Regarding: {make} {model}", // new
     },
     fr: {
         appName: "Sayara",
         navHome: "Accueil",
         navSearch: "Trouver une voiture",
+        navMessages: "Messagerie", // new
         login: "Connexion",
         signup: "S'inscrire",
         dashboard: "Tableau de bord",
@@ -544,5 +555,14 @@ export const translations = {
         deleteUser: "Supprimer l'utilisateur",
         deleteUserConfirmText: "Ceci supprimera définitivement l'utilisateur et toutes ses données associées. Cette action est irréversible.",
         saveChanges: "Enregistrer les modifications",
+        contactAgency: "Contacter l'agence", // new
+        messagesTitle: "Mes Messages", // new
+        messagesDesc: "Voir et répondre aux conversations avec les agences et les locataires.", // new
+        noConversations: "Vous n'avez aucun message pour le moment.", // new
+        noMessagesInConversation: "Sélectionnez une conversation pour voir les messages.", // new
+        typeYourMessage: "Écrivez votre message...", // new
+        sendMessage: "Envoyer", // new
+        conversationWith: "Conversation avec {name}", // new
+        regarding: "Concernant : {make} {model}", // new
     }
 };

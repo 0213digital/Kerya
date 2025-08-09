@@ -18,6 +18,7 @@ import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
+import { MessagesPage } from './pages/dashboard/MessagesPage'; // Import the new page
 
 // PDF Generation Helper (omitted for brevity)
 const generateInvoice = async () => { /* ... */ };
@@ -44,6 +45,7 @@ export default function App() {
                     <Route path="/signup" element={<SignUpPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
+                    <Route path="/dashboard/messages" element={<MessagesPage />} /> {/* Add new route */}
                     <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />

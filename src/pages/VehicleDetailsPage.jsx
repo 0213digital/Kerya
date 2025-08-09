@@ -3,19 +3,20 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Wind, Droplets, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare } from 'lucide-react'; // Import MessageSquare
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
-import { ReviewList } from '../components/ReviewList'; // Import the new component
+import { ReviewList } from '../components/ReviewList'; 
 
 export function VehicleDetailsPage() {
     const { id: vehicleId } = useParams();
     const navigate = useNavigate();
-    const { session } = useAuth();
+    const { session, profile } = useAuth();
     const { t } = useTranslation();
     const [vehicle, setVehicle] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [isContacting, setIsContacting] = useState(false);
     
     // State for dates, now controlled by the calendar
     const [startDate, setStartDate] = useState(null);
@@ -66,12 +67,33 @@ export function VehicleDetailsPage() {
             return;
         }
         if (!startDate || !endDate) {
-            alert('Please select a start and end date from the calendar.');
+            alert(t('alertSelectDates'));
             return;
         }
         const searchParams = new URLSearchParams({ startDate, endDate }).toString();
         navigate(`/book/${vehicle.id}?${searchParams}`);
     };
+
+    const handleContactAgency = async () => {
+        if (!session) {
+            navigate('/login');
+            return;
+        }
+        setIsContacting(true);
+        const { data, error } = await supabase.rpc('get_or_create_conversation', {
+            p_vehicle_id: vehicle.id,
+            p_user_id: session.user.id
+        });
+
+        if (error) {
+            console.error('Error starting conversation:', error);
+            // Handle error (show a toast, etc.)
+        } else {
+            navigate('/dashboard/messages');
+        }
+        setIsContacting(false);
+    };
+
 
     if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
     if (error) return <div className="container mx-auto p-4 text-center text-red-500">{t('error')}: {error}</div>;
@@ -81,10 +103,14 @@ export function VehicleDetailsPage() {
     const fuelText = vehicle.fuel_type === 'gasoline' ? t('gasoline') : t('diesel');
     const images = vehicle.image_urls && vehicle.image_urls.length > 0 ? vehicle.image_urls : [`https://placehold.co/800x600/e2e8f0/64748b?text=${vehicle.make}+${vehicle.model}`];
 
+    // Ne pas afficher le bouton "Contacter l'agence" si l'utilisateur est le propriétaire de l'agence
+    const isOwner = profile && profile.id === vehicle.agencies.owner_id;
+
     return (
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
+                    {/* ... (le reste du code de l'image slider reste inchangé) ... */}
                     <div className="relative mb-4">
                         <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
                         {images.length > 1 && (
@@ -120,7 +146,6 @@ export function VehicleDetailsPage() {
                         </div>
                     </div>
                     
-                    {/* Display the list of reviews */}
                     <div className="mt-12">
                         <ReviewList vehicleId={vehicle.id} />
                     </div>
@@ -145,6 +170,17 @@ export function VehicleDetailsPage() {
                         >
                             {session ? t('requestToBook') : t('loginToBook')}
                         </button>
+
+                        {!isOwner && (
+                            <button
+                                onClick={handleContactAgency}
+                                disabled={isContacting}
+                                className="mt-4 w-full flex items-center justify-center bg-slate-600 text-white py-3 rounded-md font-semibold hover:bg-slate-700 disabled:bg-slate-400"
+                            >
+                                <MessageSquare size={18} className="mr-2" />
+                                {isContacting ? t('loading') : t('contactAgency')}
+                            </button>
+                        )}
                     </div>
                 </div>
             </div>
