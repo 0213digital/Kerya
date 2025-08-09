@@ -259,6 +259,12 @@ export const translations = {
         activityNewUser: "{name} has just signed up.",
         activityNewAgency: "{name} has registered their agency.",
         locale: "en-US",
+        yearRange: "Year Range",
+        minRating: "Minimum Rating",
+        sortBy: "Sort By",
+        priceLowHigh: "Price: Low to High",
+        priceHighLow: "Price: High to Low",
+        ratingHighLow: "Rating: High to Low",
     },
     fr: {
         appName: "Sayara",
@@ -520,5 +526,11 @@ export const translations = {
         activityNewUser: "{name} vient de s'inscrire.",
         activityNewAgency: "{name} a enregistré son agence.",
         locale: "fr-FR",
+        yearRange: "Fourchette d'années",
+        minRating: "Note minimale",
+        sortBy: "Trier par",
+        priceLowHigh: "Prix : Croissant",
+        priceHighLow: "Prix : Décroissant",
+        ratingHighLow: "Note : Décroissant",
     }
 };
