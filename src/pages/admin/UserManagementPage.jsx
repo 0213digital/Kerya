@@ -1,27 +1,25 @@
-import React, { useState, useEffect, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useTranslation } from '../../contexts/LanguageContext';
-import { AppContext } from '../../contexts/AppContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Users, Search, AlertTriangle, Filter } from 'lucide-react';
 
 export function UserManagementPage() {
     const { t } = useTranslation();
-    const { profile } = useContext(AppContext);
+    const { isAdmin, profile } = useAuth();
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [fetchError, setFetchError] = useState(null);
-    const [statusFilter, setStatusFilter] = useState('all'); // 'all', 'active', 'suspended'
-    const [roleFilter, setRoleFilter] = useState('all'); // 'all', 'renter', 'agencyOwner'
-
-
-    const isAdmin = profile?.role === 'admin';
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [roleFilter, setRoleFilter] = useState('all');
 
     useEffect(() => {
-        if (profile === null) return;
+        if (profile === null && !isAdmin) return;
+        
         if (!isAdmin) {
             navigate('/');
             return;
