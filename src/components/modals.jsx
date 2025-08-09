@@ -38,6 +38,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
     });
     const [isUploading, setIsUploading] = useState(false);
     const [models, setModels] = useState([]);
+    const [error, setError] = useState(''); // State for error messages
 
     useEffect(() => {
         if (formState.make) {
@@ -61,13 +62,14 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         const file = e.target.files[0];
         if (!file || !agencyId) return;
         setIsUploading(true);
+        setError('');
         const bucket = fileType === 'image' ? 'vehicle-images' : 'agency-documents';
         const folder = fileType === 'image' ? 'vehicle_images' : 'car_registrations';
         const fileName = `${agencyId}/${folder}/${Date.now()}-${file.name}`;
         
-        const { error } = await supabase.storage.from(bucket).upload(fileName, file);
-        if (error) {
-            alert(error.message);
+        const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file);
+        if (uploadError) {
+            setError(uploadError.message);
         } else {
             const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
             if (fileType === 'image') {
@@ -81,15 +83,16 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setError('');
         if (!formState.car_registration_url) {
-            alert("Please upload the car registration card.");
+            setError(t('pleaseUploadRegCard'));
             return;
         }
         const vehicleData = { ...formState, agency_id: agencyId };
-        const { error } = vehicleToEdit
+        const { error: dbError } = vehicleToEdit
             ? await supabase.from('vehicles').update(vehicleData).eq('id', vehicleToEdit.id)
             : await supabase.from('vehicles').insert([vehicleData]);
-        if (error) alert(error.message);
+        if (dbError) setError(dbError.message);
         else { onSave(); onClose(); }
     };
 
@@ -98,9 +101,10 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-slate-200 flex justify-between items-center"><h3 className="text-xl font-bold">{vehicleToEdit ? t('editVehicleTitle') : t('listNewVehicleTitle')}</h3><button onClick={onClose}><X /></button></div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div><label className="block text-sm font-medium">{t('make')}</label><select name="make" value={formState.make} onChange={handleMakeChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="">Select a make</option>{Object.keys(carData).map(make => <option key={make} value={make}>{make}</option>)}</select></div>
-                        <div><label className="block text-sm font-medium">{t('model')}</label><select name="model" value={formState.model} onChange={handleChange} disabled={!formState.make} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="">Select a model</option>{models.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
+                        <div><label className="block text-sm font-medium">{t('make')}</label><select name="make" value={formState.make} onChange={handleMakeChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="">{t('selectAMake')}</option>{Object.keys(carData).map(make => <option key={make} value={make}>{make}</option>)}</select></div>
+                        <div><label className="block text-sm font-medium">{t('model')}</label><select name="model" value={formState.model} onChange={handleChange} disabled={!formState.make} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="">{t('selectAModel')}</option>{models.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('year')}</label><input name="year" type="number" value={formState.year} onChange={handleChange} placeholder={t('yearPlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('dailyRateDZD')}</label><input name="daily_rate_dzd" type="number" value={formState.daily_rate_dzd} onChange={handleChange} placeholder={t('ratePlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('seats')}</label><input name="seats" type="number" value={formState.seats} onChange={handleChange} placeholder={t('seatsPlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>

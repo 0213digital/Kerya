@@ -51,7 +51,7 @@ export function BookingConfirmationPage({ generateInvoice }) {
     if (!booking) {
         return (
             <div className="container mx-auto max-w-2xl py-16 px-4 text-center">
-                <p>Booking not found.</p>
+                <p>{t('bookingNotFound')}</p>
             </div>
         );
     }
@@ -64,8 +64,8 @@ export function BookingConfirmationPage({ generateInvoice }) {
                 <p className="text-slate-500 mt-2 mb-8">{t('bookingConfirmedDesc')}</p>
                 
                 <div className="text-left border-t border-slate-200 pt-6 space-y-3">
-                    <h3 className="text-lg font-semibold">Booking Summary</h3>
-                    <div className="flex justify-between"><span>Vehicle:</span><span className="font-medium">{booking.vehicles.make} {booking.vehicles.model}</span></div>
+                    <h3 className="text-lg font-semibold">{t('bookingSummary')}</h3>
+                    <div className="flex justify-between"><span>{t('vehicleLabel')}</span><span className="font-medium">{booking.vehicles.make} {booking.vehicles.model}</span></div>
                     <div className="flex justify-between"><span>{t('pickup')}</span><span className="font-medium">{new Date(booking.start_date).toLocaleDateString()}</span></div>
                     <div className="flex justify-between"><span>{t('return')}</span><span className="font-medium">{new Date(booking.end_date).toLocaleDateString()}</span></div>
                     <div className="flex justify-between font-bold"><span>{t('totalPrice')}</span><span>{booking.total_price.toLocaleString()} DZD</span></div>

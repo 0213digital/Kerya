@@ -236,6 +236,11 @@ export const translations = {
         reviewFormTitle: "Leave a Review",
         monthNames: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
         dayNamesShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        uploadAllDocs: "Please upload all required documents.",
+        errorUpdatingStatus: "Error updating user status.",
+        agencyNotFound: "Agency not found.",
+        alertSelectDates: "Please select a start and end date from the calendar.",
+        pleaseUploadRegCard: "Please upload the car registration card.",
     },
     fr: {
         appName: "Sayara",
@@ -474,5 +479,10 @@ export const translations = {
         reviewFormTitle: "Laissez un avis",
         monthNames: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"],
         dayNamesShort: ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"],
+        uploadAllDocs: "Veuillez télécharger tous les documents requis.",
+        errorUpdatingStatus: "Erreur lors de la mise à jour du statut de l'utilisateur.",
+        agencyNotFound: "Agence non trouvée.",
+        alertSelectDates: "Veuillez sélectionner une date de début et de fin dans le calendrier.",
+        pleaseUploadRegCard: "Veuillez télécharger la carte grise.",
     }
 };
