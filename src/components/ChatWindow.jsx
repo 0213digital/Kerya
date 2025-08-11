@@ -20,9 +20,6 @@ export function ChatWindow({ conversation }) {
         if (!conversation) return;
         setLoading(true);
 
-        // --- CORRECTION 1 : Jointure explicite ---
-        // On précise à Supabase de joindre les profils en utilisant la clé étrangère `sender_id`.
-        // La syntaxe `sender:sender_id(*)` lui dit : "utilise la colonne sender_id pour trouver le profil correspondant".
         const { data, error } = await supabase
             .from('messages')
             .select('*, sender:sender_id(id, full_name, avatar_url)')
@@ -46,9 +43,9 @@ export function ChatWindow({ conversation }) {
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation.id}` }, 
                 async (payload) => {
-                    // --- CORRECTION 2 : Enrichir le message en temps réel ---
-                    // Le message reçu via la souscription ne contient pas les infos du profil.
-                    // On les récupère pour afficher le nouveau message correctement sans recharger.
+                    // --- LA CORRECTION EST ICI ---
+                    // Le message reçu (payload.new) ne contient pas les infos du profil de l'expéditeur.
+                    // On fait donc une requête rapide pour récupérer ces informations.
                     const { data: senderProfile, error } = await supabase
                         .from('profiles')
                         .select('id, full_name, avatar_url')
@@ -58,7 +55,9 @@ export function ChatWindow({ conversation }) {
                     if (error) {
                         console.error('Error fetching profile for new message:', error);
                     } else {
+                        // On combine le nouveau message avec les infos du profil récupérées...
                         const newMessageWithSender = { ...payload.new, sender: senderProfile };
+                        // ...puis on met à jour l'état pour un affichage instantané.
                         setMessages(currentMessages => [...currentMessages, newMessageWithSender]);
                     }
                 }
@@ -90,6 +89,7 @@ export function ChatWindow({ conversation }) {
 
         if (!error) {
             setNewMessage('');
+            // Mettre à jour la conversation pour la faire remonter dans la liste
             await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversation.id);
         } else {
             console.error("Error sending message:", error);
