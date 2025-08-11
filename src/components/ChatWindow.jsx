@@ -109,7 +109,7 @@ export function ChatWindow({ conversation }) {
         const file = event.target.files[0];
         if (!file || !currentUser) return;
 
-        const filePath = `public/${currentUser.id}/${Date.now()}-${file.name}`;
+        const filePath = `${currentUser.id}/${Date.now()}-${file.name}`;
         const { error: uploadError } = await supabase.storage
             .from('media_uploads')
             .upload(filePath, file);
@@ -150,7 +150,7 @@ export function ChatWindow({ conversation }) {
     const handleSendAudio = async () => {
         if (!audioBlob || !currentUser) return;
 
-        const filePath = `public/${currentUser.id}/${Date.now()}.webm`;
+        const filePath = `${currentUser.id}/${Date.now()}.webm`;
         const { error: uploadError } = await supabase.storage
             .from('media_uploads')
             .upload(filePath, audioBlob);
