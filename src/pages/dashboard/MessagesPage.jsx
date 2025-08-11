@@ -52,12 +52,16 @@ export function MessagesPage() {
     }, [profile, isAgencyOwner, activeConversationId]);
 
     useEffect(() => {
-        fetchConversations();
-    }, [profile, isAgencyOwner]);
+        if (profile) {
+            fetchConversations();
+        }
+    }, [profile, fetchConversations]);
 
     useEffect(() => {
+        if (!profile) return;
+
         const channel = supabase
-            .channel('public:conversations')
+            .channel(`conversations-for-${profile.id}`)
             .on(
                 'postgres_changes',
                 { event: 'UPDATE', schema: 'public', table: 'conversations' },
@@ -65,11 +69,15 @@ export function MessagesPage() {
                     setConversations(currentConversations => {
                         const updatedConvo = payload.new;
                         const convoIndex = currentConversations.findIndex(c => c.id === updatedConvo.id);
+                        
                         if (convoIndex > -1) {
-                            const fullConvo = currentConversations[convoIndex];
-                            const filteredConversations = currentConversations.filter(c => c.id !== updatedConvo.id);
-                            return [{ ...fullConvo, updated_at: updatedConvo.updated_at }, ...filteredConversations];
+                            const fullConvoDetails = currentConversations[convoIndex];
+                            const otherConversations = currentConversations.filter(c => c.id !== updatedConvo.id);
+                            // Move the updated conversation to the top of the list
+                            return [{ ...fullConvoDetails, updated_at: updatedConvo.updated_at }, ...otherConversations];
                         }
+                        // If the conversation is new and not in the list, fetch all to refresh
+                        fetchConversations();
                         return currentConversations;
                     });
                 }
@@ -79,7 +87,7 @@ export function MessagesPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, []);
+    }, [profile, fetchConversations]);
     
     const activeConversation = conversations.find(c => c.id === activeConversationId);
 

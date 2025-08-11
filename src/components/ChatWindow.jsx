@@ -37,7 +37,8 @@ export function ChatWindow({ conversation }) {
     }, [conversation?.id]);
 
     useEffect(() => {
-        if (!conversation?.id) return;
+        if (!conversation?.id || !currentUser?.id) return;
+        
         fetchMessages();
         
         const channel = supabase.channel(`chat-room-${conversation.id}`)
@@ -65,7 +66,7 @@ export function ChatWindow({ conversation }) {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [conversation?.id, fetchMessages, currentUser?.id]);
+    }, [conversation?.id, currentUser?.id, fetchMessages]);
 
     useEffect(() => {
         scrollToBottom();
@@ -76,7 +77,8 @@ export function ChatWindow({ conversation }) {
         if (!content && !imageUrl && !audioUrl) return;
 
         const isCurrentUserRenter = currentUser.id === conversation.user.id;
-        const receiverId = isCurrentUserRenter ? conversation.agency.owner.id : conversation.user.id;
+        // Correctly identify the receiver's ID from the nested 'owner' object
+        const receiverId = isCurrentUserRenter ? conversation.agency.owner_id : conversation.user.id;
 
         const optimisticMessage = {
             id: Date.now(),
