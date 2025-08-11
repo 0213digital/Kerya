@@ -12,7 +12,10 @@ export function ChatWindow({ conversation }) {
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef(null);
 
-    // Nouveaux états pour la gestion des médias
+    // State for the image viewer modal
+    const [selectedImage, setSelectedImage] = useState(null);
+
+    // Media management states
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
@@ -62,7 +65,6 @@ export function ChatWindow({ conversation }) {
         scrollToBottom();
     }, [messages.length]);
 
-    // Fonction d'envoi générique
     const sendMessage = useCallback(async ({ content = null, imageUrl = null, audioUrl = null }) => {
         if (!currentUser || !conversation) return;
         if (!content && !imageUrl && !audioUrl) return;
@@ -104,7 +106,6 @@ export function ChatWindow({ conversation }) {
         setNewMessage('');
     };
 
-    // Logique d'upload d'image
     const handleImageSelect = async (event) => {
         const file = event.target.files[0];
         if (!file || !currentUser) return;
@@ -125,7 +126,6 @@ export function ChatWindow({ conversation }) {
         }
     };
     
-    // Logique d'enregistrement audio
     const handleToggleRecording = async () => {
         if (isRecording) {
             mediaRecorderRef.current?.stop();
@@ -140,7 +140,7 @@ export function ChatWindow({ conversation }) {
             recorder.onstop = () => {
                 const blob = new Blob(audioChunks, { type: 'audio/webm' });
                 setAudioBlob(blob);
-                stream.getTracks().forEach(track => track.stop()); // Libérer le micro
+                stream.getTracks().forEach(track => track.stop());
             };
             recorder.start();
             setIsRecording(true);
@@ -172,15 +172,20 @@ export function ChatWindow({ conversation }) {
 
     return (
         <div className="flex flex-col h-full bg-slate-50">
-            {/* Header and messages stay the same */}
             <div className="p-4 border-b bg-white shadow-sm"> ... </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map(msg => (
                     <div key={msg.id} className={`flex items-end gap-2 ${msg.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}>
                         {msg.sender_id !== currentUser.id && <img src={msg.sender?.avatar_url || 'https://placehold.co/40x40/E2E8F0/64748B?text=U'} alt="avatar" className="w-8 h-8 rounded-full bg-slate-200" />}
                         <div className={`max-w-xs md:max-w-md p-1 rounded-lg ${msg.sender_id === currentUser.id ? 'bg-indigo-600 text-white' : 'bg-white shadow-sm'}`}>
-                            {/* NOUVEAU: Affichage conditionnel des médias */}
-                            {msg.image_url && <img src={msg.image_url} alt="Image message" className="rounded-lg max-w-full h-auto" />}
+                            {msg.image_url && (
+                                <img
+                                    src={msg.image_url}
+                                    alt="Image message"
+                                    className="rounded-lg max-w-full h-auto cursor-pointer"
+                                    onClick={() => setSelectedImage(msg.image_url)}
+                                />
+                            )}
                             {msg.audio_url && <audio controls src={msg.audio_url} className="w-full h-12"></audio>}
                             {msg.content && <p className="p-2 break-words">{msg.content}</p>}
                             <p className={`text-xs px-2 pb-1 text-right ${msg.sender_id === currentUser.id ? 'text-indigo-200' : 'text-slate-400'}`}>{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
@@ -190,7 +195,6 @@ export function ChatWindow({ conversation }) {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Barre de saisie améliorée */}
             <div className="p-4 border-t bg-white">
                 {audioBlob ? (
                     <div className="flex items-center gap-4">
@@ -215,6 +219,28 @@ export function ChatWindow({ conversation }) {
                     </form>
                 )}
             </div>
+
+            {/* Image Viewer Modal */}
+            {selectedImage && (
+                <div
+                    className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4"
+                    onClick={() => setSelectedImage(null)}
+                >
+                    <div className="relative max-w-4xl max-h-[90vh]">
+                        <img
+                            src={selectedImage}
+                            alt="Full screen view"
+                            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+                        />
+                        <button
+                            onClick={() => setSelectedImage(null)}
+                            className="absolute -top-3 -right-3 bg-white text-black rounded-full p-1 shadow-lg"
+                        >
+                            <XCircle size={28} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
