@@ -43,9 +43,9 @@ export function ChatWindow({ conversation }) {
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation.id}` }, 
                 async (payload) => {
-                    // --- LA CORRECTION EST ICI ---
-                    // Le message reçu (payload.new) ne contient pas les infos du profil de l'expéditeur.
-                    // On fait donc une requête rapide pour récupérer ces informations.
+                    // --- THE FIX IS HERE ---
+                    // The received message (payload.new) does not contain the sender's profile information.
+                    // So, you need to make a quick request to get this information.
                     const { data: senderProfile, error } = await supabase
                         .from('profiles')
                         .select('id, full_name, avatar_url')
@@ -55,9 +55,9 @@ export function ChatWindow({ conversation }) {
                     if (error) {
                         console.error('Error fetching profile for new message:', error);
                     } else {
-                        // On combine le nouveau message avec les infos du profil récupérées...
+                        // Combine the new message with the retrieved profile information...
                         const newMessageWithSender = { ...payload.new, sender: senderProfile };
-                        // ...puis on met à jour l'état pour un affichage instantané.
+                        // ...then update the state for an instant display.
                         setMessages(currentMessages => [...currentMessages, newMessageWithSender]);
                     }
                 }
@@ -89,7 +89,7 @@ export function ChatWindow({ conversation }) {
 
         if (!error) {
             setNewMessage('');
-            // Mettre à jour la conversation pour la faire remonter dans la liste
+            // Update the conversation to bring it to the top of the list
             await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversation.id);
         } else {
             console.error("Error sending message:", error);
