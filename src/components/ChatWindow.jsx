@@ -19,18 +19,24 @@ export function ChatWindow({ conversation }) {
     const fetchMessages = useCallback(async () => {
         if (!conversation) return;
         setLoading(true);
+
+        // --- CORRECTION 1 : Jointure explicite ---
+        // On précise à Supabase de joindre les profils en utilisant la clé étrangère `sender_id`.
+        // La syntaxe `sender:sender_id(*)` lui dit : "utilise la colonne sender_id pour trouver le profil correspondant".
         const { data, error } = await supabase
             .from('messages')
-            .select('*, sender:profiles(id, full_name, avatar_url)')
+            .select('*, sender:sender_id(id, full_name, avatar_url)')
             .eq('conversation_id', conversation.id)
             .order('created_at', { ascending: true });
         
-        if(error) console.error("Error fetching messages:", error);
-        else setMessages(data || []);
+        if(error) {
+            console.error("Error fetching messages:", error);
+        } else {
+            setMessages(data || []);
+        }
         
         setLoading(false);
     }, [conversation.id]);
-
 
     useEffect(() => {
         fetchMessages();
@@ -39,10 +45,22 @@ export function ChatWindow({ conversation }) {
             .channel(`messages:${conversation.id}`)
             .on('postgres_changes', 
                 { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversation.id}` }, 
-                (payload) => {
-                    // Add the new message to the state, ensuring we have sender info if possible
-                    const newMessage = { ...payload.new, sender: { id: payload.new.sender_id }};
-                    setMessages(currentMessages => [...currentMessages, newMessage]);
+                async (payload) => {
+                    // --- CORRECTION 2 : Enrichir le message en temps réel ---
+                    // Le message reçu via la souscription ne contient pas les infos du profil.
+                    // On les récupère pour afficher le nouveau message correctement sans recharger.
+                    const { data: senderProfile, error } = await supabase
+                        .from('profiles')
+                        .select('id, full_name, avatar_url')
+                        .eq('id', payload.new.sender_id)
+                        .single();
+                    
+                    if (error) {
+                        console.error('Error fetching profile for new message:', error);
+                    } else {
+                        const newMessageWithSender = { ...payload.new, sender: senderProfile };
+                        setMessages(currentMessages => [...currentMessages, newMessageWithSender]);
+                    }
                 }
             )
             .subscribe();
@@ -72,7 +90,6 @@ export function ChatWindow({ conversation }) {
 
         if (!error) {
             setNewMessage('');
-            // The subscription will handle the UI update, but we also need to update the conversation's `updated_at`
             await supabase.from('conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversation.id);
         } else {
             console.error("Error sending message:", error);
@@ -80,6 +97,7 @@ export function ChatWindow({ conversation }) {
     };
     
     if (loading) return <div className="p-4 text-center">{t('loading')}...</div>;
+    if (!currentUser) return <div className="p-4 text-center">{t('loading')}...</div>;
     if (!conversation) return null;
     
     const isCurrentUserRenter = currentUser.id === conversation.user.id;
