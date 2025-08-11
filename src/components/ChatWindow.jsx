@@ -11,11 +11,7 @@ export function ChatWindow({ conversation }) {
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef(null);
-
-    // State for the image viewer modal
     const [selectedImage, setSelectedImage] = useState(null);
-
-    // Media management states
     const [isRecording, setIsRecording] = useState(false);
     const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
@@ -44,21 +40,31 @@ export function ChatWindow({ conversation }) {
         if (!conversation?.id) return;
         fetchMessages();
         
-        const channel = supabase
-            .channel(`messages:${conversation.id}`)
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-                if (payload.new.conversation_id !== conversation.id || payload.new.sender_id === currentUser.id) return;
-                
-                const { data: senderProfile, error } = await supabase.from('profiles').select('id, full_name, avatar_url').eq('id', payload.new.sender_id).single();
-                
-                if (!error) {
-                    const newMessageWithSender = { ...payload.new, sender: senderProfile };
-                    setMessages(currentMessages => [...currentMessages, newMessageWithSender]);
+        const channel = supabase.channel(`chat-room-${conversation.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `conversation_id=eq.${conversation.id}`
+                },
+                async (payload) => {
+                    if (payload.new.sender_id === currentUser.id) return;
+                    
+                    const { data: senderProfile, error } = await supabase.from('profiles').select('id, full_name, avatar_url').eq('id', payload.new.sender_id).single();
+                    
+                    if (!error) {
+                        const newMessageWithSender = { ...payload.new, sender: senderProfile };
+                        setMessages(currentMessages => [...currentMessages, newMessageWithSender]);
+                    }
                 }
-            })
+            )
             .subscribe();
             
-        return () => supabase.removeChannel(channel);
+        return () => {
+            supabase.removeChannel(channel);
+        };
     }, [conversation?.id, fetchMessages, currentUser?.id]);
 
     useEffect(() => {
@@ -70,7 +76,7 @@ export function ChatWindow({ conversation }) {
         if (!content && !imageUrl && !audioUrl) return;
 
         const isCurrentUserRenter = currentUser.id === conversation.user.id;
-        const receiverId = isCurrentUserRenter ? conversation.agency.owner_id : conversation.user.id;
+        const receiverId = isCurrentUserRenter ? conversation.agency.owner.id : conversation.user.id;
 
         const optimisticMessage = {
             id: Date.now(),
@@ -131,19 +137,23 @@ export function ChatWindow({ conversation }) {
             mediaRecorderRef.current?.stop();
             setIsRecording(false);
         } else {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recorder = new MediaRecorder(stream);
-            mediaRecorderRef.current = recorder;
-            const audioChunks = [];
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(stream);
+                mediaRecorderRef.current = recorder;
+                const audioChunks = [];
 
-            recorder.ondataavailable = event => audioChunks.push(event.data);
-            recorder.onstop = () => {
-                const blob = new Blob(audioChunks, { type: 'audio/webm' });
-                setAudioBlob(blob);
-                stream.getTracks().forEach(track => track.stop());
-            };
-            recorder.start();
-            setIsRecording(true);
+                recorder.ondataavailable = event => audioChunks.push(event.data);
+                recorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/webm' });
+                    setAudioBlob(blob);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                recorder.start();
+                setIsRecording(true);
+            } catch (err) {
+                console.error("Error accessing microphone:", err);
+            }
         }
     };
     
@@ -172,7 +182,10 @@ export function ChatWindow({ conversation }) {
 
     return (
         <div className="flex flex-col h-full bg-slate-50">
-            <div className="p-4 border-b bg-white shadow-sm"> ... </div>
+            <div className="p-4 border-b bg-white shadow-sm">
+                <p className="font-bold">{conversation.agency.agency_name}</p>
+                <p className="text-sm text-slate-500">{t('regarding', { make: conversation.vehicles.make, model: conversation.vehicles.model })}</p>
+            </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {messages.map(msg => (
                     <div key={msg.id} className={`flex items-end gap-2 ${msg.sender_id === currentUser.id ? 'justify-end' : 'justify-start'}`}>
@@ -220,7 +233,6 @@ export function ChatWindow({ conversation }) {
                 )}
             </div>
 
-            {/* Image Viewer Modal */}
             {selectedImage && (
                 <div
                     className="fixed inset-0 bg-black/80 z-50 flex justify-center items-center p-4"

@@ -5,7 +5,7 @@ import { useTranslation } from '../../contexts/LanguageContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ConversationList } from '../../components/ConversationList';
 import { ChatWindow } from '../../components/ChatWindow';
-import { MessageSquare, Inbox } from 'lucide-react';
+import { Inbox } from 'lucide-react';
 
 export function MessagesPage() {
     const { t } = useTranslation();
@@ -44,31 +44,34 @@ export function MessagesPage() {
             console.error('Error fetching conversations:', error);
         } else {
             setConversations(data || []);
-            // Update active conversation ID only if it's not set or no longer exists
-            if (data && data.length > 0 && (!activeConversationId || !data.some(c => c.id === activeConversationId))) {
+            if (data && data.length > 0 && !activeConversationId) {
                 setActiveConversationId(data[0].id);
-            } else if (data.length === 0) {
-                setActiveConversationId(null);
             }
         }
         setLoading(false);
-    }, [profile, isAgencyOwner, activeConversationId]); // activeConversationId is needed here to avoid stale state issues
+    }, [profile, isAgencyOwner, activeConversationId]);
 
-    // Initial fetch
     useEffect(() => {
         fetchConversations();
-    }, [profile, isAgencyOwner]); // Removed fetchConversations from dependencies to run only once on profile load
+    }, [profile, isAgencyOwner]);
 
-    // Real-time updates for conversations
     useEffect(() => {
         const channel = supabase
             .channel('public:conversations')
             .on(
                 'postgres_changes',
-                { event: '*', schema: 'public', table: 'conversations' },
+                { event: 'UPDATE', schema: 'public', table: 'conversations' },
                 (payload) => {
-                    // Refetch all conversations to get the latest order and data
-                    fetchConversations();
+                    setConversations(currentConversations => {
+                        const updatedConvo = payload.new;
+                        const convoIndex = currentConversations.findIndex(c => c.id === updatedConvo.id);
+                        if (convoIndex > -1) {
+                            const fullConvo = currentConversations[convoIndex];
+                            const filteredConversations = currentConversations.filter(c => c.id !== updatedConvo.id);
+                            return [{ ...fullConvo, updated_at: updatedConvo.updated_at }, ...filteredConversations];
+                        }
+                        return currentConversations;
+                    });
                 }
             )
             .subscribe();
@@ -76,7 +79,7 @@ export function MessagesPage() {
         return () => {
             supabase.removeChannel(channel);
         };
-    }, [fetchConversations]);
+    }, []);
     
     const activeConversation = conversations.find(c => c.id === activeConversationId);
 
@@ -98,7 +101,7 @@ export function MessagesPage() {
                 <main className="hidden md:flex w-2/3 flex-col">
                     {activeConversation ? (
                         <ChatWindow 
-                            key={activeConversation.id} // Add key to force re-mount on conversation change
+                            key={activeConversation.id}
                             conversation={activeConversation} 
                         />
                     ) : (
