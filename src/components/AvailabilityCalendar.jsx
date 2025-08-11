@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
@@ -13,33 +13,39 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
     const [endDate, setEndDate] = useState(null);
     const [hoverDate, setHoverDate] = useState(null);
 
-    useEffect(() => {
-        const fetchUnavailableDates = async () => {
-            if (!vehicleId) return;
-            const { data, error } = await supabase.rpc('get_unavailable_dates', { p_vehicle_id: vehicleId });
-            if (error) {
-                console.error("Error fetching unavailable dates:", error);
-            } else {
-                setUnavailableDates(new Set(data.map(d => d.unavailable_date)));
-            }
-        };
-        fetchUnavailableDates();
+    // Utiliser useCallback pour stabiliser la fonction de fetch
+    const fetchUnavailableDates = useCallback(async () => {
+        if (!vehicleId) return;
+        const { data, error } = await supabase.rpc('get_unavailable_dates', { p_vehicle_id: vehicleId });
+        if (error) {
+            console.error("Error fetching unavailable dates:", error);
+        } else {
+            setUnavailableDates(new Set(data.map(d => d.unavailable_date)));
+        }
     }, [vehicleId]);
+
+    useEffect(() => {
+        fetchUnavailableDates();
+    }, [fetchUnavailableDates]);
 
     const handleDateClick = (day) => {
         if (unavailableDates.has(day.toISOString().split('T')[0])) return;
 
+        let newStart = startDate;
+        let newEnd = endDate;
+
         if (!startDate || (startDate && endDate)) {
-            setStartDate(day);
-            setEndDate(null);
-            onDateChange(null, day); 
+            newStart = day;
+            newEnd = null;
         } else if (day > startDate) {
-            setEndDate(day);
-            onDateChange(day, startDate);
+            newEnd = day;
         } else {
-            setStartDate(day);
-            onDateChange(null, day);
+            newStart = day;
         }
+
+        setStartDate(newStart);
+        setEndDate(newEnd);
+        onDateChange(newEnd, newStart);
     };
     
     const renderDays = () => {

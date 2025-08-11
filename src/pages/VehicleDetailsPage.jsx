@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Importer useCallback
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -42,20 +42,27 @@ export function VehicleDetailsPage() {
         fetchVehicle();
     }, [vehicleId]);
 
-    const handleDateSelection = (end, start) => {
-        setStartDate(start.toISOString().split('T')[0]);
+    // Utiliser useCallback pour stabiliser la fonction
+    const handleDateSelection = useCallback((end, start) => {
+        if (start) {
+            setStartDate(start.toISOString().split('T')[0]);
+        }
         if (end) {
             setEndDate(end.toISOString().split('T')[0]);
+        } else {
+            setEndDate(null); // S'assurer de réinitialiser la date de fin si seule la date de début est sélectionnée
         }
-    };
+    }, []); // Pas de dépendances nécessaires ici car setStartDate/setEndDate sont stables
+
 
     const calculateDays = () => {
         if (!startDate || !endDate) return 0;
         const start = new Date(startDate);
         const end = new Date(endDate);
-        if (end <= start) return 1;
+        if (end < start) return 0; // Ne pas calculer si la date de fin est avant le début
         const diffTime = Math.abs(end - start);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        // +1 pour inclure le jour de départ
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         return diffDays > 0 ? diffDays : 1;
     };
 
