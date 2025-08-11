@@ -297,6 +297,8 @@ export const translations = {
         confirmPickupText: "Are you sure you want to mark this booking as 'Picked Up'?",
         confirmReturnTitle: "Confirm Vehicle Return",
         confirmReturnText: "Are you sure you want to mark this booking as 'Returned'?",
+        recording: 'Recording',
+        sendAudioPrompt: 'Ready to send this audio clip?',
     },
     fr: {
         appName: "KERYA",
@@ -596,5 +598,7 @@ export const translations = {
         confirmPickupText: "Voulez-vous vraiment marquer cette réservation comme 'Récupérée' ?",
         confirmReturnTitle: "Confirmer le retour du véhicule",
         confirmReturnText: "Voulez-vous vraiment marquer cette réservation comme 'Retournée' ?",
+        recording: 'Enregistrement',
+        sendAudioPrompt: 'Prêt à envoyer ce clip audio ?',
     }
 };
