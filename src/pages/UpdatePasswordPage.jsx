@@ -9,7 +9,6 @@ export function UpdatePasswordPage() {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
     const [session, setSession] = useState(null);
 
     useEffect(() => {
@@ -26,7 +25,6 @@ export function UpdatePasswordPage() {
         e.preventDefault();
         setLoading(true);
         setError(null);
-        setSuccess(false);
 
         if (!session) {
             setError(t('updatePasswordNoSession'));
@@ -40,8 +38,7 @@ export function UpdatePasswordPage() {
             setError(updateError.message);
         } else {
             await supabase.auth.signOut();
-            setSuccess(true);
-            setTimeout(() => navigate('/login'), 3000);
+            navigate('/login', { state: { message: t('updatePasswordSuccessMessage') } });
         }
         setLoading(false);
     };
@@ -51,7 +48,6 @@ export function UpdatePasswordPage() {
             <form onSubmit={handlePasswordUpdate} className="bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center mb-6">{t('updatePasswordTitle')}</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
-                {success && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">{t('updatePasswordSuccess')}</div>}
                 
                 <div className="space-y-4">
                     <div>
@@ -67,7 +63,7 @@ export function UpdatePasswordPage() {
                     </div>
                     <button
                         type="submit"
-                        disabled={loading || success}
+                        disabled={loading}
                         className="w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400"
                     >
                         {loading ? t('processing') : t('updatePasswordButton')}

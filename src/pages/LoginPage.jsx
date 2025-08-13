@@ -1,23 +1,34 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
 
 export function LoginPage() {
     const navigate = useNavigate();
+    const location = useLocation();
     const { t } = useTranslation();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
+    const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
     const [view, setView] = useState('login');
     const [resetEmail, setResetEmail] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
 
+    useEffect(() => {
+        if (location.state?.message) {
+            setSuccessMessage(location.state.message);
+            // Clear the location state to avoid showing the message on refresh
+            window.history.replaceState({}, document.title);
+        }
+    }, [location.state]);
+
     const handleLogin = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
+        setSuccessMessage('');
         const isEmail = identifier.includes('@');
         const loginData = isEmail
             ? { email: identifier, password }
@@ -96,6 +107,7 @@ export function LoginPage() {
             <form onSubmit={handleLogin} className="bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center mb-6">{t('loginTitle')}</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
+                {successMessage && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">{successMessage}</div>}
                 <div className="space-y-4">
                     <div><label className="block text-sm font-medium">{t('loginIdentifier')}</label><input type="text" value={identifier} onChange={e => setIdentifier(e.target.value)} required placeholder="you@example.com or 550123456" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                     <div><label className="block text-sm font-medium">{t('password')}</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>

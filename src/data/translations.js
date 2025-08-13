@@ -305,7 +305,11 @@ export const translations = {
         updatePasswordSuccess: "Your password has been updated successfully! Redirecting to login...",
         updatePasswordNoSession: "No active session for password recovery. Please request a new reset link.",
         updatePasswordSuccess: "Password updated successfully! Please log in with your new password.",
-
+        updatePasswordTitle: "Update Your Password",
+        newPassword: "New Password",
+        updatePasswordButton: "Update Password",
+        updatePasswordNoSession: "No active session for password recovery. Please request a new reset link.",
+        updatePasswordSuccessMessage: "Password updated successfully! Please log in with your new password.",
     },
     fr: {
         appName: "KERYA",
@@ -613,6 +617,11 @@ export const translations = {
         updatePasswordSuccess: "Votre mot de passe a été mis à jour avec succès ! Redirection vers la page de connexion...",
         updatePasswordNoSession: "Aucune session active pour la récupération du mot de passe. Veuillez demander un nouveau lien de réinitialisation.",
         updatePasswordSuccess: "Mot de passe mis à jour avec succès ! Veuillez vous connecter avec votre nouveau mot de passe.",
+        updatePasswordTitle: "Mettez à jour votre mot de passe",
+        newPassword: "Nouveau mot de passe",
+        updatePasswordButton: "Mettre à jour le mot de passe",
+        updatePasswordNoSession: "Aucune session active pour la récupération du mot de passe. Veuillez demander un nouveau lien de réinitialisation.",
+        updatePasswordSuccessMessage: "Mot de passe mis à jour avec succès ! Veuillez vous connecter avec votre nouveau mot de passe.",
 
     }
 };
