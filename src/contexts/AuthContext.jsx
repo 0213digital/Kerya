@@ -2,52 +2,58 @@ import React, { createContext, useState, useEffect, useCallback, useContext } fr
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
-const AuthContext = createContext(undefined);
+// 1. Create the context
+const AuthContext = createContext();
 
+// 2. Create the Provider component
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+    const [isPasswordRecovery, setIsPasswordRecovery] = useState(false); // State to track recovery mode
     const navigate = useNavigate();
 
     const fetchProfile = useCallback(async (user) => {
         if (user) {
             const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            setProfile(error ? null : data);
-        } else {
-            setProfile(null);
+            if (error) {
+                console.error('Error fetching profile:', error);
+                setProfile(null);
+            } else {
+                setProfile(data);
+            }
         }
     }, []);
 
     useEffect(() => {
-        // Set loading to true on mount
         setLoading(true);
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            fetchProfile(session?.user).finally(() => setLoading(false));
+        });
 
-        // onAuthStateChange is the single source of truth for all auth events.
-        // It fires once on initial load and again for any sign-in/sign-out event.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Check if the auth event is for password recovery
             if (event === 'PASSWORD_RECOVERY') {
                 setIsPasswordRecovery(true);
-                setSession(session);
+                setSession(session); // We still need the session for the update page
             } else {
                 setIsPasswordRecovery(false);
                 setSession(session);
-                await fetchProfile(session?.user);
+                if (session?.user) {
+                    fetchProfile(session.user);
+                } else {
+                    setProfile(null);
+                }
             }
-            // This is the crucial part: set loading to false after the first auth event is handled.
-            setLoading(false);
         });
 
-        return () => {
-            subscription.unsubscribe();
-        };
+        return () => subscription.unsubscribe();
     }, [fetchProfile]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setProfile(null);
-        setSession(null);
         navigate('/');
     };
 
@@ -55,9 +61,11 @@ export function AuthProvider({ children }) {
         session,
         profile,
         loading,
+        fetchProfile,
         handleLogout,
         isAdmin: profile?.role === 'admin',
         isAgencyOwner: profile?.is_agency_owner || false,
+        // isAuthenticated is now false during password recovery
         isAuthenticated: !!session && !isPasswordRecovery,
     };
 
@@ -68,10 +76,7 @@ export function AuthProvider({ children }) {
     );
 }
 
+// 3. Create the custom hook for easy consumption
 export const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (context === undefined) {
-        throw new Error('useAuth must be used within an AuthProvider');
-    }
-    return context;
+    return useContext(AuthContext);
 };

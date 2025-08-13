@@ -11,7 +11,7 @@ import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { UpdatePasswordPage } from './pages/UpdatePasswordPage'; // <-- L'import est ici
+import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
 import { BookingPage } from './pages/BookingPage';
 import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
@@ -28,8 +28,13 @@ export default function App() {
     const { loading } = useAuth();
     const { t } = useTranslation();
 
+    // Affiche un écran de chargement global tant que l'authentification n'est pas résolue
     if (loading) {
-        return <div className="flex justify-center items-center h-screen bg-slate-50 text-slate-800">{t('loading')}</div>;
+        return (
+            <div className="flex justify-center items-center h-screen bg-slate-50">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+            </div>
+        );
     }
 
     return (
@@ -44,7 +49,7 @@ export default function App() {
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
-                    <Route path="/update-password" element={<UpdatePasswordPage />} /> {/* <-- La route est ici */}
+                    <Route path="/update-password" element={<UpdatePasswordPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
                     <Route path="/dashboard/messages" element={<MessagesPage />} />
