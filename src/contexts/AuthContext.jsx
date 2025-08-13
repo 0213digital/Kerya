@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isPasswordRecovery, setIsPasswordRecovery] = useState(false); // State to track recovery mode
     const navigate = useNavigate();
 
     const fetchProfile = useCallback(async (user) => {
@@ -31,12 +32,19 @@ export function AuthProvider({ children }) {
             fetchProfile(session?.user).finally(() => setLoading(false));
         });
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            if (session?.user) {
-                fetchProfile(session.user);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            // Check if the auth event is for password recovery
+            if (event === 'PASSWORD_RECOVERY') {
+                setIsPasswordRecovery(true);
+                setSession(session); // We still need the session for the update page
             } else {
-                setProfile(null);
+                setIsPasswordRecovery(false);
+                setSession(session);
+                if (session?.user) {
+                    fetchProfile(session.user);
+                } else {
+                    setProfile(null);
+                }
             }
         });
 
@@ -57,7 +65,8 @@ export function AuthProvider({ children }) {
         handleLogout,
         isAdmin: profile?.role === 'admin',
         isAgencyOwner: profile?.is_agency_owner || false,
-        isAuthenticated: !!session,
+        // isAuthenticated is now false during password recovery
+        isAuthenticated: !!session && !isPasswordRecovery,
     };
 
     return (
