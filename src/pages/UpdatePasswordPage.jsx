@@ -2,36 +2,34 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
-import { useSession } from '../contexts/SessionContext'; // Import useSession
+import { useSession } from '../contexts/SessionContext';
 
 export function UpdatePasswordPage() {
     const { t } = useTranslation();
     const navigate = useNavigate();
-    const { session, authEvent, loading: sessionLoading } = useSession(); // Use the context
+    const { session, loading: sessionLoading } = useSession(); // On utilise la session et l'état de chargement du contexte
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [isRecoverySession, setIsRecoverySession] = useState(false);
 
+    // Cet effet gère l'affichage d'une erreur si, après le chargement, aucune session n'est trouvée.
     useEffect(() => {
-        // We check if the auth event is PASSWORD_RECOVERY
-        // This event is triggered when the user lands on this page from the email link
-        if (authEvent === 'PASSWORD_RECOVERY' && session) {
-            setIsRecoverySession(true);
+        if (!sessionLoading && !session) {
+            setError(t('updatePasswordNoSession'));
         }
-        // If the page loads and after a moment there's no recovery session, show an error.
-        else if (!sessionLoading && !session) {
-             setError(t('updatePasswordNoSession'));
+        // Si la session apparaît, on retire le message d'erreur.
+        if (session) {
+            setError(null);
         }
-    }, [authEvent, session, sessionLoading, t]);
+    }, [session, sessionLoading, t]);
 
     const handlePasswordUpdate = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
-        // We must have a session to update the password
-        if (!isRecoverySession) {
+        // La vérification est simple : il faut une session pour continuer.
+        if (!session) {
             setError(t('updatePasswordNoSession'));
             setLoading(false);
             return;
@@ -42,14 +40,13 @@ export function UpdatePasswordPage() {
         if (updateError) {
             setError(updateError.message);
         } else {
-            // After successful update, sign the user out and redirect to login with a success message
             await supabase.auth.signOut();
             navigate('/login', { state: { message: t('updatePasswordSuccessMessage') } });
         }
         setLoading(false);
     };
-    
-    // Show a loading indicator while the session is being processed
+
+    // On affiche un spinner tant que la session est en cours de vérification.
     if (sessionLoading) {
         return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
     }
@@ -74,7 +71,7 @@ export function UpdatePasswordPage() {
                     </div>
                     <button
                         type="submit"
-                        disabled={loading || !isRecoverySession}
+                        disabled={loading || !session} // La logique de désactivation est maintenant plus simple et robuste
                         className="w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400"
                     >
                         {loading ? t('processing') : t('updatePasswordButton')}
