@@ -8,11 +8,11 @@ export function SessionProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Supabase's onAuthStateChange fires on initial load, login, logout, etc.
-        // It's the single source of truth for the session state.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            setLoading(false); // Set loading to false once the initial session is retrieved.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event !== 'PASSWORD_RECOVERY') {
+                setSession(session);
+            }
+            setLoading(false);
         });
 
         return () => {
