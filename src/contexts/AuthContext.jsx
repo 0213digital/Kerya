@@ -2,34 +2,30 @@ import React, { createContext, useState, useEffect, useCallback, useContext } fr
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 
-// 1. Create the context
 const AuthContext = createContext(undefined);
 
-// 2. Create the Provider component
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true); // Start as true
+    const [loading, setLoading] = useState(true);
     const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
     const navigate = useNavigate();
 
     const fetchProfile = useCallback(async (user) => {
         if (user) {
             const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-            if (error) {
-                console.error('Error fetching profile:', error);
-                setProfile(null);
-            } else {
-                setProfile(data);
-            }
+            setProfile(error ? null : data);
         } else {
             setProfile(null);
         }
     }, []);
 
     useEffect(() => {
-        // onAuthStateChange is the single source of truth.
-        // It fires once on load and on every auth change.
+        // Set loading to true on mount
+        setLoading(true);
+
+        // onAuthStateChange is the single source of truth for all auth events.
+        // It fires once on initial load and again for any sign-in/sign-out event.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'PASSWORD_RECOVERY') {
                 setIsPasswordRecovery(true);
@@ -39,7 +35,7 @@ export function AuthProvider({ children }) {
                 setSession(session);
                 await fetchProfile(session?.user);
             }
-            // Set loading to false only after the initial auth state has been determined.
+            // This is the crucial part: set loading to false after the first auth event is handled.
             setLoading(false);
         });
 
@@ -64,8 +60,7 @@ export function AuthProvider({ children }) {
         isAgencyOwner: profile?.is_agency_owner || false,
         isAuthenticated: !!session && !isPasswordRecovery,
     };
-    
-    // The App component itself will show the loading spinner, so we can render children here.
+
     return (
         <AuthContext.Provider value={value}>
             {children}
@@ -73,7 +68,6 @@ export function AuthProvider({ children }) {
     );
 }
 
-// 3. Create the custom hook with a check for the provider
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
