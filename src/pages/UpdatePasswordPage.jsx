@@ -39,7 +39,6 @@ export function UpdatePasswordPage() {
         if (updateError) {
             setError(updateError.message);
         } else {
-            // Déconnexion de l'utilisateur après la mise à jour
             await supabase.auth.signOut();
             setSuccess(true);
             setTimeout(() => navigate('/login'), 3000);
@@ -49,10 +48,11 @@ export function UpdatePasswordPage() {
 
     return (
         <div className="container mx-auto max-w-md py-16 px-4">
-            <div className="bg-white p-8 rounded-lg shadow-md">
+            <form onSubmit={handlePasswordUpdate} className="bg-white p-8 rounded-lg shadow-md">
                 <h2 className="text-2xl font-bold text-center mb-6">{t('updatePasswordTitle')}</h2>
                 {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
                 {success && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">{t('updatePasswordSuccess')}</div>}
+                
                 <div className="space-y-4">
                     <div>
                         <label className="block text-sm font-medium">{t('newPassword')}</label>
