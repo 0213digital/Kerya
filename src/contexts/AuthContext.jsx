@@ -9,7 +9,7 @@ const AuthContext = createContext(undefined);
 export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true); // Start as true
     const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
     const navigate = useNavigate();
 
@@ -28,6 +28,8 @@ export function AuthProvider({ children }) {
     }, []);
 
     useEffect(() => {
+        // onAuthStateChange is the single source of truth.
+        // It fires once on load and on every auth change.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'PASSWORD_RECOVERY') {
                 setIsPasswordRecovery(true);
@@ -37,6 +39,7 @@ export function AuthProvider({ children }) {
                 setSession(session);
                 await fetchProfile(session?.user);
             }
+            // Set loading to false only after the initial auth state has been determined.
             setLoading(false);
         });
 
@@ -56,13 +59,13 @@ export function AuthProvider({ children }) {
         session,
         profile,
         loading,
-        fetchProfile,
         handleLogout,
         isAdmin: profile?.role === 'admin',
         isAgencyOwner: profile?.is_agency_owner || false,
         isAuthenticated: !!session && !isPasswordRecovery,
     };
-
+    
+    // The App component itself will show the loading spinner, so we can render children here.
     return (
         <AuthContext.Provider value={value}>
             {children}
@@ -70,7 +73,7 @@ export function AuthProvider({ children }) {
     );
 }
 
-// 3. Create the custom hook for easy consumption
+// 3. Create the custom hook with a check for the provider
 export const useAuth = () => {
     const context = useContext(AuthContext);
     if (context === undefined) {
