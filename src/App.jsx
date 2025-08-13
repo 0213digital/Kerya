@@ -11,7 +11,7 @@ import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
-import { UpdatePasswordPage } from './pages/UpdatePasswordPage'; // <-- Importer la nouvelle page
+import { UpdatePasswordPage } from './pages/UpdatePasswordPage'; // <-- L'import est ici
 import { BookingPage } from './pages/BookingPage';
 import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
@@ -44,7 +44,7 @@ export default function App() {
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
-                    <Route path="/update-password" element={<UpdatePasswordPage />} /> {/* <-- Ajouter la nouvelle route */}
+                    <Route path="/update-password" element={<UpdatePasswordPage />} /> {/* <-- La route est ici */}
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
                     <Route path="/dashboard/messages" element={<MessagesPage />} />
