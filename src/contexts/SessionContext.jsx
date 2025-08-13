@@ -9,10 +9,17 @@ export function SessionProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        // Immediately try to get the current session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            setSession(session);
+            setLoading(false); // Initial load is done
+        });
+
+        // Then, listen for any auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
             setSession(session);
             setAuthEvent(event);
-            setLoading(false);
+            setLoading(false); // Update loading state on any change
         });
 
         return () => {
