@@ -5,13 +5,13 @@ import { useSession } from './SessionContext';
 const ProfileContext = createContext();
 
 export function ProfileProvider({ children }) {
-    const { session } = useSession();
+    const { session, authEvent } = useSession();
     const [profile, setProfile] = useState(null);
-    const [loadingProfile, setLoadingProfile] = useState(false);
+    const [loadingProfile, setLoadingProfile] = useState(true);
 
     useEffect(() => {
         const fetchProfile = async () => {
-            if (session?.user) {
+            if (session?.user && authEvent !== 'PASSWORD_RECOVERY') {
                 setLoadingProfile(true);
                 const { data, error } = await supabase
                     .from('profiles')
@@ -27,12 +27,13 @@ export function ProfileProvider({ children }) {
                 }
                 setLoadingProfile(false);
             } else {
-                setProfile(null); // Clear profile if there's no session
+                setProfile(null);
+                setLoadingProfile(false);
             }
         };
 
         fetchProfile();
-    }, [session]);
+    }, [session, authEvent]);
 
     const value = {
         profile,

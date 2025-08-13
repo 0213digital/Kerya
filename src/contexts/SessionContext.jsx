@@ -5,13 +5,13 @@ const SessionContext = createContext();
 
 export function SessionProvider({ children }) {
     const [session, setSession] = useState(null);
+    const [authEvent, setAuthEvent] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (event !== 'PASSWORD_RECOVERY') {
-                setSession(session);
-            }
+            setSession(session);
+            setAuthEvent(event);
             setLoading(false);
         });
 
@@ -20,7 +20,7 @@ export function SessionProvider({ children }) {
         };
     }, []);
 
-    const value = { session, loading };
+    const value = { session, authEvent, loading };
 
     return (
         <SessionContext.Provider value={value}>
