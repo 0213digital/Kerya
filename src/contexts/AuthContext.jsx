@@ -10,7 +10,7 @@ export function AuthProvider({ children }) {
     const [session, setSession] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [isPasswordRecovery, setIsPasswordRecovery] = useState(false); // State to track recovery mode
+    const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
     const navigate = useNavigate();
 
     const fetchProfile = useCallback(async (user) => {
@@ -22,29 +22,33 @@ export function AuthProvider({ children }) {
             } else {
                 setProfile(data);
             }
+        } else {
+            setProfile(null);
         }
     }, []);
 
     useEffect(() => {
-        setLoading(true);
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        const checkSession = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
-            fetchProfile(session?.user).finally(() => setLoading(false));
-        });
+            // Only fetch profile if it's a regular session, not at the start of a password recovery flow
+            if (session?.user && !window.location.hash.includes('type=recovery')) {
+                await fetchProfile(session.user);
+            }
+            setLoading(false);
+        };
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            // Check if the auth event is for password recovery
+        checkSession();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
             if (event === 'PASSWORD_RECOVERY') {
                 setIsPasswordRecovery(true);
-                setSession(session); // We still need the session for the update page
+                setSession(session);
+                setProfile(null); // Explicitly clear profile during recovery
             } else {
                 setIsPasswordRecovery(false);
                 setSession(session);
-                if (session?.user) {
-                    fetchProfile(session.user);
-                } else {
-                    setProfile(null);
-                }
+                await fetchProfile(session?.user);
             }
         });
 
@@ -54,6 +58,7 @@ export function AuthProvider({ children }) {
     const handleLogout = async () => {
         await supabase.auth.signOut();
         setProfile(null);
+        setSession(null);
         navigate('/');
     };
 
@@ -65,8 +70,7 @@ export function AuthProvider({ children }) {
         handleLogout,
         isAdmin: profile?.role === 'admin',
         isAgencyOwner: profile?.is_agency_owner || false,
-        // isAuthenticated is now false during password recovery
-        isAuthenticated: !!session && !isPasswordRecovery,
+        isAuthenticated: !!session && !!profile && !isPasswordRecovery,
     };
 
     return (
