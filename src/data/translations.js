@@ -299,6 +299,11 @@ export const translations = {
         confirmReturnText: "Are you sure you want to mark this booking as 'Returned'?",
         recording: 'Recording',
         sendAudioPrompt: 'Ready to send this audio clip?',
+        updatePasswordTitle: "Update Your Password",
+        newPassword: "New Password",
+        updatePasswordButton: "Update Password",
+        updatePasswordSuccess: "Your password has been updated successfully! Redirecting to login...",
+        updatePasswordNoSession: "No active session for password recovery. Please request a new reset link.",
     },
     fr: {
         appName: "KERYA",
@@ -600,5 +605,10 @@ export const translations = {
         confirmReturnText: "Voulez-vous vraiment marquer cette réservation comme 'Retournée' ?",
         recording: 'Enregistrement',
         sendAudioPrompt: 'Prêt à envoyer ce clip audio ?',
+        updatePasswordTitle: "Mettez à jour votre mot de passe",
+        newPassword: "Nouveau mot de passe",
+        updatePasswordButton: "Mettre à jour le mot de passe",
+        updatePasswordSuccess: "Votre mot de passe a été mis à jour avec succès ! Redirection vers la page de connexion...",
+        updatePasswordNoSession: "Aucune session active pour la récupération du mot de passe. Veuillez demander un nouveau lien de réinitialisation.",
     }
 };

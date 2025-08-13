@@ -11,6 +11,7 @@ import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
 import { LoginPage } from './pages/LoginPage';
 import { SignUpPage } from './pages/SignUpPage';
+import { UpdatePasswordPage } from './pages/UpdatePasswordPage'; // <-- Importer la nouvelle page
 import { BookingPage } from './pages/BookingPage';
 import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
@@ -18,7 +19,7 @@ import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
-import { MessagesPage } from './pages/dashboard/MessagesPage'; // Import the new page
+import { MessagesPage } from './pages/dashboard/MessagesPage'; 
 
 // PDF Generation Helper (omitted for brevity)
 const generateInvoice = async () => { /* ... */ };
@@ -43,9 +44,10 @@ export default function App() {
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/signup" element={<SignUpPage />} />
+                    <Route path="/update-password" element={<UpdatePasswordPage />} /> {/* <-- Ajouter la nouvelle route */}
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
-                    <Route path="/dashboard/messages" element={<MessagesPage />} /> {/* Add new route */}
+                    <Route path="/dashboard/messages" element={<MessagesPage />} />
                     <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
