@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { useTranslation } from './contexts/LanguageContext';
 import { Navbar } from './components/Navbar';
@@ -27,6 +27,10 @@ const generateInvoice = async () => { /* ... */ };
 export default function App() {
     const { loading } = useAuth();
     const { t } = useTranslation();
+    const location = useLocation();
+
+    // This will be true if the user is on the update-password page
+    const isUpdatePasswordPage = location.pathname === '/update-password';
 
     // Affiche un écran de chargement global tant que l'authentification n'est pas résolue
     if (loading) {
@@ -39,8 +43,8 @@ export default function App() {
 
     return (
         <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50">
-            <Navbar />
-            <main className="pt-20">
+            {!isUpdatePasswordPage && <Navbar />}
+            <main className={!isUpdatePasswordPage ? "pt-20" : ""}>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/search" element={<SearchPage />} />
@@ -63,7 +67,7 @@ export default function App() {
                     <Route path="/admin/users/:id" element={<UserDetailsPage />} />
                 </Routes>
             </main>
-            <Footer />
+            {!isUpdatePasswordPage && <Footer />}
         </div>
     );
 }
