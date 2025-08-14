@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient'; // Correctly import supabase
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export function SignUpPage() {
     const { t } = useTranslation();
+    const navigate = useNavigate();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
@@ -13,6 +16,12 @@ export function SignUpPage() {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
+
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, authLoading, navigate]);
 
     const handlePhoneChange = (e) => {
         const value = e.target.value.replace(/\D/g, '');
@@ -47,6 +56,14 @@ export function SignUpPage() {
         }
         setLoading(false);
     };
+
+    if (authLoading || isAuthenticated) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="container mx-auto max-w-md py-16 px-4">

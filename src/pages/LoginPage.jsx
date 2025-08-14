@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
+import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { t } = useTranslation();
+    const { isAuthenticated, loading: authLoading } = useAuth();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -15,6 +17,12 @@ export function LoginPage() {
     const [view, setView] = useState('login');
     const [resetEmail, setResetEmail] = useState('');
     const [resetSuccess, setResetSuccess] = useState(false);
+
+    useEffect(() => {
+        if (!authLoading && isAuthenticated) {
+            navigate('/');
+        }
+    }, [isAuthenticated, authLoading, navigate]);
 
     useEffect(() => {
         if (location.state?.message) {
@@ -84,6 +92,14 @@ export function LoginPage() {
         }
         setLoading(false);
     };
+    
+    if (authLoading || isAuthenticated) {
+        return (
+            <div className="flex justify-center items-center h-screen">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+            </div>
+        );
+    }
 
     if (view === 'forgot_password') {
         return (
