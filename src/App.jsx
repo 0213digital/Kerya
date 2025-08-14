@@ -19,7 +19,8 @@ import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
-import { MessagesPage } from './pages/dashboard/MessagesPage'; 
+import { MessagesPage } from './pages/dashboard/MessagesPage';
+import { LocationManagementPage } from './pages/admin/LocationManagementPage'; // <-- NOUVEL IMPORT
 
 // PDF Generation Helper (omitted for brevity)
 const generateInvoice = async () => { /* ... */ };
@@ -65,6 +66,7 @@ export default function App() {
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
                     <Route path="/admin/users" element={<UserManagementPage />} />
                     <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+                    <Route path="/admin/locations" element={<LocationManagementPage />} /> {/* <-- NOUVELLE ROUTE */}
                 </Routes>
             </main>
             {!isUpdatePasswordPage && <Footer />}

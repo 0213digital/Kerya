@@ -304,6 +304,10 @@ export const translations = {
         updatePasswordButton: "Update Password",
         updatePasswordNoSession: "No active session for password recovery. Please request a new reset link.",
         updatePasswordSuccessMessage: "Password updated successfully! Please log in with your new password.",
+        locationManagement: "Location Management",
+        locationManagementDesc: "Add, edit, or delete wilayas and cities.",
+        addWilaya: "Add Wilaya",
+        addCity: "Add City",
     },
     fr: {
         appName: "KERYA",
@@ -610,5 +614,9 @@ export const translations = {
         updatePasswordButton: "Mettre à jour le mot de passe",
         updatePasswordNoSession: "Aucune session active pour la récupération du mot de passe. Veuillez demander un nouveau lien de réinitialisation.",
         updatePasswordSuccessMessage: "Mot de passe mis à jour avec succès ! Veuillez vous connecter avec votre nouveau mot de passe.",
+         locationManagement: "Gestion des Lieux",
+        locationManagementDesc: "Ajoutez, modifiez ou supprimez des wilayas et des villes.",
+        addWilaya: "Ajouter une Wilaya",
+        addCity: "Ajouter une Ville",
     }
 };

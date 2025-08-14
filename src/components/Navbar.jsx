@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users } from 'lucide-react';
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users, MapPin } from 'lucide-react'; // <-- Importer MapPin
 
 export function Navbar() {
     const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
@@ -54,6 +54,7 @@ export function Navbar() {
                                             <>
                                                 <Link to="/admin/dashboard" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('adminDashboard')}</Link>
                                                 <Link to="/admin/users" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('userManagement')}</Link>
+                                                <Link to="/admin/locations" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('locationManagement')}</Link> {/* <-- NOUVEAU LIEN */}
                                             </>
                                         )}
                                         {isAgencyOwner ? (
@@ -96,6 +97,7 @@ export function Navbar() {
                                         <>
                                             <MobileNavLink to="/admin/dashboard" icon={<Shield size={20} />}>{t('adminDashboard')}</MobileNavLink>
                                             <MobileNavLink to="/admin/users" icon={<Users size={20} />}>{t('userManagement')}</MobileNavLink>
+                                            <MobileNavLink to="/admin/locations" icon={<MapPin size={20} />}>{t('locationManagement')}</MobileNavLink> {/* <-- NOUVEAU LIEN MOBILE */}
                                         </>
                                     )}
                                     {isAgencyOwner ? (
