@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // Importer useRef
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import { Search, MapPin, Calendar } from 'lucide-react';
@@ -15,7 +15,6 @@ export function SearchForm() {
     const [returnDate, setReturnDate] = useState('');
     const today = new Date().toISOString().split('T')[0];
 
-    // Créer des refs pour les inputs de date
     const pickupDateRef = useRef(null);
     const returnDateRef = useRef(null);
 
@@ -43,7 +42,7 @@ export function SearchForm() {
         } else {
             setFilteredCities([]);
         }
-        setSelectedCity(''); // Reset city when wilaya changes
+        setSelectedCity('');
     }, [selectedWilaya, locations]);
 
     const handleSearch = (e) => {
@@ -57,30 +56,15 @@ export function SearchForm() {
         navigate(`/search?${searchParams}`);
     };
 
-    // Fonction pour gérer le focus sur les champs de date
-    const handleDateFocus = (e) => {
-        e.currentTarget.type = 'date';
-        // Certains navigateurs peuvent nécessiter un petit délai
-        setTimeout(() => {
-            try {
-                e.currentTarget.showPicker();
-            } catch (error) {
-                // showPicker() n'est pas supporté sur tous les navigateurs (ex: Firefox),
-                // mais le passage à type="date" suffit généralement.
-                console.log("e.currentTarget.showPicker() is not supported on this browser.");
-            }
-        }, 50);
-    };
-
     return (
         <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-lg w-full">
             <div className="flex flex-col md:flex-row items-center">
                 {/* Location Input */}
                 <div className="relative w-full p-4">
-                    <label htmlFor="location" className="block text-sm font-medium text-slate-700">{t('searchFormLocation')}</label>
+                    <label className="block text-sm font-medium text-slate-700">{t('searchFormLocation')}</label>
                     <div className="relative mt-1">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <select id="location" value={selectedWilaya} onChange={(e) => setSelectedWilaya(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent">
+                        <select value={selectedWilaya} onChange={(e) => setSelectedWilaya(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent">
                             <option value="">{t('anyLocation')}</option>
                             {locations.wilayas.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
                         </select>
@@ -90,35 +74,32 @@ export function SearchForm() {
                 {/* City Input */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
                 <div className="relative w-full p-4">
-                    <label htmlFor="city" className="block text-sm font-medium text-slate-700">{t('city')}</label>
+                    <label className="block text-sm font-medium text-slate-700">{t('city')}</label>
                     <div className="relative mt-1">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <select id="city" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} disabled={!selectedWilaya} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent disabled:bg-slate-50 disabled:cursor-not-allowed">
+                        <select value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} disabled={!selectedWilaya} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent disabled:bg-slate-50 disabled:cursor-not-allowed">
                             <option value="">{t('all')}</option>
                             {filteredCities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         </select>
                     </div>
                 </div>
 
-
                 {/* Divider */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
 
                 {/* Pickup Date */}
                 <div className="relative w-full p-4">
-                    <label htmlFor="pickup-date" className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
-                    <div className="relative mt-1" onClick={() => pickupDateRef.current.focus()}>
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                    <label className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
+                    <div className="relative mt-1 cursor-pointer" onClick={() => pickupDateRef.current?.showPicker()}>
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        {!pickupDate && <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">{t('pickupDate')}</span>}
                         <input 
                             ref={pickupDateRef}
-                            type="text" // Type initial est 'text'
-                            id="pickup-date" 
+                            type="date"
                             min={today} 
                             value={pickupDate}
-                            onFocus={handleDateFocus} // Gère le changement de type et l'ouverture du calendrier
                             onChange={e => setPickupDate(e.target.value)} 
-                            placeholder={t('dateFormatPlaceholder')} // Nouveau placeholder
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" 
+                            className={`w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent ${pickupDate ? 'text-slate-800' : 'text-transparent'}`}
                         />
                     </div>
                 </div>
@@ -128,19 +109,17 @@ export function SearchForm() {
 
                 {/* Return Date */}
                 <div className="relative w-full p-4">
-                    <label htmlFor="return-date" className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
-                    <div className="relative mt-1" onClick={() => returnDateRef.current.focus()}>
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                    <label className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
+                    <div className="relative mt-1 cursor-pointer" onClick={() => returnDateRef.current?.showPicker()}>
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        {!returnDate && <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">{t('returnDate')}</span>}
                         <input 
                             ref={returnDateRef}
-                            type="text" // Type initial est 'text'
-                            id="return-date" 
+                            type="date"
                             min={pickupDate || today} 
                             value={returnDate} 
-                            onFocus={handleDateFocus} // Gère le changement de type et l'ouverture du calendrier
                             onChange={(e) => setReturnDate(e.target.value)} 
-                            placeholder={t('dateFormatPlaceholder')} // Nouveau placeholder
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" 
+                            className={`w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent ${returnDate ? 'text-slate-800' : 'text-transparent'}`}
                         />
                     </div>
                 </div>
