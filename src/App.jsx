@@ -1,9 +1,12 @@
 import React from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
-import { useTranslation } from './contexts/LanguageContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+
+// PDF Generation
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 
 // Import all page components
 import { HomePage } from './pages/HomePage';
@@ -20,20 +23,110 @@ import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnbo
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
-import { LocationManagementPage } from './pages/admin/LocationManagementPage'; // <-- NOUVEL IMPORT
+import { LocationManagementPage } from './pages/admin/LocationManagementPage';
 
-// PDF Generation Helper (omitted for brevity)
-const generateInvoice = async () => { /* ... */ };
+const generateInvoice = async (booking, t) => {
+    // Vérification plus stricte des données nécessaires
+    if (!booking?.profiles || !booking?.vehicles?.agencies) {
+        console.error("Booking data is incomplete for invoice generation.", booking);
+        alert("Sorry, booking data is incomplete for the invoice.");
+        return;
+    }
+
+    try {
+        const doc = new jsPDF();
+        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png";
+
+        // Chargement du logo de manière sécurisée pour éviter les problèmes de CORS
+        try {
+            const response = await fetch(logoUrl);
+            const blob = await response.blob();
+            const reader = new FileReader();
+            const dataUrl = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            doc.addImage(dataUrl, 'PNG', 14, 12, 40, 15);
+        } catch (logoError) {
+            console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
+            // On continue même si le logo ne se charge pas
+        }
+
+        // --- Header ---
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('invoice'), 196, 22, { align: 'right' });
+
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${t('bookingId')}: #${booking.id}`, 196, 30, { align: 'right' });
+        doc.text(`${t('date')}: ${new Date().toLocaleDateString(t('locale'))}`, 196, 35, { align: 'right' });
+
+        // --- Infos Agence et Locataire ---
+        doc.setLineWidth(0.5);
+        doc.line(14, 45, 196, 45);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('rentedFrom'), 14, 55);
+        doc.text(t('rentedBy'), 110, 55);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        // Utilisation de l'optional chaining pour plus de sécurité
+        doc.text(booking.vehicles.agencies.agency_name || 'N/A', 14, 62);
+        doc.text(`${booking.vehicles.agencies.city || ''}, ${booking.vehicles.agencies.wilaya || ''}`, 14, 67);
+        
+        doc.text(booking.profiles.full_name || 'N/A', 110, 62);
+        doc.text(booking.profiles.email || 'N/A', 110, 67);
+
+        doc.line(14, 80, 196, 80);
+
+        // --- Tableau avec les détails ---
+        const dailyRate = typeof booking.vehicles.daily_rate_dzd === 'number' ? `${booking.vehicles.daily_rate_dzd.toLocaleString(t('locale'))} DZD` : 'N/A';
+        const totalPrice = typeof booking.total_price === 'number' ? `${booking.total_price.toLocaleString(t('locale'))} DZD` : 'N/A';
+
+        doc.autoTable({
+            startY: 90,
+            head: [[t('description'), t('rentalPeriod'), t('dailyRate'), t('total')]],
+            body: [[
+                `${booking.vehicles.make || ''} ${booking.vehicles.model || ''} (${booking.vehicles.year || ''})`,
+                `${new Date(booking.start_date).toLocaleDateString(t('locale'))} - ${new Date(booking.end_date).toLocaleDateString(t('locale'))}`,
+                dailyRate,
+                totalPrice
+            ]],
+            theme: 'striped',
+            headStyles: { fillColor: [74, 85, 104] },
+        });
+
+        // --- Section Total ---
+        const finalY = doc.lastAutoTable.finalY || 120;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${t('totalPrice')} ${totalPrice}`, 196, finalY + 15, { align: 'right' });
+
+        // --- Pied de page ---
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        const pageCenter = doc.internal.pageSize.width / 2;
+        doc.text(t('invoiceFooter'), pageCenter, 280, { align: 'center' });
+
+        // --- Sauvegarder le PDF ---
+        doc.save(`invoice-kerya-${booking.id}.pdf`);
+
+    } catch (error) {
+        console.error("Failed to generate PDF:", error);
+        alert("Sorry, there was an error creating the invoice PDF.");
+    }
+};
+
 
 export default function App() {
     const { loading } = useAuth();
-    const { t } = useTranslation();
     const location = useLocation();
-
-    // This will be true if the user is on the update-password page
     const isUpdatePasswordPage = location.pathname === '/update-password';
 
-    // Affiche un écran de chargement global tant que l'authentification n'est pas résolue
     if (loading) {
         return (
             <div className="flex justify-center items-center h-screen bg-slate-50">
@@ -66,7 +159,7 @@ export default function App() {
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
                     <Route path="/admin/users" element={<UserManagementPage />} />
                     <Route path="/admin/users/:id" element={<UserDetailsPage />} />
-                    <Route path="/admin/locations" element={<LocationManagementPage />} /> {/* <-- NOUVELLE ROUTE */}
+                    <Route path="/admin/locations" element={<LocationManagementPage />} />
                 </Routes>
             </main>
             {!isUpdatePasswordPage && <Footer />}

@@ -308,7 +308,15 @@ export const translations = {
         locationManagementDesc: "Add, edit, or delete wilayas and cities.",
         addWilaya: "Add Wilaya",
         addCity: "Add City",
-        deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
+        deleteConfirmTextGeneric: "Are you sure? This action is irreversible.",
+        invoice: "Invoice",
+        rentedFrom: "Rented From:",
+        rentedBy: "Rented By:",
+        rentalPeriod: "Rental Period",
+        total: "Total",
+        invoiceFooter: "Thank you for choosing KERYA. Please keep this invoice for your records.",
+        bookingId: "Booking ID",
+        date: "Date"
     },
     fr: {
         appName: "KERYA",
@@ -619,6 +627,14 @@ export const translations = {
         locationManagementDesc: "Ajoutez, modifiez ou supprimez des wilayas et des villes.",
         addWilaya: "Ajouter une Wilaya",
         addCity: "Ajouter une Ville",
-        deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
+        deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible.",
+        invoice: "Facture",
+        rentedFrom: "Loué auprès de :",
+        rentedBy: "Loué par :",
+        rentalPeriod: "Période de location",
+        total: "Total",
+        invoiceFooter: "Merci d'avoir choisi KERYA. Veuillez conserver cette facture pour vos archives.",
+        bookingId: "ID Réservation",
+        date: "Date"
     }
 };

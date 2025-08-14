@@ -21,7 +21,7 @@ export function BookingConfirmationPage({ generateInvoice }) {
             setLoading(true);
             const { data, error } = await supabase
                 .from('bookings')
-                .select('*, vehicles(*, agencies(*))')
+                .select('*, vehicles(*, agencies(*)), profiles(*)') // <-- MODIFICATION ICI
                 .eq('id', bookingId)
                 .single();
             
