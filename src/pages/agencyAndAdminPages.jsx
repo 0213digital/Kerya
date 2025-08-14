@@ -8,7 +8,6 @@ import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBo
 import { algeriaGeoData } from '../data/geoAndCarData';
 import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo } from 'lucide-react';
 
-// ... (Le composant AgencyDashboardPage reste inchangé)
 const MonthlyRevenueChart = ({ data, t }) => {
     const maxValue = Math.max(...data.map(d => d.revenue), 1);
     return (
@@ -136,7 +135,7 @@ export function AgencyDashboardPage() {
                 d.setMonth(d.getMonth() - i);
                 const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 last12Months.push({
-                    month: d.toLocaleString(t('locale'), { month: 'short' })
+                    month: d.toLocaleString(t('locale'), { month: 'short' }),
                     revenue: monthlyRevenueData[monthKey] || 0
                 });
             }
@@ -158,7 +157,7 @@ export function AgencyDashboardPage() {
         };
 
         fetchStats();
-    }, [profile]);
+    }, [profile, t]);
     
     return (
         <DashboardLayout title={t('agencyDashboardTitle')} description={t('agencyDashboardDesc')}>
@@ -205,7 +204,6 @@ export function AgencyDashboardPage() {
 }
 
 export function AgencyVehiclesPage() {
-    // ... (This component remains unchanged)
     const { t } = useTranslation();
     const { profile } = useAuth();
     const navigate = useNavigate();
@@ -408,7 +406,6 @@ export function AgencyBookingsPage() {
     );
 }
 
-// ... (Le reste du fichier reste inchangé)
 export function AgencyOnboardingPage() {
     const { t } = useTranslation();
     const { profile } = useAuth();
@@ -698,3 +695,5 @@ export function AdminAgencyDetailsPage() {
         </DashboardLayout>
     );
 }
+}
+</tbody></table>
