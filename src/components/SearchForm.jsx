@@ -89,10 +89,21 @@ export function SearchForm() {
                 <div className="relative w-full p-4">
                     <label htmlFor="pickup-date" className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
                     <div className="relative mt-1">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <input type="date" id="pickup-date" min={today} value={pickupDate} onChange={e => setPickupDate(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                        <input
+                            id="pickup-date"
+                            type="text"
+                            placeholder={t('pickupDate')}
+                            onFocus={(e) => (e.target.type = 'date')}
+                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                            min={today}
+                            value={pickupDate}
+                            onChange={e => setPickupDate(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent"
+                        />
                     </div>
                 </div>
+
 
                 {/* Divider */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
@@ -101,8 +112,18 @@ export function SearchForm() {
                 <div className="relative w-full p-4">
                     <label htmlFor="return-date" className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
                     <div className="relative mt-1">
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <input type="date" id="return-date" min={pickupDate || today} value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
+                        <input
+                            id="return-date"
+                            type="text"
+                            placeholder={t('returnDate')}
+                            onFocus={(e) => (e.target.type = 'date')}
+                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
+                            min={pickupDate || today}
+                            value={returnDate}
+                            onChange={(e) => setReturnDate(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent"
+                        />
                     </div>
                 </div>
 
