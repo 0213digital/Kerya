@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 
 export function SearchForm() {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, language } = useTranslation(); // Correction : Ajout de 'language'
     const [locations, setLocations] = useState({ wilayas: [], cities: [] });
     const [selectedWilaya, setSelectedWilaya] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
@@ -18,11 +18,10 @@ export function SearchForm() {
     const pickupDateRef = useRef(null);
     const returnDateRef = useRef(null);
 
-    // Helper function to format the date for display
+    // La fonction de formatage utilise maintenant la langue active
     const formatDate = (dateString, locale) => {
         if (!dateString) return null;
         const date = new Date(dateString);
-        // Adjust for timezone to prevent off-by-one day errors in display
         const userTimezoneOffset = date.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
         
@@ -111,7 +110,7 @@ export function SearchForm() {
                     >
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <span className={`font-medium ${pickupDate ? 'text-slate-800' : 'text-gray-500'}`}>
-                            {pickupDate ? formatDate(pickupDate, t('locale')) : t('pickupDate')}
+                            {pickupDate ? formatDate(pickupDate, language) : t('pickupDate')}
                         </span>
                         <input 
                             ref={pickupDateRef}
@@ -136,7 +135,7 @@ export function SearchForm() {
                     >
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <span className={`font-medium ${returnDate ? 'text-slate-800' : 'text-gray-500'}`}>
-                            {returnDate ? formatDate(returnDate, t('locale')) : t('returnDate')}
+                            {returnDate ? formatDate(returnDate, language) : t('returnDate')}
                         </span>
                         <input 
                             ref={returnDateRef}
