@@ -16,8 +16,8 @@ export const translations = {
         logout: "Logout",
         heroTitle: "Find Your Perfect Rental Car",
         heroSubtitle: "Explore Algeria with the best cars from trusted local agencies.",
-        searchFormLocation: "City", // MODIFIÉ
-        city: "Location", // MODIFIÉ
+        searchFormLocation: "City",
+        city: "Location",
         anyLocation: "Any",
         pickupDate: "Pick-up Date",
         returnDate: "Return Date",
@@ -327,8 +327,8 @@ export const translations = {
         logout: "Déconnexion",
         heroTitle: "Trouvez Votre Voiture de Location Idéale",
         heroSubtitle: "Explorez l'Algérie avec les meilleures voitures d'agences locales de confiance.",
-        searchFormLocation: "Ville", // MODIFIÉ
-        city: "Localisation", // MODIFIÉ
+        searchFormLocation: "Ville",
+        city: "Localisation",
         anyLocation: "Toutes",
         pickupDate: "Date de départ",
         returnDate: "Date de retour",
@@ -622,4 +622,3 @@ export const translations = {
         deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
     }
 };
-}
