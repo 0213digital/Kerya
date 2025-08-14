@@ -18,6 +18,21 @@ export function SearchForm() {
     const pickupDateRef = useRef(null);
     const returnDateRef = useRef(null);
 
+    // Helper function to format the date for display
+    const formatDate = (dateString, locale) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        // Adjust for timezone to prevent off-by-one day errors in display
+        const userTimezoneOffset = date.getTimezoneOffset() * 60000;
+        const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
+        
+        return new Intl.DateTimeFormat(locale, {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+        }).format(adjustedDate);
+    };
+
     useEffect(() => {
         const fetchLocations = async () => {
             const { data: wilayasData, error: wilayasError } = await supabase.from('wilayas').select('id, name').order('name');
@@ -90,16 +105,21 @@ export function SearchForm() {
                 {/* Pickup Date */}
                 <div className="relative w-full p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
-                    <div className="relative mt-1 cursor-pointer" onClick={() => pickupDateRef.current?.showPicker()}>
+                    <div 
+                        className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
+                        onClick={() => pickupDateRef.current?.showPicker()}
+                    >
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        {!pickupDate && <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">{t('pickupDate')}</span>}
+                        <span className={`font-medium ${pickupDate ? 'text-slate-800' : 'text-gray-500'}`}>
+                            {pickupDate ? formatDate(pickupDate, t('locale')) : t('pickupDate')}
+                        </span>
                         <input 
                             ref={pickupDateRef}
                             type="date"
                             min={today} 
                             value={pickupDate}
                             onChange={e => setPickupDate(e.target.value)} 
-                            className={`w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent ${pickupDate ? 'text-slate-800' : 'text-transparent'}`}
+                            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                         />
                     </div>
                 </div>
@@ -110,16 +130,22 @@ export function SearchForm() {
                 {/* Return Date */}
                 <div className="relative w-full p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
-                    <div className="relative mt-1 cursor-pointer" onClick={() => returnDateRef.current?.showPicker()}>
+                     <div 
+                        className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
+                        onClick={() => returnDateRef.current?.showPicker()}
+                    >
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        {!returnDate && <span className="absolute left-10 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">{t('returnDate')}</span>}
+                        <span className={`font-medium ${returnDate ? 'text-slate-800' : 'text-gray-500'}`}>
+                            {returnDate ? formatDate(returnDate, t('locale')) : t('returnDate')}
+                        </span>
                         <input 
                             ref={returnDateRef}
                             type="date"
                             min={pickupDate || today} 
                             value={returnDate} 
                             onChange={(e) => setReturnDate(e.target.value)} 
-                            className={`w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent ${returnDate ? 'text-slate-800' : 'text-transparent'}`}
+                            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+                            disabled={!pickupDate}
                         />
                     </div>
                 </div>

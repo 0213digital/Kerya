@@ -6,3 +6,9 @@
 body {
   font-family: 'Inter', sans-serif;
 }
+
+/* Add these new rules to hide the default browser calendar icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  display: none;
+  -webkit-appearance: none;
+}
