@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Importer useRef
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import { Search, MapPin, Calendar } from 'lucide-react';
@@ -14,6 +14,10 @@ export function SearchForm() {
     const [pickupDate, setPickupDate] = useState('');
     const [returnDate, setReturnDate] = useState('');
     const today = new Date().toISOString().split('T')[0];
+
+    // Créer des refs pour les inputs de date
+    const pickupDateRef = useRef(null);
+    const returnDateRef = useRef(null);
 
     useEffect(() => {
         const fetchLocations = async () => {
@@ -53,6 +57,21 @@ export function SearchForm() {
         navigate(`/search?${searchParams}`);
     };
 
+    // Fonction pour gérer le focus sur les champs de date
+    const handleDateFocus = (e) => {
+        e.currentTarget.type = 'date';
+        // Certains navigateurs peuvent nécessiter un petit délai
+        setTimeout(() => {
+            try {
+                e.currentTarget.showPicker();
+            } catch (error) {
+                // showPicker() n'est pas supporté sur tous les navigateurs (ex: Firefox),
+                // mais le passage à type="date" suffit généralement.
+                console.log("e.currentTarget.showPicker() is not supported on this browser.");
+            }
+        }, 50);
+    };
+
     return (
         <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-lg w-full">
             <div className="flex flex-col md:flex-row items-center">
@@ -88,22 +107,21 @@ export function SearchForm() {
                 {/* Pickup Date */}
                 <div className="relative w-full p-4">
                     <label htmlFor="pickup-date" className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
-                    <div className="relative mt-1">
+                    <div className="relative mt-1" onClick={() => pickupDateRef.current.focus()}>
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
-                        <input
-                            id="pickup-date"
-                            type="text"
-                            placeholder={t('pickupDate')}
-                            onFocus={(e) => (e.target.type = 'date')}
-                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                            min={today}
+                        <input 
+                            ref={pickupDateRef}
+                            type="text" // Type initial est 'text'
+                            id="pickup-date" 
+                            min={today} 
                             value={pickupDate}
-                            onChange={e => setPickupDate(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent"
+                            onFocus={handleDateFocus} // Gère le changement de type et l'ouverture du calendrier
+                            onChange={e => setPickupDate(e.target.value)} 
+                            placeholder={t('dateFormatPlaceholder')} // Nouveau placeholder
+                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" 
                         />
                     </div>
                 </div>
-
 
                 {/* Divider */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
@@ -111,18 +129,18 @@ export function SearchForm() {
                 {/* Return Date */}
                 <div className="relative w-full p-4">
                     <label htmlFor="return-date" className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
-                    <div className="relative mt-1">
+                    <div className="relative mt-1" onClick={() => returnDateRef.current.focus()}>
                         <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={20} />
-                        <input
-                            id="return-date"
-                            type="text"
-                            placeholder={t('returnDate')}
-                            onFocus={(e) => (e.target.type = 'date')}
-                            onBlur={(e) => { if (!e.target.value) e.target.type = 'text'; }}
-                            min={pickupDate || today}
-                            value={returnDate}
-                            onChange={(e) => setReturnDate(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent"
+                        <input 
+                            ref={returnDateRef}
+                            type="text" // Type initial est 'text'
+                            id="return-date" 
+                            min={pickupDate || today} 
+                            value={returnDate} 
+                            onFocus={handleDateFocus} // Gère le changement de type et l'ouverture du calendrier
+                            onChange={(e) => setReturnDate(e.target.value)} 
+                            placeholder={t('dateFormatPlaceholder')} // Nouveau placeholder
+                            className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent" 
                         />
                     </div>
                 </div>

@@ -310,6 +310,8 @@ export const translations = {
         addWilaya: "Add Wilaya",
         addCity: "Add City",
         deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
+        dateFormatPlaceholder: "dd/mm/yyyy", // NOUVELLE LIGNE
+        deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
     },
     fr: {
         appName: "KERYA",
@@ -621,6 +623,8 @@ export const translations = {
         locationManagementDesc: "Ajoutez, modifiez ou supprimez des wilayas et des villes.",
         addWilaya: "Ajouter une Wilaya",
         addCity: "Ajouter une Ville",
+        deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
+        dateFormatPlaceholder: "jj/mm/aaaa", // NOUVELLE LIGNE
         deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
     }
 };
