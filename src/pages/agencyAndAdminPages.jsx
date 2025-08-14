@@ -136,7 +136,7 @@ export function AgencyDashboardPage() {
                 d.setMonth(d.getMonth() - i);
                 const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
                 last12Months.push({
-                    month: d.toLocaleString('fr-FR', { month: 'short' }),
+                    month: d.toLocaleString(t('locale'), { month: 'short' })
                     revenue: monthlyRevenueData[monthKey] || 0
                 });
             }

@@ -138,7 +138,6 @@ export const translations = {
         updateYourAgencyDesc: "Update your details and resubmit for verification.",
         agencyName: "Agency Name",
         address: "Address",
-        // city: "City", // Already modified
         wilaya: "Wilaya",
         tradeRegister: "Trade Register Number",
         tradeRegisterUpload: "Upload Trade Register Copy",
@@ -310,8 +309,6 @@ export const translations = {
         addWilaya: "Add Wilaya",
         addCity: "Add City",
         deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
-        dateFormatPlaceholder: "dd/mm/yyyy", // NOUVELLE LIGNE
-        deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
     },
     fr: {
         appName: "KERYA",
@@ -452,7 +449,6 @@ export const translations = {
         updateYourAgencyDesc: "Mettez à jour vos informations et soumettez à nouveau pour vérification.",
         agencyName: "Nom de l'agence",
         address: "Adresse",
-        // city: "Ville", // Already modified
         wilaya: "Wilaya",
         tradeRegister: "Numéro de Registre de Commerce",
         tradeRegisterUpload: "Télécharger une copie du Registre de Commerce",
@@ -624,7 +620,6 @@ export const translations = {
         addWilaya: "Ajouter une Wilaya",
         addCity: "Ajouter une Ville",
         deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
-        dateFormatPlaceholder: "jj/mm/aaaa", // NOUVELLE LIGNE
-        deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
     }
 };
+}
