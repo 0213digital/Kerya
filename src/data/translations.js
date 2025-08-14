@@ -16,7 +16,8 @@ export const translations = {
         logout: "Logout",
         heroTitle: "Find Your Perfect Rental Car",
         heroSubtitle: "Explore Algeria with the best cars from trusted local agencies.",
-        searchFormLocation: "Location (Wilaya)",
+        searchFormLocation: "City", // MODIFIÉ
+        city: "Location", // MODIFIÉ
         anyLocation: "Any",
         pickupDate: "Pick-up Date",
         returnDate: "Return Date",
@@ -137,7 +138,7 @@ export const translations = {
         updateYourAgencyDesc: "Update your details and resubmit for verification.",
         agencyName: "Agency Name",
         address: "Address",
-        city: "City",
+        // city: "City", // Already modified
         wilaya: "Wilaya",
         tradeRegister: "Trade Register Number",
         tradeRegisterUpload: "Upload Trade Register Copy",
@@ -282,7 +283,7 @@ export const translations = {
         conversationWith: "Conversation with {name}",
         regarding: "Regarding: {make} {model}",
         agencyCannotRent: "As an agency owner, you cannot book or contact other agencies.",
-        cancelBooking: "Cancel Booking", 
+        cancelBooking: "Cancel Booking",
         cancellationReason: "Reason for cancellation",
         confirmCancellation: "Confirm Cancellation",
         reasonPlaceholder: "e.g., Vehicle unforeseen maintenance...",
@@ -308,6 +309,7 @@ export const translations = {
         locationManagementDesc: "Add, edit, or delete wilayas and cities.",
         addWilaya: "Add Wilaya",
         addCity: "Add City",
+        deleteConfirmTextGeneric: "Are you sure? This action is irreversible."
     },
     fr: {
         appName: "KERYA",
@@ -326,7 +328,8 @@ export const translations = {
         logout: "Déconnexion",
         heroTitle: "Trouvez Votre Voiture de Location Idéale",
         heroSubtitle: "Explorez l'Algérie avec les meilleures voitures d'agences locales de confiance.",
-        searchFormLocation: "Localisation (Wilaya)",
+        searchFormLocation: "Ville", // MODIFIÉ
+        city: "Localisation", // MODIFIÉ
         anyLocation: "Toutes",
         pickupDate: "Date de départ",
         returnDate: "Date de retour",
@@ -447,7 +450,7 @@ export const translations = {
         updateYourAgencyDesc: "Mettez à jour vos informations et soumettez à nouveau pour vérification.",
         agencyName: "Nom de l'agence",
         address: "Adresse",
-        city: "Ville",
+        // city: "Ville", // Already modified
         wilaya: "Wilaya",
         tradeRegister: "Numéro de Registre de Commerce",
         tradeRegisterUpload: "Télécharger une copie du Registre de Commerce",
@@ -614,9 +617,10 @@ export const translations = {
         updatePasswordButton: "Mettre à jour le mot de passe",
         updatePasswordNoSession: "Aucune session active pour la récupération du mot de passe. Veuillez demander un nouveau lien de réinitialisation.",
         updatePasswordSuccessMessage: "Mot de passe mis à jour avec succès ! Veuillez vous connecter avec votre nouveau mot de passe.",
-         locationManagement: "Gestion des Lieux",
+        locationManagement: "Gestion des Lieux",
         locationManagementDesc: "Ajoutez, modifiez ou supprimez des wilayas et des villes.",
         addWilaya: "Ajouter une Wilaya",
         addCity: "Ajouter une Ville",
+        deleteConfirmTextGeneric: "Êtes-vous sûr ? Cette action est irréversible."
     }
 };
