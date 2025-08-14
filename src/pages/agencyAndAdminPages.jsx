@@ -8,6 +8,7 @@ import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBo
 import { algeriaGeoData } from '../data/geoAndCarData';
 import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo } from 'lucide-react';
 
+// ... (Le composant AgencyDashboardPage reste inchangé)
 const MonthlyRevenueChart = ({ data, t }) => {
     const maxValue = Math.max(...data.map(d => d.revenue), 1);
     return (
@@ -31,7 +32,7 @@ const MonthlyRevenueChart = ({ data, t }) => {
     );
 };
 export function AgencyDashboardPage() {
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const { profile } = useAuth();
     const [stats, setStats] = useState({ 
         listings: 0, 
@@ -157,7 +158,7 @@ export function AgencyDashboardPage() {
         };
 
         fetchStats();
-    }, [profile, t]);
+    }, [profile, t, language]);
     
     return (
         <DashboardLayout title={t('agencyDashboardTitle')} description={t('agencyDashboardDesc')}>
@@ -695,5 +696,3 @@ export function AdminAgencyDetailsPage() {
         </DashboardLayout>
     );
 }
-}
-</tbody></table>
