@@ -1,20 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
 import { Search, MapPin, Calendar } from 'lucide-react';
+import { supabase } from '../lib/supabaseClient';
 
-export function SearchForm({ wilayas }) {
+export function SearchForm() {
     const navigate = useNavigate();
     const { t } = useTranslation();
-    const [location, setLocation] = useState('');
+    const [locations, setLocations] = useState({ wilayas: [], cities: [] });
+    const [selectedWilaya, setSelectedWilaya] = useState('');
+    const [selectedCity, setSelectedCity] = useState('');
+    const [filteredCities, setFilteredCities] = useState([]);
     const [pickupDate, setPickupDate] = useState('');
     const [returnDate, setReturnDate] = useState('');
     const today = new Date().toISOString().split('T')[0];
 
+    useEffect(() => {
+        const fetchLocations = async () => {
+            const { data: wilayasData, error: wilayasError } = await supabase.from('wilayas').select('id, name').order('name');
+            const { data: citiesData, error: citiesError } = await supabase.from('cities').select('id, name, wilaya_id').order('name');
+
+            if (!wilayasError && !citiesError) {
+                setLocations({
+                    wilayas: wilayasData || [],
+                    cities: citiesData || []
+                });
+            }
+        };
+        fetchLocations();
+    }, []);
+
+    useEffect(() => {
+        if (selectedWilaya) {
+            const wilayaObj = locations.wilayas.find(w => w.name === selectedWilaya);
+            if (wilayaObj) {
+                setFilteredCities(locations.cities.filter(c => c.wilaya_id === wilayaObj.id));
+            }
+        } else {
+            setFilteredCities([]);
+        }
+        setSelectedCity(''); // Reset city when wilaya changes
+    }, [selectedWilaya, locations]);
+
     const handleSearch = (e) => {
         e.preventDefault();
         const searchParams = new URLSearchParams({
-            location,
+            location: selectedWilaya,
+            city: selectedCity,
             from: pickupDate,
             to: returnDate
         }).toString();
@@ -29,12 +61,26 @@ export function SearchForm({ wilayas }) {
                     <label htmlFor="location" className="block text-sm font-medium text-slate-700">{t('searchFormLocation')}</label>
                     <div className="relative mt-1">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <select id="location" value={location} onChange={(e) => setLocation(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent">
+                        <select id="location" value={selectedWilaya} onChange={(e) => setSelectedWilaya(e.target.value)} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent">
                             <option value="">{t('anyLocation')}</option>
-                            {wilayas.map(w => <option key={w} value={w}>{w}</option>)}
+                            {locations.wilayas.map(w => <option key={w.id} value={w.name}>{w.name}</option>)}
                         </select>
                     </div>
                 </div>
+
+                {/* City Input */}
+                <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
+                <div className="relative w-full p-4">
+                    <label htmlFor="city" className="block text-sm font-medium text-slate-700">{t('city')}</label>
+                    <div className="relative mt-1">
+                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <select id="city" value={selectedCity} onChange={(e) => setSelectedCity(e.target.value)} disabled={!selectedWilaya} className="w-full pl-10 pr-4 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent disabled:bg-slate-50 disabled:cursor-not-allowed">
+                            <option value="">{t('all')}</option>
+                            {filteredCities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        </select>
+                    </div>
+                </div>
+
 
                 {/* Divider */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>

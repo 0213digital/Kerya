@@ -49,7 +49,8 @@ export function SearchPage() {
             const from = searchParams.get('from');
             const to = searchParams.get('to');
             const location = searchParams.get('location');
-            
+            const city = searchParams.get('city'); // <-- Récupérer la ville
+
             let availableVehicleIds = null;
 
             if (from && to) {
@@ -73,6 +74,7 @@ export function SearchPage() {
                 .eq('agencies.verification_status', 'verified');
 
             if (location) query = query.eq('agencies.wilaya', location);
+            if (city) query = query.eq('agencies.city', city); // <-- Ajouter le filtre par ville
             if (availableVehicleIds) query = query.in('id', availableVehicleIds);
             
             const { data, error: vehiclesError } = await query;

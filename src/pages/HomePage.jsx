@@ -4,12 +4,10 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { SearchForm } from '../components/SearchForm';
 import { VehicleCard } from '../components/VehicleCard';
 import { Search, FileText, Car } from 'lucide-react';
-import { algeriaGeoData } from '../data/geoAndCarData';
 
 export function HomePage() {
     const { t } = useTranslation();
     const [vehicles, setVehicles] = useState([]);
-    const wilayas = Object.keys(algeriaGeoData);
 
     useEffect(() => {
         const fetchVehicles = async () => {
@@ -29,7 +27,7 @@ export function HomePage() {
                 <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center items-center text-center">
                     <h1 className="text-4xl md:text-6xl font-extrabold text-white">{t('heroTitle')}</h1>
                     <p className="mt-4 text-lg md:text-xl text-slate-200 max-w-2xl">{t('heroSubtitle')}</p>
-                    <div className="mt-8 w-full max-w-3xl"><SearchForm wilayas={wilayas} /></div>
+                    <div className="mt-8 w-full max-w-4xl"><SearchForm /></div>
                 </div>
             </div>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
