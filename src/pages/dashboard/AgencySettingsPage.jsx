@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useTranslation } from '../../contexts/LanguageContext'; // CORRECTED
 import { DashboardLayout } from '../../components/DashboardLayout';
 
 export function AgencySettingsPage() {
-    const { user } = useAuth();
-    const { t } = useLanguage();
+    const { profile } = useAuth();
+    const { t } = useTranslation(); // CORRECTED
     const [agency, setAgency] = useState(null);
     const [invoiceLogoUrl, setInvoiceLogoUrl] = useState('');
     const [invoiceBrandColor, setInvoiceBrandColor] = useState('');
@@ -18,12 +18,12 @@ export function AgencySettingsPage() {
 
     useEffect(() => {
         const fetchAgency = async () => {
-            if (user?.id) {
+            if (profile?.id) {
                 try {
                     const { data, error } = await supabase
                         .from('agencies')
                         .select('*')
-                        .eq('owner_id', user.id)
+                        .eq('owner_id', profile.id)
                         .single();
 
                     if (error) throw error;
@@ -42,7 +42,7 @@ export function AgencySettingsPage() {
         };
 
         fetchAgency();
-    }, [user]);
+    }, [profile]);
 
     const handleSave = async (e) => {
         e.preventDefault();
@@ -60,10 +60,10 @@ export function AgencySettingsPage() {
                 .eq('id', agency.id);
 
             if (error) throw error;
-            setMessage(t('invoiceSettingsSaved'));
+            setMessage({ text: t('invoiceSettingsSaved'), type: 'success' });
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage(`Error: ${error.message}`);
+            setMessage({ text: `${t('error')}: ${error.message}`, type: 'error' });
         } finally {
             setSaving(false);
         }
@@ -74,7 +74,7 @@ export function AgencySettingsPage() {
         if (!file) return;
 
         setUploading(true);
-        const fileName = `${user.id}/${Date.now()}-${file.name}`;
+        const fileName = `${profile.id}/${Date.now()}-${file.name}`;
         
         try {
             const { data, error } = await supabase.storage
@@ -90,103 +90,103 @@ export function AgencySettingsPage() {
             setInvoiceLogoUrl(publicURLData.publicUrl);
         } catch (error) {
             console.error('Error uploading logo:', error);
-            setMessage(`Error: ${error.message}`);
+            setMessage({ text: `${t('error')}: ${error.message}`, type: 'error' });
         } finally {
             setUploading(false);
         }
     };
 
     if (loading) {
-        return <DashboardLayout><div className="p-4">Loading...</div></DashboardLayout>;
+        return <DashboardLayout title={t('agencySettings')} description={t('loading')}><div className="p-4">{t('loading')}...</div></DashboardLayout>;
     }
 
     return (
-        <DashboardLayout>
-            <div className="p-4 md:p-8 max-w-4xl mx-auto">
-                <h1 className="text-3xl font-bold text-slate-800 mb-6">{t('agencySettings')}</h1>
+        <DashboardLayout title={t('agencySettings')} description={t('invoiceCustomization')}>
+            <div className="bg-white p-6 rounded-lg shadow-md">
+                <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-2">{t('invoiceCustomization')}</h2>
+                
+                {message && (
+                    <div className={`mb-4 p-3 rounded-md ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {message.text}
+                    </div>
+                )}
 
-                <div className="bg-white p-6 rounded-lg shadow-md">
-                    <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-2">{t('invoiceCustomization')}</h2>
-                    
-                    {message && <div className="mb-4 p-3 rounded-md bg-indigo-100 text-indigo-700">{message}</div>}
-
-                    <form onSubmit={handleSave}>
-                        <div className="space-y-6">
-                            <div>
-                                <label htmlFor="invoiceLogoUrl" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceLogoUrl')}</label>
-                                <div className="flex items-center space-x-4">
-                                    <input
-                                        id="invoiceLogoUrl"
-                                        type="text"
-                                        value={invoiceLogoUrl}
-                                        onChange={(e) => setInvoiceLogoUrl(e.target.value)}
-                                        className="flex-grow w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                        placeholder="https://..."
-                                    />
-                                    <input
-                                        type="file"
-                                        id="logo-upload"
-                                        className="hidden"
-                                        onChange={handleLogoUpload}
-                                        accept="image/png, image/jpeg"
-                                        disabled={uploading}
-                                    />
-                                    <label htmlFor="logo-upload" className="cursor-pointer px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition duration-150 ease-in-out">
-                                        {uploading ? t('uploading') : t('upload')}
-                                    </label>
-                                </div>
-                                {invoiceLogoUrl && (
-                                    <div className="mt-4">
-                                        <p className="text-sm font-medium text-slate-600 mb-2">{t('preview')}:</p>
-                                        <img src={invoiceLogoUrl} alt="Invoice Logo Preview" className="h-16 w-auto rounded-md border p-1" />
-                                    </div>
-                                )}
+                <form onSubmit={handleSave}>
+                    <div className="space-y-6">
+                        <div>
+                            <label htmlFor="invoiceLogoUrl" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceLogoUrl')}</label>
+                            <div className="flex items-center space-x-4">
+                                <input
+                                    id="invoiceLogoUrl"
+                                    type="text"
+                                    value={invoiceLogoUrl}
+                                    onChange={(e) => setInvoiceLogoUrl(e.target.value)}
+                                    className="flex-grow w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="https://..."
+                                />
+                                <input
+                                    type="file"
+                                    id="logo-upload"
+                                    className="hidden"
+                                    onChange={handleLogoUpload}
+                                    accept="image/png, image/jpeg"
+                                    disabled={uploading}
+                                />
+                                <label htmlFor="logo-upload" className="cursor-pointer px-4 py-2 bg-slate-600 text-white rounded-md hover:bg-slate-700 transition duration-150 ease-in-out">
+                                    {uploading ? t('uploading') : t('upload')}
+                                </label>
                             </div>
-
-                            <div>
-                                <label htmlFor="invoiceBrandColor" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceBrandColor')}</label>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        id="invoiceBrandColor"
-                                        type="color"
-                                        value={invoiceBrandColor}
-                                        onChange={(e) => setInvoiceBrandColor(e.target.value)}
-                                        className="p-1 h-10 w-10 block bg-white border border-slate-300 cursor-pointer rounded-md"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={invoiceBrandColor}
-                                        onChange={(e) => setInvoiceBrandColor(e.target.value)}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                        placeholder={t('brandColorHint')}
-                                    />
+                            {invoiceLogoUrl && (
+                                <div className="mt-4">
+                                    <p className="text-sm font-medium text-slate-600 mb-2">{t('preview')}:</p>
+                                    <img src={invoiceLogoUrl} alt="Invoice Logo Preview" className="h-16 w-auto rounded-md border p-1" />
                                 </div>
-                            </div>
+                            )}
+                        </div>
 
-                            <div>
-                                <label htmlFor="invoiceTerms" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceTerms')}</label>
-                                <textarea
-                                    id="invoiceTerms"
-                                    rows="4"
-                                    value={invoiceTerms}
-                                    onChange={(e) => setInvoiceTerms(e.target.value)}
+                        <div>
+                            <label htmlFor="invoiceBrandColor" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceBrandColor')}</label>
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    id="invoiceBrandColor"
+                                    type="color"
+                                    value={invoiceBrandColor}
+                                    onChange={(e) => setInvoiceBrandColor(e.target.value)}
+                                    className="p-1 h-10 w-10 block bg-white border border-slate-300 cursor-pointer rounded-md"
+                                />
+                                <input
+                                    type="text"
+                                    value={invoiceBrandColor}
+                                    onChange={(e) => setInvoiceBrandColor(e.target.value)}
                                     className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                                    placeholder={t('termsHint')}
-                                ></textarea>
+                                    placeholder={t('brandColorHint')}
+                                />
                             </div>
                         </div>
 
-                        <div className="mt-8 pt-5 border-t border-slate-200">
-                            <button
-                                type="submit"
-                                disabled={saving}
-                                className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-                            >
-                                {saving ? 'Saving...' : t('saveSettings')}
-                            </button>
+                        <div>
+                            <label htmlFor="invoiceTerms" className="block text-sm font-medium text-slate-600 mb-1">{t('invoiceTerms')}</label>
+                            <textarea
+                                id="invoiceTerms"
+                                rows="4"
+                                value={invoiceTerms}
+                                onChange={(e) => setInvoiceTerms(e.target.value)}
+                                className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder={t('termsHint')}
+                            ></textarea>
                         </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div className="mt-8 pt-5 border-t border-slate-200">
+                        <button
+                            type="submit"
+                            disabled={saving}
+                            className="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                        >
+                            {saving ? t('saving') : t('saveSettings')}
+                        </button>
+                    </div>
+                </form>
             </div>
         </DashboardLayout>
     );
