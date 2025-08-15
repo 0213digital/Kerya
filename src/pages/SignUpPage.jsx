@@ -41,6 +41,7 @@ export function SignUpPage() {
             password: password,
             phone: `+213${phoneNumber}`,
             options: {
+                emailRedirectTo: `${window.location.origin}/login`,
                 data: {
                     full_name: fullName,
                     is_agency_owner: isAgency,
