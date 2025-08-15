@@ -6,7 +6,7 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBox, CancellationModal, ConfirmationModal } from '../components/modals';
 import { algeriaGeoData } from '../data/geoAndCarData';
-import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo, Settings } from 'lucide-react'; // Added Settings icon
+import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo, Settings } from 'lucide-react'; // L'icône Settings peut rester si utilisée ailleurs
 
 // ... (Le composant AgencyDashboardPage reste inchangé)
 const MonthlyRevenueChart = ({ data, t }) => {
@@ -248,10 +248,7 @@ export function AgencyVehiclesPage() {
 
     return (
         <DashboardLayout title={t('myVehiclesTitle')} description={t('myVehiclesDesc')}>
-            <div className="flex justify-end mb-4 space-x-2">
-                <Link to="/dashboard/agency/settings" className="flex items-center bg-slate-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-slate-700">
-                    <Settings size={16} className="mr-2" /> Invoice Settings
-                </Link>
+            <div className="flex justify-end mb-4">
                 <button onClick={handleAdd} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-indigo-700">
                     <Plus size={16} className="mr-2" /> {t('listNewVehicle')}
                 </button>
@@ -274,6 +271,7 @@ export function AgencyVehiclesPage() {
     );
 }
 
+// ... (Les autres composants restent inchangés)
 export function AgencyBookingsPage() {
     const { t } = useTranslation();
     const { profile } = useAuth();

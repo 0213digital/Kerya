@@ -62,7 +62,7 @@ export function Navbar() {
                                                 <Link to="/dashboard/agency" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('agencyDashboard')}</Link>
                                                 <Link to="/dashboard/agency/vehicles" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('myVehicles')}</Link>
                                                 <Link to="/dashboard/agency/bookings" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('bookings')}</Link>
-                                                <Link to="/dashboard/agency/settings" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Invoice Settings</Link>
+                                                {/* Le lien vers les paramètres de facturation est supprimé */}
                                             </>
                                         ) : (!isAdmin && <Link to="/dashboard/bookings" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('myBookings')}</Link>)}
                                         <div className="border-t border-slate-200 my-1"></div>
@@ -108,7 +108,7 @@ export function Navbar() {
                                              <MobileNavLink to="/dashboard/agency" icon={<Briefcase size={20} />}>{t('agencyDashboard')}</MobileNavLink>
                                              <MobileNavLink to="/dashboard/agency/vehicles" icon={<Car size={20} />}>{t('myVehicles')}</MobileNavLink>
                                              <MobileNavLink to="/dashboard/agency/bookings" icon={<Briefcase size={20} />}>{t('bookings')}</MobileNavLink>
-                                             <MobileNavLink to="/dashboard/agency/settings" icon={<Settings size={20} />}>Invoice Settings</MobileNavLink>
+                                             {/* Le lien vers les paramètres de facturation est supprimé */}
                                         </>
                                     )}
 

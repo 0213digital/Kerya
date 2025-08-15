@@ -20,7 +20,7 @@ import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
-import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
+// L'import de AgencySettingsPage est supprimé
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
@@ -35,8 +35,9 @@ const generateInvoice = async (booking, t) => {
 
     try {
         const doc = new jsPDF();
-        const logoUrl = booking.vehicles.agencies.invoice_logo_url || "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
-        const brandColor = booking.vehicles.agencies.invoice_brand_color || '#4f46e5';
+        // Utilisation du logo standard et d'une couleur de marque fixe
+        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
+        const brandColor = '#4f46e5';
 
         try {
             const response = await fetch(logoUrl);
@@ -102,15 +103,6 @@ const generateInvoice = async (booking, t) => {
         doc.setFont('helvetica', 'bold');
         doc.text(`${t('totalPrice')} ${totalPrice}`, 196, finalY + 15, { align: 'right' });
 
-        const terms = booking.vehicles.agencies.invoice_terms;
-        if (terms) {
-            doc.setFontSize(8);
-            doc.setTextColor(100);
-            const splitTerms = doc.splitTextToSize(terms, 180);
-            doc.text(splitTerms, 14, finalY + 30);
-        }
-
-
         doc.setFontSize(10);
         doc.setTextColor(150);
         const pageCenter = doc.internal.pageSize.width / 2;
@@ -157,7 +149,7 @@ export default function App() {
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
                     <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
-                    <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
+                    {/* La route vers AgencySettingsPage est supprimée */}
                     <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
                     <Route path="/admin/users" element={<UserManagementPage />} />
