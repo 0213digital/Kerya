@@ -19,12 +19,13 @@ export function ProfileProvider({ children }) {
                     .eq('id', session.user.id)
                     .single();
 
-                if (error) {
+                // Gère l'erreur où le profil n'est pas encore créé juste après l'inscription.
+                // Ce n'est pas une erreur critique, donc on évite de l'afficher dans la console.
+                if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error);
-                    setProfile(null);
-                } else {
-                    setProfile(data);
                 }
+                
+                setProfile(data); // `data` sera null si une erreur se produit, ce qui est le comportement attendu.
                 setLoadingProfile(false);
             } else {
                 setProfile(null);
