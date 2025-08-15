@@ -20,6 +20,7 @@ import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
+import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
@@ -34,7 +35,8 @@ const generateInvoice = async (booking, t) => {
 
     try {
         const doc = new jsPDF();
-        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
+        const logoUrl = booking.vehicles.agencies.invoice_logo_url || "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
+        const brandColor = booking.vehicles.agencies.invoice_brand_color || '#4f46e5';
 
         try {
             const response = await fetch(logoUrl);
@@ -46,8 +48,6 @@ const generateInvoice = async (booking, t) => {
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             });
-            // The last two numbers control the width and height of the logo.
-            // I've changed them from 40, 15 to 30, 11.25 to make the logo smaller.
             doc.addImage(dataUrl, 'PNG', 19, 12, 32, 24.5);
         } catch (logoError) {
             console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
@@ -55,8 +55,10 @@ const generateInvoice = async (booking, t) => {
 
         doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
+        doc.setTextColor(brandColor);
         doc.text(t('invoice'), 196, 22, { align: 'right' });
 
+        doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.text(`${t('bookingId')}: #${booking.id}`, 196, 30, { align: 'right' });
@@ -92,13 +94,22 @@ const generateInvoice = async (booking, t) => {
                 totalPrice
             ]],
             theme: 'striped',
-            headStyles: { fillColor: [74, 85, 104] },
+            headStyles: { fillColor: brandColor },
         });
 
         const finalY = doc.lastAutoTable.finalY || 120;
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text(`${t('totalPrice')} ${totalPrice}`, 196, finalY + 15, { align: 'right' });
+
+        const terms = booking.vehicles.agencies.invoice_terms;
+        if (terms) {
+            doc.setFontSize(8);
+            doc.setTextColor(100);
+            const splitTerms = doc.splitTextToSize(terms, 180);
+            doc.text(splitTerms, 14, finalY + 30);
+        }
+
 
         doc.setFontSize(10);
         doc.setTextColor(150);
@@ -146,6 +157,7 @@ export default function App() {
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
                     <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
+                    <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
                     <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
                     <Route path="/admin/users" element={<UserManagementPage />} />
