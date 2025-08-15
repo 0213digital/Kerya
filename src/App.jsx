@@ -48,7 +48,7 @@ const generateInvoice = async (booking, t) => {
             });
             // The last two numbers control the width and height of the logo.
             // I've changed them from 40, 15 to 30, 11.25 to make the logo smaller.
-            doc.addImage(dataUrl, 'PNG', 19, 17, 30, 21.30);
+            doc.addImage(dataUrl, 'PNG', 19, 12, 32, 24.5);
         } catch (logoError) {
             console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
         }
