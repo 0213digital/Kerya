@@ -34,7 +34,7 @@ const generateInvoice = async (booking, t) => {
 
     try {
         const doc = new jsPDF();
-        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png";
+        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/lo1.png";
 
         try {
             const response = await fetch(logoUrl);
