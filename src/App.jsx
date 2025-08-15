@@ -6,7 +6,7 @@ import { Footer } from './components/Footer';
 
 // PDF Generation
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // <-- MODIFICATION 1: Importer autoTable directement
+import 'jspdf-autotable';
 
 // Import all page components
 import { HomePage } from './pages/HomePage';
@@ -26,6 +26,7 @@ import { MessagesPage } from './pages/dashboard/MessagesPage';
 import { LocationManagementPage } from './pages/admin/LocationManagementPage';
 
 const generateInvoice = async (booking, t) => {
+    // Vérification plus stricte des données nécessaires
     if (!booking?.profiles || !booking?.vehicles?.agencies) {
         console.error("Booking data is incomplete for invoice generation.", booking);
         alert("Sorry, booking data is incomplete for the invoice.");
@@ -36,9 +37,9 @@ const generateInvoice = async (booking, t) => {
         const doc = new jsPDF();
         const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/sayara-logo.png";
 
+        // Chargement du logo de manière sécurisée pour éviter les problèmes de CORS
         try {
             const response = await fetch(logoUrl);
-            if (!response.ok) throw new Error('Logo response not ok');
             const blob = await response.blob();
             const reader = new FileReader();
             const dataUrl = await new Promise((resolve, reject) => {
@@ -49,8 +50,10 @@ const generateInvoice = async (booking, t) => {
             doc.addImage(dataUrl, 'PNG', 14, 12, 40, 15);
         } catch (logoError) {
             console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
+            // On continue même si le logo ne se charge pas
         }
 
+        // --- Header ---
         doc.setFontSize(22);
         doc.setFont('helvetica', 'bold');
         doc.text(t('invoice'), 196, 22, { align: 'right' });
@@ -60,6 +63,7 @@ const generateInvoice = async (booking, t) => {
         doc.text(`${t('bookingId')}: #${booking.id}`, 196, 30, { align: 'right' });
         doc.text(`${t('date')}: ${new Date().toLocaleDateString(t('locale'))}`, 196, 35, { align: 'right' });
 
+        // --- Infos Agence et Locataire ---
         doc.setLineWidth(0.5);
         doc.line(14, 45, 196, 45);
 
@@ -70,18 +74,20 @@ const generateInvoice = async (booking, t) => {
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
+        // Utilisation de l'optional chaining pour plus de sécurité
         doc.text(booking.vehicles.agencies.agency_name || 'N/A', 14, 62);
         doc.text(`${booking.vehicles.agencies.city || ''}, ${booking.vehicles.agencies.wilaya || ''}`, 14, 67);
+        
         doc.text(booking.profiles.full_name || 'N/A', 110, 62);
         doc.text(booking.profiles.email || 'N/A', 110, 67);
 
         doc.line(14, 80, 196, 80);
 
+        // --- Tableau avec les détails ---
         const dailyRate = typeof booking.vehicles.daily_rate_dzd === 'number' ? `${booking.vehicles.daily_rate_dzd.toLocaleString(t('locale'))} DZD` : 'N/A';
         const totalPrice = typeof booking.total_price === 'number' ? `${booking.total_price.toLocaleString(t('locale'))} DZD` : 'N/A';
-        
-        // --- MODIFICATION 2: Utiliser autoTable(doc, {...}) ---
-        autoTable(doc, {
+
+        doc.autoTable({
             startY: 90,
             head: [[t('description'), t('rentalPeriod'), t('dailyRate'), t('total')]],
             body: [[
@@ -94,16 +100,19 @@ const generateInvoice = async (booking, t) => {
             headStyles: { fillColor: [74, 85, 104] },
         });
 
+        // --- Section Total ---
         const finalY = doc.lastAutoTable.finalY || 120;
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
         doc.text(`${t('totalPrice')} ${totalPrice}`, 196, finalY + 15, { align: 'right' });
 
+        // --- Pied de page ---
         doc.setFontSize(10);
         doc.setTextColor(150);
         const pageCenter = doc.internal.pageSize.width / 2;
         doc.text(t('invoiceFooter'), pageCenter, 280, { align: 'center' });
 
+        // --- Sauvegarder le PDF ---
         doc.save(`invoice-kerya-${booking.id}.pdf`);
 
     } catch (error) {
@@ -111,6 +120,7 @@ const generateInvoice = async (booking, t) => {
         alert("Sorry, there was an error creating the invoice PDF.");
     }
 };
+
 
 export default function App() {
     const { loading } = useAuth();
