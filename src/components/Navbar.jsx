@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users, MapPin, Settings } from 'lucide-react'; // <-- Importer MapPin
+import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users, MapPin, Settings } from 'lucide-react';
 
 export function Navbar() {
     const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
@@ -54,7 +54,7 @@ export function Navbar() {
                                             <>
                                                 <Link to="/admin/dashboard" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('adminDashboard')}</Link>
                                                 <Link to="/admin/users" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('userManagement')}</Link>
-                                                <Link to="/admin/locations" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('locationManagement')}</Link> {/* <-- NOUVEAU LIEN */}
+                                                <Link to="/admin/locations" onClick={closeMenu} className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">{t('locationManagement')}</Link>
                                             </>
                                         )}
                                         {isAgencyOwner ? (
@@ -94,23 +94,30 @@ export function Navbar() {
                                 <>
                                     <MobileNavLink to="/profile" icon={<UserIcon size={20} />}>{t('myProfile')}</MobileNavLink>
                                     <MobileNavLink to="/dashboard/messages" icon={<MessageSquare size={20} />}>{t('navMessages')}</MobileNavLink>
+                                    
                                     {isAdmin && (
                                         <>
                                             <MobileNavLink to="/admin/dashboard" icon={<Shield size={20} />}>{t('adminDashboard')}</MobileNavLink>
                                             <MobileNavLink to="/admin/users" icon={<Users size={20} />}>{t('userManagement')}</MobileNavLink>
-                                            <MobileNavLink to="/admin/locations" icon={<MapPin size={20} />}>{t('locationManagement')}</MobileNavLink> {/* <-- NOUVEAU LIEN MOBILE */}
+                                            <MobileNavLink to="/admin/locations" icon={<MapPin size={20} />}>{t('locationManagement')}</MobileNavLink>
                                         </>
                                     )}
-                                    {isAgencyOwner ? (
+
+                                    {isAgencyOwner && (
                                         <>
                                              <MobileNavLink to="/dashboard/agency" icon={<Briefcase size={20} />}>{t('agencyDashboard')}</MobileNavLink>
                                              <MobileNavLink to="/dashboard/agency/vehicles" icon={<Car size={20} />}>{t('myVehicles')}</MobileNavLink>
                                              <MobileNavLink to="/dashboard/agency/bookings" icon={<Briefcase size={20} />}>{t('bookings')}</MobileNavLink>
                                              <MobileNavLink to="/dashboard/agency/settings" icon={<Settings size={20} />}>Invoice Settings</MobileNavLink>
                                         </>
-                                    ) : (!isAdmin && <MobileNavLink to="/dashboard/bookings" icon={<Briefcase size={20} />}>{t('myBookings')}</MobileNavLink>)}
+                                    )}
+
+                                    {!isAdmin && !isAgencyOwner && (
+                                        <MobileNavLink to="/dashboard/bookings" icon={<Briefcase size={20} />}>{t('myBookings')}</MobileNavLink>
+                                    )}
+
                                     <div className="border-t border-slate-200 my-2"></div>
-                                    <MobileNavButton onClick={() => { handleLogout(); closeMenu(); }} icon={<Power size={20} />}>{t('logout')}</MobileNavLink>
+                                    <MobileNavButton onClick={() => { handleLogout(); closeMenu(); }} icon={<Power size={20} />}>{t('logout')}</MobileNavButton>
                                 </>
                              ) : (
                                 <>
