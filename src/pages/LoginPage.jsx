@@ -8,7 +8,7 @@ export function LoginPage() {
     const navigate = useNavigate();
     const location = useLocation();
     const { t } = useTranslation();
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const { session, isAuthenticated, loading: authLoading } = useAuth();
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState(null);
@@ -19,15 +19,28 @@ export function LoginPage() {
     const [resetSuccess, setResetSuccess] = useState(false);
 
     useEffect(() => {
-        if (!authLoading && isAuthenticated) {
-            navigate('/');
-        }
-    }, [isAuthenticated, authLoading, navigate]);
+        const handleAuthRedirect = async () => {
+            const params = new URLSearchParams(location.hash.substring(1));
+            // Gère la redirection après la confirmation de l'e-mail de l'utilisateur
+            if (params.get('type') === 'signup' && session) {
+                await supabase.auth.signOut(); // Déconnecte l'utilisateur pour forcer une connexion manuelle
+                // Utilise l'état de navigation pour afficher le message de succès et nettoyer l'URL
+                navigate('/login', { replace: true, state: { message: t('emailVerified') } });
+            } 
+            // Gère la redirection des utilisateurs déjà connectés
+            else if (!authLoading && isAuthenticated) {
+                navigate('/');
+            }
+        };
+
+        handleAuthRedirect();
+    }, [isAuthenticated, authLoading, navigate, location.hash, session, t]);
 
     useEffect(() => {
+        // Gère les messages passés dans l'état de la localisation
         if (location.state?.message) {
             setSuccessMessage(location.state.message);
-            // Clear the location state to avoid showing the message on refresh
+            // Efface l'état de la localisation pour éviter de remontrer le message au rafraîchissement
             window.history.replaceState({}, document.title);
         }
     }, [location.state]);
@@ -42,7 +55,7 @@ export function LoginPage() {
             ? { email: identifier, password }
             : { phone: `+213${identifier.replace(/\s/g, '')}`, password };
 
-        // Attempt to sign in the user
+        // Tente de connecter l'utilisateur
         const { data: loginResponse, error: loginError } = await supabase.auth.signInWithPassword(loginData);
 
         if (loginError) {
@@ -51,7 +64,7 @@ export function LoginPage() {
             return;
         }
 
-        // If login is successful, check the user's profile for suspension status
+        // Si la connexion réussit, vérifie le statut de suspension du profil de l'utilisateur
         if (loginResponse.user) {
             const { data: profile, error: profileError } = await supabase
                 .from('profiles')
@@ -59,18 +72,14 @@ export function LoginPage() {
                 .eq('id', loginResponse.user.id)
                 .single();
             
-            // If the user's profile indicates they are suspended...
             if (profile?.is_suspended) {
-                // ...set a specific error message and sign them out immediately.
-                setError(t('userSuspendedError', 'Your account has been suspended. Please contact support.'));
+                setError(t('userSuspendedError'));
                 await supabase.auth.signOut();
             } else if (profileError) {
-                // Handle cases where the profile might not be found
-                setError(t('profileError', 'Could not retrieve user profile.'));
+                setError(t('profileError'));
                 await supabase.auth.signOut();
             }
             else {
-                // If not suspended, navigate to the home page
                 navigate('/');
             }
         }
@@ -93,7 +102,8 @@ export function LoginPage() {
         setLoading(false);
     };
     
-    if (authLoading || isAuthenticated) {
+    // N'affiche le spinner que si l'authentification est en cours ET qu'il n'y a pas de message de succès à afficher
+    if (authLoading && !location.state?.message) {
         return (
             <div className="flex justify-center items-center h-screen">
                 <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>

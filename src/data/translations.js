@@ -125,6 +125,7 @@ export const translations = {
         footerRights: "All rights reserved. Made with ❤️ in Algeria.",
         signupSuccess: "Sign up successful!",
         checkEmail: "Please check your email to verify your account.",
+        emailVerified: "Email verified successfully! You can now log in.",
         error: "Error",
         loading: "Loading...",
         processing: "Processing...",
@@ -317,7 +318,6 @@ export const translations = {
         invoiceFooter: "Thank you for choosing KERYA. Please keep this invoice for your records.",
         bookingId: "Booking ID",
         date: "Date",
-        // --- New Keys ---
         mainVehicleView: "Main vehicle view",
         thumbnail: "Thumbnail {index}",
         userNotFound: "User not found.",
@@ -471,6 +471,7 @@ export const translations = {
         footerRights: "Tous droits réservés. Fait avec ❤️ en Algérie.",
         signupSuccess: "Inscription réussie !",
         checkEmail: "Veuillez consulter vos e-mails pour vérifier votre compte.",
+        emailVerified: "Email vérifié avec succès ! Vous pouvez maintenant vous connecter.",
         error: "Erreur",
         loading: "Chargement...",
         processing: "Traitement...",
@@ -663,7 +664,6 @@ export const translations = {
         invoiceFooter: "Merci d'avoir choisi KERYA. Veuillez conserver cette facture pour vos archives.",
         bookingId: "ID Réservation",
         date: "Date",
-        // --- Nouvelles Clés ---
         mainVehicleView: "Vue principale du véhicule",
         thumbnail: "Miniature {index}",
         userNotFound: "Utilisateur non trouvé.",

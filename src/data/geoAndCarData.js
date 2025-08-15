@@ -69,7 +69,7 @@ export const carData = {
     "BMW": ["Series 1", "Series 2", "Series 3", "Series 5", "X1", "X3", "X5"],
     "Porsche": ["911", "Cayenne", "Macan", "Panamera"],
     "Toyota": ["Yaris", "Corolla", "RAV4", "Land Cruiser", "Hilux"],
-    "Nissan": ["Micra", "Sunny", "Qashqai", "X-Trail", "Patrol"],
+    "Nissan": ["Micra", "Sunny", "Qashqai", "X-Trail", "Patrol", "Pathfinder"],
     "Range Rover": ["Evoque", "Velar", "Sport", "Vogue"],
     "Mercedes": ["Class A", "Class C", "Class E", "Class S", "GLA", "GLC", "GLE"],
     "Geely": ["GX3", "Coolray"],
@@ -80,5 +80,6 @@ export const carData = {
     "Skoda": ["Fabia", "Octavia", "Kamiq", "Karoq"],
     "Seat": ["Ibiza", "Leon", "Arona", "Ateca"],
     "Dacia": ["Sandero", "Logan", "Duster"],
-    "Suzuki": ["Swift", "Dzire", "Vitara"]
+    "Suzuki": ["Swift", "Dzire", "Vitara"],
+    "Volvo": ["S40", "S80", "XC90", "XC40"]
 };
