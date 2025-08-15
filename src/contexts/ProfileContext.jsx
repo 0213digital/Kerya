@@ -10,22 +10,40 @@ export function ProfileProvider({ children }) {
     const [loadingProfile, setLoadingProfile] = useState(true);
 
     useEffect(() => {
-        const fetchProfile = async () => {
-            if (session?.user && authEvent !== 'PASSWORD_RECOVERY') {
-                setLoadingProfile(true);
+        // Fonction qui tente de récupérer le profil avec plusieurs essais
+        const fetchProfileWithRetry = async (user, retries = 3, delay = 500) => {
+            for (let i = 0; i < retries; i++) {
                 const { data, error } = await supabase
                     .from('profiles')
                     .select('*')
-                    .eq('id', session.user.id)
+                    .eq('id', user.id)
                     .single();
 
-                // Gère l'erreur où le profil n'est pas encore créé juste après l'inscription.
-                // Ce n'est pas une erreur critique, donc on évite de l'afficher dans la console.
+                // Si la récupération réussit, on retourne les données
+                if (!error) return { data, error: null };
+
+                // Si l'erreur est celle attendue (profil non encore créé) et qu'il reste des essais,
+                // on attend un peu avant de réessayer.
+                if (error.code === 'PGRST116' && i < retries - 1) {
+                    await new Promise(res => setTimeout(res, delay));
+                } else {
+                    // Pour toute autre erreur, ou après le dernier essai, on retourne l'erreur.
+                    return { data: null, error };
+                }
+            }
+        };
+
+        const getProfile = async () => {
+            if (session?.user && authEvent !== 'PASSWORD_RECOVERY') {
+                setLoadingProfile(true);
+                const { data, error } = await fetchProfileWithRetry(session.user);
+
+                // On n'affiche plus l'erreur PGRST116 dans la console, mais on affiche les autres erreurs potentielles.
                 if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error);
                 }
                 
-                setProfile(data); // `data` sera null si une erreur se produit, ce qui est le comportement attendu.
+                setProfile(data);
                 setLoadingProfile(false);
             } else {
                 setProfile(null);
@@ -33,7 +51,7 @@ export function ProfileProvider({ children }) {
             }
         };
 
-        fetchProfile();
+        getProfile();
     }, [session, authEvent]);
 
     const value = {
