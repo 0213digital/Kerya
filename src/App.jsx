@@ -6,7 +6,7 @@ import { Footer } from './components/Footer';
 
 // PDF Generation
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable'; // <-- MODIFICATION 1: Importer autoTable directement
+import autoTable from 'jspdf-autotable';
 
 // Import all page components
 import { HomePage } from './pages/HomePage';
@@ -34,7 +34,7 @@ const generateInvoice = async (booking, t) => {
 
     try {
         const doc = new jsPDF();
-        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/lo1.png";
+        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
 
         try {
             const response = await fetch(logoUrl);
@@ -46,7 +46,9 @@ const generateInvoice = async (booking, t) => {
                 reader.onerror = reject;
                 reader.readAsDataURL(blob);
             });
-            doc.addImage(dataUrl, 'PNG', 14, 12, 40, 15);
+            // The last two numbers control the width and height of the logo.
+            // I've changed them from 40, 15 to 30, 11.25 to make the logo smaller.
+            doc.addImage(dataUrl, 'PNG', 19, 17, 30, 21.30);
         } catch (logoError) {
             console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
         }
@@ -80,7 +82,6 @@ const generateInvoice = async (booking, t) => {
         const dailyRate = typeof booking.vehicles.daily_rate_dzd === 'number' ? `${booking.vehicles.daily_rate_dzd.toLocaleString(t('locale'))} DZD` : 'N/A';
         const totalPrice = typeof booking.total_price === 'number' ? `${booking.total_price.toLocaleString(t('locale'))} DZD` : 'N/A';
         
-        // --- MODIFICATION 2: Utiliser autoTable(doc, {...}) ---
         autoTable(doc, {
             startY: 90,
             head: [[t('description'), t('rentalPeriod'), t('dailyRate'), t('total')]],
