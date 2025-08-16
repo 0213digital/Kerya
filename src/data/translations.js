@@ -65,7 +65,6 @@ export const translations = {
         backToLogin: "Back to Login",
         noAccount: "Don't have an account?",
         signupTitle: "Create an Account",
-        // --- NOUVELLES TRADUCTIONS ---
         chooseYourRole: "Join Us!",
         chooseYourRoleDesc: "Select the profile that best describes you to get started.",
         iAmAClient: "I want to rent a car",
@@ -77,8 +76,9 @@ export const translations = {
         createClientAccount: "Create Your Renter Account",
         createAgencyAccount: "Create Your Agency Account",
         agencySignUpNote: "After signing up, you'll be prompted to complete your agency profile for verification.",
-        // --- FIN ---
         fullName: "Full Name",
+        ownerFullName: "Owner's Full Name",
+        ownerFullNamePlaceholder: "Your Full Name",
         email: "Email",
         password: "Password",
         phoneNumber: "Phone Number",
@@ -151,6 +151,9 @@ export const translations = {
         updateYourAgencyTitle: "Update Your Agency Profile",
         updateYourAgencyDesc: "Update your details and resubmit for verification.",
         agencyName: "Agency Name",
+        // --- NOUVELLE TRADUCTION ---
+        agencyNamePlaceholder: "e.g. Kerya Express",
+        // --- FIN ---
         address: "Address",
         wilaya: "Wilaya",
         tradeRegister: "Trade Register Number",
@@ -424,7 +427,6 @@ export const translations = {
         backToLogin: "Retour à la connexion",
         noAccount: "Pas de compte ?",
         signupTitle: "Créer un Compte",
-        // --- NOUVELLES TRADUCTIONS ---
         chooseYourRole: "Rejoignez-nous !",
         chooseYourRoleDesc: "Sélectionnez le profil qui vous correspond pour commencer.",
         iAmAClient: "Je veux louer une voiture",
@@ -436,8 +438,9 @@ export const translations = {
         createClientAccount: "Créez votre compte Locataire",
         createAgencyAccount: "Créez votre compte Agence",
         agencySignUpNote: "Après votre inscription, il vous sera demandé de compléter votre profil d'agence pour vérification.",
-        // --- FIN ---
         fullName: "Nom complet",
+        ownerFullName: "Nom complet du propriétaire",
+        ownerFullNamePlaceholder: "Votre Nom Complet",
         email: "Email",
         password: "Mot de passe",
         phoneNumber: "Numéro de téléphone",
@@ -510,6 +513,7 @@ export const translations = {
         updateYourAgencyTitle: "Mettre à Jour Votre Profil d'Agence",
         updateYourAgencyDesc: "Mettez à jour vos informations et soumettez à nouveau pour vérification.",
         agencyName: "Nom de l'agence",
+        agencyNamePlaceholder: "ex: Kerya Express",
         address: "Adresse",
         wilaya: "Wilaya",
         tradeRegister: "Numéro de Registre de Commerce",

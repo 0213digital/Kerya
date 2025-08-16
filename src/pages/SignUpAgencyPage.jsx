@@ -12,6 +12,7 @@ export function SignUpAgencyPage() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
+    const [agencyName, setAgencyName] = useState(''); // NOUVEAU
     const [phoneNumber, setPhoneNumber] = useState('');
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -44,8 +45,9 @@ export function SignUpAgencyPage() {
                 emailRedirectTo: `${window.location.origin}/login`,
                 data: {
                     full_name: fullName,
-                    is_agency_owner: true, // For agencies, this is always true
+                    is_agency_owner: true,
                     phone_number: phoneNumber,
+                    agency_name: agencyName, // NOUVEAU: On passe le nom de l'agence ici
                 }
             }
         });
@@ -81,7 +83,8 @@ export function SignUpAgencyPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <div><label className="block text-sm font-medium">{t('fullName')}</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required placeholder="John Doe" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
+                    <div><label className="block text-sm font-medium">{t('agencyName')}</label><input type="text" value={agencyName} onChange={e => setAgencyName(e.target.value)} required placeholder={t('agencyNamePlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
+                    <div><label className="block text-sm font-medium">{t('ownerFullName')}</label><input type="text" value={fullName} onChange={e => setFullName(e.target.value)} required placeholder={t('ownerFullNamePlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                     <div><label className="block text-sm font-medium">{t('email')}</label><input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@example.com" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                     <div><label className="block text-sm font-medium">{t('phoneNumber')}</label><div className="relative mt-1"><span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">+213</span><input type="tel" value={phoneNumber} onChange={handlePhoneChange} required placeholder="550123456" className="w-full p-2 pl-12 border border-slate-300 rounded-md bg-white" /></div></div>
                     <div><label className="block text-sm font-medium">{t('password')}</label><input type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
