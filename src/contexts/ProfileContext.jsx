@@ -1,11 +1,13 @@
-import React, { createContext, useState, useEffect, useCallback } from 'react';
-import { supabase } from '../supabase/client';
-import { useTranslation } from 'react-i18next';
+import React, { createContext, useState, useEffect, useCallback, useContext } from 'react';
+import { supabase } from '../lib/supabaseClient';
+// CORRECTION : Importer depuis votre contexte de langue local
+import { useTranslation } from './LanguageContext';
 
 export const ProfileContext = createContext();
 
-export const ProfileProvider = ({ children }) => {
-  const { t, i18n } = useTranslation();
+export function ProfileProvider({ children }) {
+  // CORRECTION : 'i18n' est remplacé par 'setLanguage' qui vient de votre contexte
+  const { t, setLanguage } = useTranslation(); 
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [session, setSession] = useState(null);
@@ -14,8 +16,6 @@ export const ProfileProvider = ({ children }) => {
     const fetchSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-      // Set loading to false after session is fetched
-      // The profile will be fetched in the onAuthStateChange listener
     };
 
     fetchSession();
@@ -50,7 +50,8 @@ export const ProfileProvider = ({ children }) => {
       if (data) {
         setProfile(data);
         if (data.language) {
-          i18n.changeLanguage(data.language);
+          // CORRECTION : Utiliser setLanguage pour changer la langue
+          setLanguage(data.language);
         }
       }
     } catch (error) {
@@ -58,23 +59,26 @@ export const ProfileProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [i18n]);
+  }, [setLanguage]); // Ajout de setLanguage aux dépendances
 
   useEffect(() => {
     if (session?.user) {
       getProfile(session.user);
     } else {
-      // Handle case where there is no session
       setProfile(null);
       setLoading(false);
     }
   }, [session, getProfile]);
 
+  // J'ai renommé loading en loadingProfile pour être plus spécifique et éviter les conflits
   const value = {
     profile,
-    loading,
+    loadingProfile: loading, 
     setProfile,
     session,
+    // Ajout des helpers isAdmin et isAgencyOwner pour un accès facile
+    isAdmin: profile?.role === 'admin',
+    isAgencyOwner: profile?.is_agency_owner || false,
   };
 
   return (
@@ -82,4 +86,9 @@ export const ProfileProvider = ({ children }) => {
       {children}
     </ProfileContext.Provider>
   );
+};
+
+// J'ajoute un hook personnalisé pour consommer ce contexte plus facilement
+export const useProfile = () => {
+    return useContext(ProfileContext);
 };
