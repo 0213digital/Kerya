@@ -5,10 +5,23 @@
 /* You can add any custom base styles here if needed */
 body {
   font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Add these new rules to hide the default browser calendar icon */
 input[type="date"]::-webkit-calendar-picker-indicator {
   display: none;
   -webkit-appearance: none;
+}
+
+@layer base {
+  html {
+    font-size: 14px;
+  }
+  @screen sm {
+    html {
+      font-size: 16px;
+    }
+  }
 }

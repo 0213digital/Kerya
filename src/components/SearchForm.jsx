@@ -72,10 +72,10 @@ export function SearchForm() {
     };
 
     return (
-        <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-lg w-full">
+        <form onSubmit={handleSearch} className="bg-white rounded-lg shadow-lg w-full p-2 md:p-0">
             <div className="flex flex-col md:flex-row items-center">
                 {/* Location Input */}
-                <div className="relative w-full p-4">
+                <div className="relative w-full p-2 md:p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('searchFormLocation')}</label>
                     <div className="relative mt-1">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -88,7 +88,7 @@ export function SearchForm() {
 
                 {/* City Input */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
-                <div className="relative w-full p-4">
+                <div className="relative w-full p-2 md:p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('city')}</label>
                     <div className="relative mt-1">
                         <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -103,7 +103,7 @@ export function SearchForm() {
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
 
                 {/* Pickup Date */}
-                <div className="relative w-full p-4">
+                <div className="relative w-full p-2 md:p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
                     <div 
                         className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
@@ -128,7 +128,7 @@ export function SearchForm() {
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
 
                 {/* Return Date */}
-                <div className="relative w-full p-4">
+                <div className="relative w-full p-2 md:p-4">
                     <label className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
                      <div 
                         className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
@@ -152,7 +152,7 @@ export function SearchForm() {
 
                 {/* Search Button */}
                 <div className="p-2 w-full md:w-auto">
-                    <button type="submit" className="w-full md:w-auto flex items-center justify-center p-3 border border-transparent rounded-full text-white bg-indigo-600 hover:bg-indigo-700">
+                    <button type="submit" className="w-full md:w-auto flex items-center justify-center p-3 border border-transparent rounded-lg text-white bg-indigo-600 hover:bg-indigo-700">
                         <Search size={24} />
                     </button>
                 </div>
