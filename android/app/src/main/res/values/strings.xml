@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">KERYA</string>
+    <string name="title_activity_main">KERYA</string>
+    <string name="package_name">com.kerya.app</string>
+    <string name="custom_url_scheme">com.kerya.app</string>
+</resources>
