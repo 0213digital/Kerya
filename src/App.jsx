@@ -28,6 +28,7 @@ import { LocationManagementPage } from './pages/admin/LocationManagementPage';
 import { SignUpChoicePage } from './pages/SignUpChoicePage';
 import { SignUpClientPage } from './pages/SignUpClientPage';
 import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
+import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
 
 
 const generateInvoice = async (booking, t) => {
@@ -158,6 +159,7 @@ export default function App() {
                     <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
+                    <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
                     <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
                     <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
