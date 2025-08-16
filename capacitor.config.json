@@ -1,5 +1,5 @@
 {
   "appId": "com.kerya.app",
   "appName": "KERYA",
-  "webDir": "kerya.netlify.app"
+  "webDir": "dist"
 }
