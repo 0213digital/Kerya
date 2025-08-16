@@ -13,18 +13,22 @@ import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
 import { LoginPage } from './pages/LoginPage';
-import { SignUpPage } from './pages/SignUpPage';
 import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
 import { BookingPage } from './pages/BookingPage';
 import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage, AgencyVehiclesPage, AgencyBookingsPage, AgencyOnboardingPage, AdminDashboardPage, AdminAgencyDetailsPage } from './pages/agencyAndAdminPages';
-// L'import de AgencySettingsPage est supprimé
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
 import { LocationManagementPage } from './pages/admin/LocationManagementPage';
+
+// --- NOUVEAUX IMPORTS ---
+import { SignUpChoicePage } from './pages/SignUpChoicePage';
+import { SignUpClientPage } from './pages/SignUpClientPage';
+import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
+
 
 const generateInvoice = async (booking, t) => {
     if (!booking?.profiles || !booking?.vehicles?.agencies) {
@@ -119,7 +123,8 @@ const generateInvoice = async (booking, t) => {
 export default function App() {
     const { loading } = useAuth();
     const location = useLocation();
-    const isUpdatePasswordPage = location.pathname === '/update-password';
+    const isSpecialPage = location.pathname.startsWith('/signup') || location.pathname === '/update-password';
+
 
     if (loading) {
         return (
@@ -131,8 +136,8 @@ export default function App() {
 
     return (
         <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50">
-            {!isUpdatePasswordPage && <Navbar />}
-            <main className={!isUpdatePasswordPage ? "pt-20" : ""}>
+            {!isSpecialPage && <Navbar />}
+            <main className={!isSpecialPage ? "pt-20" : ""}>
                 <Routes>
                     <Route path="/" element={<HomePage />} />
                     <Route path="/search" element={<SearchPage />} />
@@ -140,7 +145,12 @@ export default function App() {
                     <Route path="/book/:vehicleId" element={<BookingPage />} />
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
                     <Route path="/login" element={<LoginPage />} />
-                    <Route path="/signup" element={<SignUpPage />} />
+                    
+                    {/* --- NOUVELLES ROUTES D'INSCRIPTION --- */}
+                    <Route path="/signup" element={<SignUpChoicePage />} />
+                    <Route path="/signup/client" element={<SignUpClientPage />} />
+                    <Route path="/signup/agency" element={<SignUpAgencyPage />} />
+                    
                     <Route path="/update-password" element={<UpdatePasswordPage />} />
                     <Route path="/profile" element={<ProfilePage />} />
                     <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
@@ -149,7 +159,6 @@ export default function App() {
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
                     <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
-                    {/* La route vers AgencySettingsPage est supprimée */}
                     <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
                     <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
                     <Route path="/admin/users" element={<UserManagementPage />} />
@@ -157,7 +166,7 @@ export default function App() {
                     <Route path="/admin/locations" element={<LocationManagementPage />} />
                 </Routes>
             </main>
-            {!isUpdatePasswordPage && <Footer />}
+            {!isSpecialPage && <Footer />}
         </div>
     );
 }
