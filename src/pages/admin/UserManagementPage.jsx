@@ -59,7 +59,7 @@ export function UserManagementPage() {
         }
         
         setModalState({ isOpen: false, user: null, action: null });
-        fetchUsers(); // Refresh the list
+        fetchUsers();
     };
 
     const openModal = (user, action) => {
@@ -103,11 +103,52 @@ export function UserManagementPage() {
                 />
             )}
             {fetchError && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p className="font-bold">{t('dataFetchError')}</p><p className="text-sm">{fetchError}</p></div>}
+            
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     {/* Search and filter inputs remain the same */}
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Mobile Card View */}
+                <div className="space-y-4 md:hidden">
+                    {filteredUsers.map(user => (
+                        <div key={user.id} className="bg-slate-50 p-4 rounded-lg">
+                            <div className="flex justify-between items-start">
+                                <div className="flex items-center">
+                                    <img src={user.avatar_url || `https://placehold.co/40x40/e2e8f0/64748b?text=${user.full_name?.[0] || 'U'}`} alt="avatar" className="h-10 w-10 rounded-full object-cover mr-3" />
+                                    <div>
+                                        <Link to={`/admin/users/${user.id}`} className="font-medium text-indigo-600 hover:underline">{user.full_name || 'N/A'}</Link>
+                                        <p className="text-sm text-slate-500">{user.email}</p>
+                                    </div>
+                                </div>
+                                <div className="relative">
+                                    <button onClick={() => setActiveDropdown(activeDropdown === user.id ? null : user.id)}><MoreVertical size={20} /></button>
+                                    {activeDropdown === user.id && (
+                                        <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5 z-10">
+                                            <Link to={`/admin/users/${user.id}`} onClick={() => setActiveDropdown(null)} className="flex items-center w-full text-left px-4 py-2 text-sm text-slate-700 hover:bg-slate-100"><Edit size={14} className="mr-2"/>{t('edit')}</Link>
+                                            {user.is_suspended ? (
+                                                <button onClick={() => openModal(user, 'activate')} className="flex items-center w-full text-left px-4 py-2 text-sm text-green-700 hover:bg-slate-100"><CheckCircle size={14} className="mr-2"/>{t('activateUser')}</button>
+                                            ) : (
+                                                <button onClick={() => openModal(user, 'suspend')} className="flex items-center w-full text-left px-4 py-2 text-sm text-amber-700 hover:bg-slate-100"><Ban size={14} className="mr-2"/>{t('suspendUser')}</button>
+                                            )}
+                                            <button onClick={() => openModal(user, 'delete')} className="flex items-center w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-slate-100"><Trash2 size={14} className="mr-2"/>{t('deleteUser')}</button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t flex justify-between text-sm">
+                                <div>
+                                    <span className={`px-3 py-1 text-xs font-semibold rounded-full ${user.is_agency_owner ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{user.is_agency_owner ? t('agencyOwner') : t('renter')}</span>
+                                    <span className={`ml-2 px-3 py-1 text-xs font-semibold rounded-full ${user.is_suspended ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>{user.is_suspended ? t('statusSuspended') : t('statusActive')}</span>
+                                </div>
+                                <span className="text-slate-500">{new Date(user.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
                     <table className="w-full text-left">
                         <thead className="bg-slate-50">
                             <tr>

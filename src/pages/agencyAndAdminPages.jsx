@@ -6,9 +6,8 @@ import { useTranslation } from '../contexts/LanguageContext';
 import { DashboardLayout } from '../components/DashboardLayout';
 import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBox, CancellationModal, ConfirmationModal } from '../components/modals';
 import { algeriaGeoData } from '../data/geoAndCarData';
-import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo, Settings } from 'lucide-react'; // L'icône Settings peut rester si utilisée ailleurs
+import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo, Settings } from 'lucide-react';
 
-// ... (Le composant AgencyDashboardPage reste inchangé)
 const MonthlyRevenueChart = ({ data, t }) => {
     const maxValue = Math.max(...data.map(d => d.revenue), 1);
     return (
@@ -253,7 +252,30 @@ export function AgencyVehiclesPage() {
                     <Plus size={16} className="mr-2" /> {t('listNewVehicle')}
                 </button>
             </div>
-            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
+
+            {/* Mobile Card View */}
+            <div className="space-y-4 md:hidden">
+                {vehicles.map(v => (
+                    <div key={v.id} className="bg-white rounded-lg shadow-md p-4">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="font-bold text-slate-800">{v.make} {v.model}</p>
+                                <p className="text-sm text-slate-500">{v.daily_rate_dzd.toLocaleString()} DZD</p>
+                            </div>
+                            <span className={`px-3 py-1 text-xs font-semibold rounded-full ${v.is_available ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                                {v.is_available ? t('available') : t('rentedOut')}
+                            </span>
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-slate-200 flex justify-end space-x-2">
+                            <button onClick={() => handleEdit(v)} className="p-2 text-slate-500 hover:text-indigo-600 rounded-full hover:bg-slate-100"><Edit size={18} /></button>
+                            <button onClick={() => setShowDeleteConfirm(v)} className="p-2 text-slate-500 hover:text-red-600 rounded-full hover:bg-slate-100"><Trash2 size={18} /></button>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden md:block bg-white rounded-lg shadow-md overflow-x-auto">
                 <table className="w-full text-left">
                     <thead className="bg-slate-50"><tr><th className="p-4 font-semibold">{t('vehicle')}</th><th className="p-4 font-semibold">{t('dailyRate')}</th><th className="p-4 font-semibold">{t('status')}</th><th className="p-4 font-semibold">{t('actions')}</th></tr></thead>
                     <tbody>
@@ -271,7 +293,6 @@ export function AgencyVehiclesPage() {
     );
 }
 
-// ... (Les autres composants restent inchangés)
 export function AgencyBookingsPage() {
     const { t } = useTranslation();
     const { profile } = useAuth();
@@ -414,7 +435,7 @@ export function AgencyBookingsPage() {
 
 export function AgencyOnboardingPage() {
     const { t } = useTranslation();
-    const { profile, session } = useAuth(); // MODIFIÉ: session ajouté
+    const { profile, session } = useAuth();
     const navigate = useNavigate();
     const [formState, setFormState] = useState({ agency_name: '', address: '', city: '', wilaya: '', trade_register_number: '', trade_register_url: '', id_card_url: '', selfie_url: '' });
     const [cities, setCities] = useState([]);
@@ -427,17 +448,13 @@ export function AgencyOnboardingPage() {
     useEffect(() => {
         const checkForExistingAgency = async () => {
             if (!profile || !session) return;
-
-            // Récupérer le nom de l'agence depuis les métadonnées de l'utilisateur
             const initialAgencyName = session.user?.user_metadata?.agency_name || '';
-
             const { data } = await supabase.from('agencies').select('*').eq('owner_id', profile.id).single();
             if (data) {
                 setFormState(data);
                 setIsReapplying(true);
                 if (data.wilaya) setCities(algeriaGeoData[data.wilaya] || []);
             } else {
-                // Pré-remplir le nom de l'agence si c'est la première fois
                 setFormState(prev => ({ ...prev, agency_name: initialAgencyName }));
             }
         };
@@ -490,19 +507,14 @@ export function AgencyOnboardingPage() {
             <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
                 <form onSubmit={handleSubmit} className="space-y-4">
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
-                    
-                    {/* Form Fields */}
                     <div><label className="block text-sm font-medium">{t('agencyName')}</label><input name="agency_name" type="text" value={formState.agency_name} onChange={handleChange} required className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                     <div><label className="block text-sm font-medium">{t('wilaya')}</label><select name="wilaya" value={formState.wilaya} onChange={handleWilayaChange} required className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="">{t('selectWilaya')}</option>{wilayas.map(w => <option key={w} value={w}>{w}</option>)}</select></div>
                     <div><label className="block text-sm font-medium">{t('city')}</label><select name="city" value={formState.city} onChange={handleChange} required disabled={!formState.wilaya} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-50"><option value="">{t('selectCity')}</option>{cities.map(c => <option key={c} value={c}>{c}</option>)}</select></div>
                     <div><label className="block text-sm font-medium">{t('address')}</label><input name="address" type="text" value={formState.address} onChange={handleChange} required className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                     <div><label className="block text-sm font-medium">{t('tradeRegister')}</label><input name="trade_register_number" type="text" value={formState.trade_register_number} onChange={handleChange} required className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
-                    
-                    {/* File Uploads */}
                     <FileUploadBox type="trade_register" label={t('tradeRegisterUpload')} url={formState.trade_register_url} uploading={uploading.trade_register} onChange={handleFileUpload} />
                     <FileUploadBox type="id_card" label={t('idCardUpload')} url={formState.id_card_url} uploading={uploading.id_card} onChange={handleFileUpload} />
                     <FileUploadBox type="selfie" label={t('selfieUpload')} url={formState.selfie_url} uploading={uploading.selfie} onChange={handleFileUpload} />
-
                     <button type="submit" disabled={loading || Object.values(uploading).some(u => u)} className="w-full bg-indigo-600 text-white py-2 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400">{loading ? t('loading') : (isReapplying ? t('updateAgencyButton') : t('createAgencyButton'))}</button>
                 </form>
             </div>
