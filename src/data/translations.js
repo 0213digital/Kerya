@@ -365,6 +365,11 @@ export const translations = {
         leaveReviewForVehicle: "Leave a review for the vehicle",
         leaveReviewForAgency: "Leave a review for the agency",
         securityDeposit: "Security Deposit",
+        vehicleRating: "Vehicle Rating",
+        agencyRating: "Agency Rating",
+        service: "Service",
+        cleanliness: "Cleanliness",
+        punctuality: "Punctuality",
     },
     fr: {
         appName: "KERYA",
@@ -732,5 +737,10 @@ export const translations = {
         leaveReviewForVehicle: "Laisser un avis sur le véhicule",
         leaveReviewForAgency: "Laisser un avis sur l'agence",
         securityDeposit: "Dépôt de Garantie",
+        vehicleRating: "Note du Véhicule",
+        agencyRating: "Note de l'Agence",
+        service: "Service",
+        cleanliness: "Propreté",
+        punctuality: "Ponctualité",
     }
 };
