@@ -61,7 +61,7 @@ export function AdminDashboardPage() {
                     const revenue = agencyBookings.reduce((sum, b) => sum + b.total_price, 0);
                     return { ...agency, revenue, bookingCount: agencyBookings.length };
                  });
-                 agenciesWithRevenue.sort((a,b]) => b.revenue - a.revenue);
+                 agenciesWithRevenue.sort((a,b) => b.revenue - a.revenue);
                  setAgencies(agenciesWithRevenue);
 
                  const newBookingsActivity = bookingsData.slice(0, 3).map(b => ({
