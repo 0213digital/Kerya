@@ -21,6 +21,7 @@ import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage } from './pages/agency/AgencyDashboardPage';
 import { AgencyVehiclesPage } from './pages/agency/AgencyVehiclesPage';
 import { AgencyBookingsPage } from './pages/agency/AgencyBookingsPage';
+import { AgencyCalendarPage } from './pages/agency/AgencyCalendarPage';
 import { AgencyOnboardingPage } from './pages/agency/AgencyOnboardingPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 import { AdminAgencyDetailsPage } from './pages/admin/AdminAgencyDetailsPage';
@@ -164,6 +165,7 @@ export default function App() {
                     <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
                     <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
                     <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
+                    <Route path="/dashboard/agency/calendar" element={<AgencyCalendarPage />} />
                     <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
                     <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
                     <Route path="/admin/dashboard" element={<AdminDashboardPage />} />

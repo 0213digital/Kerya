@@ -23,6 +23,7 @@ export function DashboardLayout({ children, title, description }) {
         { to: "/dashboard/agency", label: t('agencyDashboard'), icon: <Home {...iconProps} /> },
         { to: "/dashboard/agency/vehicles", label: t('myVehicles'), icon: <Car {...iconProps} /> },
         { to: "/dashboard/agency/bookings", label: t('bookings'), icon: <Calendar {...iconProps} /> },
+        { to: "/dashboard/agency/calendar", label: t('agencyCalendar'), icon: <Calendar {...iconProps} /> }, // AJOUT DU LIEN
         { to: "/dashboard/agency/settings", label: t('agencySettings'), icon: <Settings {...iconProps} /> },
         ...baseLinks,
       ];

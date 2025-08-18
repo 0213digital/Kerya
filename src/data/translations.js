@@ -370,6 +370,12 @@ export const translations = {
         service: "Service",
         cleanliness: "Cleanliness",
         punctuality: "Punctuality",
+        agencySettings: "Agency Settings",
+        invoiceSettings: "Invoice Settings",
+        agencyCalendar: "Bookings Calendar",
+        agencyCalendarDesc: "View all your vehicle bookings at a glance.",
+        avatar: "Avatar",
+        errorDeletingUser: "Error deleting user: {message}",
     },
     fr: {
         appName: "KERYA",
@@ -742,5 +748,11 @@ export const translations = {
         service: "Service",
         cleanliness: "Propreté",
         punctuality: "Ponctualité",
+        agencySettings: "Paramètres de l'Agence",
+        invoiceSettings: "Paramètres de Facturation",
+        agencyCalendar: "Calendrier des Réservations",
+        agencyCalendarDesc: "Visualisez toutes les réservations de vos véhicules d'un seul coup d'œil.",
+        avatar: "Avatar",
+        errorDeletingUser: "Erreur lors de la suppression de l'utilisateur : {message}",
     }
 };

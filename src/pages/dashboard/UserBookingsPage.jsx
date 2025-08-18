@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Download, AlertTriangle, Undo } from 'lucide-react';
 import { ReviewForm } from '../../components/ReviewForm';
-import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar'; // IMPORTATION
+import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar';
 
 export function UserBookingsPage({ generateInvoice }) {
     const { t } = useTranslation();
@@ -131,7 +131,6 @@ export function UserBookingsPage({ generateInvoice }) {
                                         </p>
                                     </div>
                                 )}
-                                {/* AJOUT DE LA BARRE DE PROGRESSION */}
                                 {!isCancelled && (
                                     <div className="mt-4 pt-4 border-t">
                                         <BookingProgressBar status={booking.status} />
