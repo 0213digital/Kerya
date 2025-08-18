@@ -364,6 +364,7 @@ export const translations = {
         bookedBy: "Booked by",
         leaveReviewForVehicle: "Leave a review for the vehicle",
         leaveReviewForAgency: "Leave a review for the agency",
+        securityDeposit: "Security Deposit",
     },
     fr: {
         appName: "KERYA",
@@ -730,5 +731,6 @@ export const translations = {
         bookedBy: "Réservé par",
         leaveReviewForVehicle: "Laisser un avis sur le véhicule",
         leaveReviewForAgency: "Laisser un avis sur l'agence",
+        securityDeposit: "Dépôt de Garantie",
     }
 };

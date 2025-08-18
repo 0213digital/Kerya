@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info } from 'lucide-react';
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info, ShieldCheck } from 'lucide-react';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { ReviewList } from '../components/ReviewList'; 
 
@@ -143,6 +143,9 @@ export function VehicleDetailsPage() {
                             <div className="flex flex-col items-center"><Users className="text-indigo-500" size={24} /><p className="mt-1 text-sm">{vehicle.seats} {t('seats')}</p></div>
                             <div className="flex flex-col items-center"><Wind className="text-indigo-500" size={24} /><p className="mt-1 text-sm capitalize">{transmissionText}</p></div>
                             <div className="flex flex-col items-center"><Droplets className="text-indigo-500" size={24} /><p className="mt-1 text-sm capitalize">{fuelText}</p></div>
+                             {vehicle.security_deposit_dzd > 0 && (
+                                <div className="flex flex-col items-center"><ShieldCheck className="text-indigo-500" size={24} /><p className="mt-1 text-sm">{t('securityDeposit')}</p></div>
+                            )}
                         </div>
                         <div className="mt-8">
                             <h2 className="text-xl font-semibold mb-2">{t('description')}</h2>
@@ -164,6 +167,12 @@ export function VehicleDetailsPage() {
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
                         <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
                         
+                        {vehicle.security_deposit_dzd > 0 && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
+                                <p><strong>{t('securityDeposit')}:</strong> {vehicle.security_deposit_dzd.toLocaleString()} DZD</p>
+                            </div>
+                        )}
+
                         <AvailabilityCalendar vehicleId={vehicle.id} onDateChange={handleDateSelection} />
                         
                         {totalPrice > 0 && (

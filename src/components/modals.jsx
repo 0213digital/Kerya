@@ -116,6 +116,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         make: vehicleToEdit?.make || '', model: vehicleToEdit?.model || '', year: vehicleToEdit?.year || '',
         transmission: vehicleToEdit?.transmission || 'manual', fuel_type: vehicleToEdit?.fuel_type || 'gasoline',
         seats: vehicleToEdit?.seats || '', daily_rate_dzd: vehicleToEdit?.daily_rate_dzd || '',
+        security_deposit_dzd: vehicleToEdit?.security_deposit_dzd || 0,
         description: vehicleToEdit?.description || '', image_urls: vehicleToEdit?.image_urls || [],
         car_registration_url: vehicleToEdit?.car_registration_url || '',
     });
@@ -190,6 +191,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
                         <div><label className="block text-sm font-medium">{t('model')}</label><select name="model" value={formState.model} onChange={handleChange} disabled={!formState.make} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="">{t('selectAModel')}</option>{models.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('year')}</label><input name="year" type="number" value={formState.year} onChange={handleChange} placeholder={t('yearPlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('dailyRateDZD')}</label><input name="daily_rate_dzd" type="number" value={formState.daily_rate_dzd} onChange={handleChange} placeholder={t('ratePlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
+                        <div><label className="block text-sm font-medium">{t('securityDeposit')} (DZD)</label><input name="security_deposit_dzd" type="number" value={formState.security_deposit_dzd} onChange={handleChange} placeholder="10000" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('seats')}</label><input name="seats" type="number" value={formState.seats} onChange={handleChange} placeholder={t('seatsPlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('transmission')}</label><select name="transmission" value={formState.transmission} onChange={handleChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="manual">{t('manual')}</option><option value="automatic">{t('automatic')}</option></select></div>
                         <div><label className="block text-sm font-medium">{t('fuelType')}</label><select name="fuel_type" value={formState.fuel_type} onChange={handleChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="gasoline">{t('gasoline')}</option><option value="diesel">{t('diesel')}</option></select></div>
