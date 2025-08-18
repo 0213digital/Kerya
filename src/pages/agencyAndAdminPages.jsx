@@ -8,6 +8,46 @@ import { VehicleFormModal, DeleteConfirmationModal, RejectionModal, FileUploadBo
 import { algeriaGeoData } from '../data/geoAndCarData';
 import { List, Car, Banknote, Plus, Edit, Trash2, RefreshCw, Users, Building, FileText, Eye, ShieldCheck, XCircle, Clock, CheckCircle, Star, BarChart2, Ban, Check, Undo, Settings } from 'lucide-react';
 
+const BookingProgressBar = ({ status, t }) => {
+    const statuses = ['confirmed', 'picked-up', 'returned'];
+    const currentStatusIndex = statuses.indexOf(status);
+
+    const statusTranslations = {
+        confirmed: t('statusActive'),
+        'picked-up': t('statusPickedUp'),
+        returned: t('statusReturned'),
+    };
+
+    return (
+        <div className="w-full">
+            <div className="flex justify-between mb-1">
+                {statuses.map((s, index) => (
+                    <div key={s} className="text-center" style={{ width: `${100 / statuses.length}%` }}>
+                        <span className={`text-xs ${index <= currentStatusIndex ? 'text-indigo-600 font-bold' : 'text-slate-400'}`}>
+                            {statusTranslations[s]}
+                        </span>
+                    </div>
+                ))}
+            </div>
+            <div className="relative w-full h-2 bg-slate-200 rounded-full">
+                <div
+                    className="absolute top-0 left-0 h-2 bg-indigo-600 rounded-full transition-all duration-500"
+                    style={{ width: `${(currentStatusIndex / (statuses.length - 1)) * 100}%` }}
+                ></div>
+                 <div className="absolute flex justify-between w-full h-2">
+                    {statuses.map((s, index) => (
+                        <div
+                            key={s}
+                            className={`w-4 h-4 rounded-full -mt-1 ${index <= currentStatusIndex ? 'bg-indigo-600' : 'bg-slate-300'}`}
+                        ></div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 const MonthlyRevenueChart = ({ data, t }) => {
     const maxValue = Math.max(...data.map(d => d.revenue), 1);
     return (
@@ -17,7 +57,7 @@ const MonthlyRevenueChart = ({ data, t }) => {
                 {data.map((monthData) => (
                     <div key={monthData.month} className="flex flex-col items-center flex-1 h-full">
                         <div className="w-full h-full flex items-end">
-                             <div 
+                             <div
                                 className="w-full bg-indigo-500 hover:bg-indigo-600 transition-all rounded-t-md"
                                 style={{ height: `${(monthData.revenue / maxValue) * 100}%` }}
                                 title={`${t('revenue')}: ${monthData.revenue.toLocaleString()} DZD`}
@@ -33,9 +73,9 @@ const MonthlyRevenueChart = ({ data, t }) => {
 export function AgencyDashboardPage() {
     const { t, language } = useTranslation();
     const { profile } = useAuth();
-    const [stats, setStats] = useState({ 
-        listings: 0, 
-        activeRentals: 0, 
+    const [stats, setStats] = useState({
+        listings: 0,
+        activeRentals: 0,
         totalRevenue: 0,
         occupancyRate: 0,
         avgRevenuePerVehicle: 0,
@@ -115,12 +155,12 @@ export function AgencyDashboardPage() {
                     totalBookedDays += duration;
 
                     revenueByVehicle[b.vehicle_id] = (revenueByVehicle[b.vehicle_id] || 0) + b.total_price;
-                    
+
                     const monthKey = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
                     monthlyRevenueData[monthKey] = (monthlyRevenueData[monthKey] || 0) + b.total_price;
                 });
             }
-            
+
             const { data: vehicleDetails } = await supabase.from('vehicles').select('id, make, model').in('id', Object.keys(revenueByVehicle));
             const vehicleMap = new Map(vehicleDetails.map(v => [v.id, `${v.make} ${v.model}`]));
             const sortedTopVehicles = Object.entries(revenueByVehicle)
@@ -128,7 +168,7 @@ export function AgencyDashboardPage() {
                 .slice(0, 5)
                 .map(([id, revenue]) => ({ name: vehicleMap.get(parseInt(id, 10)), revenue }));
             setTopVehicles(sortedTopVehicles);
-            
+
             const last12Months = [];
             for (let i = 11; i >= 0; i--) {
                 const d = new Date();
@@ -158,7 +198,7 @@ export function AgencyDashboardPage() {
 
         fetchStats();
     }, [profile, t, language]);
-    
+
     return (
         <DashboardLayout title={t('agencyDashboardTitle')} description={t('agencyDashboardDesc')}>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
@@ -350,67 +390,48 @@ export function AgencyBookingsPage() {
         setProcessing(false);
     };
 
-    const StatusBadge = ({ status }) => {
-        const statusMap = {
-            confirmed: { text: t('statusActive'), color: 'green' },
-            cancelled: { text: t('statusCancelled'), color: 'red' },
-            'picked-up': { text: t('statusPickedUp'), color: 'blue' },
-            returned: { text: t('statusReturned'), color: 'slate' },
-        };
-        const currentStatus = statusMap[status] || { text: status, color: 'slate' };
-        return (
-            <span className={`px-3 py-1 text-xs font-semibold rounded-full bg-${currentStatus.color}-100 text-${currentStatus.color}-800 capitalize`}>
-                {currentStatus.text}
-            </span>
-        );
-    };
-
     const today = new Date().setHours(0, 0, 0, 0);
 
     return (
         <DashboardLayout title={t('agencyBookings')} description={t('agencyBookingsDesc')}>
-            <div className="bg-white rounded-lg shadow-md overflow-x-auto">
-                <table className="w-full text-left">
-                    <thead className="bg-slate-50">
-                        <tr>
-                            <th className="p-4 font-semibold">{t('customer')}</th>
-                            <th className="p-4 font-semibold">{t('vehicle')}</th>
-                            <th className="p-4 font-semibold">{t('dates')}</th>
-                            <th className="p-4 font-semibold">{t('price')}</th>
-                            <th className="p-4 font-semibold">{t('status')}</th>
-                            <th className="p-4 font-semibold text-right">{t('actions')}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {loading ? (<tr><td colSpan="6" className="p-4 text-center">{t('loading')}</td></tr>) : bookings.length > 0 ? (
-                            bookings.map(b => {
-                                const bookingStartDate = new Date(b.start_date).setHours(0, 0, 0, 0);
-                                const bookingEndDate = new Date(b.end_date).setHours(0, 0, 0, 0);
-                                return (
-                                <tr key={b.id} className="border-b border-slate-200">
-                                    <td className="p-4"><div>{b.profiles.full_name}</div><div className="text-sm text-slate-500">{b.profiles.email}</div></td>
-                                    <td className="p-4">{b.vehicles.make} {b.vehicles.model}</td>
-                                    <td className="p-4">{new Date(b.start_date).toLocaleDateString()} - {new Date(b.end_date).toLocaleDateString()}</td>
-                                    <td className="p-4">{b.total_price.toLocaleString()} DZD</td>
-                                    <td className="p-4"><StatusBadge status={b.status} /></td>
-                                    <td className="p-4 text-right">
-                                        <div className="flex justify-end items-center space-x-2">
-                                            {b.status === 'confirmed' && today >= bookingStartDate && (
-                                                <button onClick={() => setShowConfirmModal({ booking: b, status: 'picked-up' })} className="text-blue-600 hover:text-blue-800 font-semibold flex items-center text-sm"><Check size={14} className="mr-1"/>{t('markAsPickedUp')}</button>
-                                            )}
-                                            {b.status === 'picked-up' && today >= bookingEndDate && (
-                                                 <button onClick={() => setShowConfirmModal({ booking: b, status: 'returned' })} className="text-slate-600 hover:text-slate-800 font-semibold flex items-center text-sm"><Undo size={14} className="mr-1"/>{t('markAsReturned')}</button>
-                                            )}
-                                            {b.status === 'confirmed' && (
-                                                <button onClick={() => setShowCancelModal(b)} className="text-red-600 hover:text-red-800 font-semibold flex items-center text-sm"><Ban size={14} className="mr-1"/>{t('cancel')}</button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            )})
-                        ) : (<tr><td colSpan="6" className="p-4 text-center">{t('noBookingsFoundForAgency')}</td></tr>)}
-                    </tbody>
-                </table>
+            <div className="space-y-6">
+            {loading ? <p>{t('loading')}</p> : bookings.length > 0 ? (
+                bookings.map(b => {
+                    const bookingStartDate = new Date(b.start_date).setHours(0, 0, 0, 0);
+                    const bookingEndDate = new Date(b.end_date).setHours(0, 0, 0, 0);
+                    return (
+                        <div key={b.id} className="bg-white p-6 rounded-lg shadow-md">
+                            <div className="flex flex-col md:flex-row justify-between items-start">
+                                <div>
+                                    <p className="font-bold text-lg">{b.vehicles.make} {b.vehicles.model}</p>
+                                    <p className="text-sm text-slate-500">{t('bookedBy')} {b.profiles.full_name}</p>
+                                    <p className="text-sm text-slate-500">{new Date(b.start_date).toLocaleDateString()} - {new Date(b.end_date).toLocaleDateString()}</p>
+                                </div>
+                                <div className="mt-4 md:mt-0 md:text-right">
+                                    <p className="font-bold text-lg">{b.total_price.toLocaleString()} DZD</p>
+                                    <div className="flex justify-end items-center space-x-2 mt-2">
+                                        {b.status === 'confirmed' && today >= bookingStartDate && (
+                                            <button onClick={() => setShowConfirmModal({ booking: b, status: 'picked-up' })} className="text-blue-600 hover:text-blue-800 font-semibold flex items-center text-sm"><Check size={14} className="mr-1"/>{t('markAsPickedUp')}</button>
+                                        )}
+                                        {b.status === 'picked-up' && today >= bookingEndDate && (
+                                             <button onClick={() => setShowConfirmModal({ booking: b, status: 'returned' })} className="text-slate-600 hover:text-slate-800 font-semibold flex items-center text-sm"><Undo size={14} className="mr-1"/>{t('markAsReturned')}</button>
+                                        )}
+                                        {b.status === 'confirmed' && (
+                                            <button onClick={() => setShowCancelModal(b)} className="text-red-600 hover:text-red-800 font-semibold flex items-center text-sm"><Ban size={14} className="mr-1"/>{t('cancel')}</button>
+                                        )}
+                                         {b.status === 'return-requested' && (
+                                            <button onClick={() => setShowConfirmModal({ booking: b, status: 'returned' })} className="bg-green-500 text-white px-3 py-1 rounded-md hover:bg-green-600 font-semibold flex items-center text-sm"><Check size={14} className="mr-1"/>{t('approveReturn')}</button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="mt-4 pt-4 border-t">
+                                <BookingProgressBar status={b.status} t={t} />
+                            </div>
+                        </div>
+                    )
+                })
+            ) : <p>{t('noBookingsFoundForAgency')}</p>}
             </div>
             {showCancelModal && (
                 <CancellationModal
@@ -525,12 +546,12 @@ export function AdminDashboardPage() {
     const { t } = useTranslation();
     const { isAdmin } = useAuth();
     const navigate = useNavigate();
-    
-    const [stats, setStats] = useState({ 
-        users: 0, 
-        agencies: 0, 
-        bookings: 0, 
-        listings: 0, 
+
+    const [stats, setStats] = useState({
+        users: 0,
+        agencies: 0,
+        bookings: 0,
+        listings: 0,
         revenue: 0,
         platformCommission: 0,
         verificationRate: 0,
@@ -544,7 +565,7 @@ export function AdminDashboardPage() {
         if (isAdmin === true) {
             const fetchAllData = async () => {
                  setLoading(true);
-                 
+
                  const [agenciesRes, usersRes, bookingsRes, listingsRes, profilesRes] = await Promise.all([
                      supabase.from('agencies').select('*, profiles(full_name, created_at)'),
                      supabase.from('profiles').select('id', { count: 'exact' }),
@@ -555,12 +576,12 @@ export function AdminDashboardPage() {
 
                  const agenciesData = agenciesRes.data || [];
                  const bookingsData = bookingsRes.data || [];
-                 
+
                  const totalRevenue = bookingsData.reduce((sum, booking) => sum + booking.total_price, 0);
                  const platformCommission = totalRevenue * 0.10;
                  const verifiedAgencies = agenciesData.filter(a => a.verification_status === 'verified').length;
                  const verificationRate = agenciesData.length > 0 ? (verifiedAgencies / agenciesData.length) * 100 : 0;
-                 
+
                  setStats({
                      users: usersRes.count || 0,
                      agencies: agenciesData.length,
@@ -570,7 +591,7 @@ export function AdminDashboardPage() {
                      platformCommission: platformCommission,
                      verificationRate: verificationRate.toFixed(1),
                  });
-                 
+
                  const agenciesWithRevenue = agenciesData.map(agency => {
                     const agencyBookings = bookingsData.filter(b => b.vehicles?.agency_id === agency.id);
                     const revenue = agencyBookings.reduce((sum, b) => sum + b.total_price, 0);
@@ -590,7 +611,7 @@ export function AdminDashboardPage() {
                      description: p.is_agency_owner ? t('activityNewAgency', {name: p.full_name}) : t('activityNewUser', {name: p.full_name}),
                      timestamp: p.created_at,
                  }));
-                 
+
                  const combinedActivity = [...newBookingsActivity, ...newUsersActivity].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
                  setRecentActivity(combinedActivity.slice(0, 5));
 
@@ -614,7 +635,7 @@ export function AdminDashboardPage() {
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Building size={32} className="text-sky-500 mr-4" /><div><h3 className="text-slate-500">{t('totalAgencies')}</h3><p className="text-3xl font-bold mt-2">{stats.agencies}</p></div></div>
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><ShieldCheck size={32} className="text-rose-500 mr-4" /><div><h3 className="text-slate-500">{t('verificationRate')}</h3><p className="text-3xl font-bold mt-2">{stats.verificationRate}%</p></div></div>
             </div>
-            
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
                     <h2 className="text-2xl font-bold mb-4">{t('agencyRanking')}</h2>

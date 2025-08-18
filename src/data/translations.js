@@ -151,9 +151,7 @@ export const translations = {
         updateYourAgencyTitle: "Update Your Agency Profile",
         updateYourAgencyDesc: "Update your details and resubmit for verification.",
         agencyName: "Agency Name",
-        // --- NOUVELLE TRADUCTION ---
         agencyNamePlaceholder: "e.g. Kerya Express",
-        // --- FIN ---
         address: "Address",
         wilaya: "Wilaya",
         tradeRegister: "Trade Register Number",
@@ -308,8 +306,11 @@ export const translations = {
         statusCancelled: "Cancelled",
         statusPickedUp: "Picked Up",
         statusReturned: "Returned",
+        statusReturnRequested: "Return Requested",
         markAsPickedUp: "Mark as Picked Up",
         markAsReturned: "Mark as Returned",
+        approveReturn: "Approve Return",
+        declareReturn: "Declare Return",
         confirmPickupTitle: "Confirm Vehicle Pickup",
         confirmPickupText: "Are you sure you want to mark this booking as 'Picked Up'?",
         confirmReturnTitle: "Confirm Vehicle Return",
@@ -359,7 +360,10 @@ export const translations = {
         fullScreenView: "Full screen view",
         image: "Image",
         imageMessage: "Image message",
-        imagePreview: "Image Preview"
+        imagePreview: "Image Preview",
+        bookedBy: "Booked by",
+        leaveReviewForVehicle: "Leave a review for the vehicle",
+        leaveReviewForAgency: "Leave a review for the agency",
     },
     fr: {
         appName: "KERYA",
@@ -668,8 +672,11 @@ export const translations = {
         statusCancelled: "Annulée",
         statusPickedUp: "Récupérée",
         statusReturned: "Retournée",
+        statusReturnRequested: "Retour Demandé",
         markAsPickedUp: "Marquer comme Récupérée",
         markAsReturned: "Marquer comme Retournée",
+        approveReturn: "Approuver le Retour",
+        declareReturn: "Déclarer le Retour",
         confirmPickupTitle: "Confirmer la récupération du véhicule",
         confirmPickupText: "Voulez-vous vraiment marquer cette réservation comme 'Récupérée' ?",
         confirmReturnTitle: "Confirmer le retour du véhicule",
@@ -719,6 +726,9 @@ export const translations = {
         fullScreenView: "Vue plein écran",
         image: "Image",
         imageMessage: "Message image",
-        imagePreview: "Aperçu de l'image"
+        imagePreview: "Aperçu de l'image",
+        bookedBy: "Réservé par",
+        leaveReviewForVehicle: "Laisser un avis sur le véhicule",
+        leaveReviewForAgency: "Laisser un avis sur l'agence",
     }
 };

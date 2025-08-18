@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { supabase } from '../../lib/supabaseClient';
 import { DashboardLayout } from '../../components/DashboardLayout';
-import { Download, AlertTriangle } from 'lucide-react';
+import { Download, AlertTriangle, Undo } from 'lucide-react';
 import { ReviewForm } from '../../components/ReviewForm';
 
 export function UserBookingsPage({ generateInvoice }) {
@@ -11,13 +11,13 @@ export function UserBookingsPage({ generateInvoice }) {
     const { session } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [processingInvoice, setProcessingInvoice] = useState(null);
+    const [processing, setProcessing] = useState(null);
     const [showReviewForm, setShowReviewForm] = useState(null);
 
     const handleDownload = async (booking) => {
-        setProcessingInvoice(booking.id);
+        setProcessing(booking.id);
         await generateInvoice(booking, t);
-        setProcessingInvoice(null);
+        setProcessing(null);
     };
 
     const fetchBookings = useCallback(async () => {
@@ -28,7 +28,7 @@ export function UserBookingsPage({ generateInvoice }) {
             .select('*, vehicles(*, agencies(*)), profiles(*), reviews(id)')
             .eq('user_id', session.user.id)
             .order('start_date', { ascending: false });
-        
+
         if (error) {
             console.error("Error fetching bookings:", error);
         } else {
@@ -41,11 +41,27 @@ export function UserBookingsPage({ generateInvoice }) {
         fetchBookings();
     }, [fetchBookings]);
 
+    const handleReturnRequest = async (bookingId) => {
+        setProcessing(bookingId);
+        const { error } = await supabase
+            .from('bookings')
+            .update({ status: 'return-requested' })
+            .eq('id', bookingId);
+        
+        if (error) {
+            alert(t('error') + ': ' + error.message);
+        } else {
+            fetchBookings();
+        }
+        setProcessing(null);
+    };
+
     const StatusBadge = ({ status }) => {
         const statusMap = {
             confirmed: { text: t('statusActive'), color: 'green' },
             cancelled: { text: t('statusCancelled'), color: 'red' },
             'picked-up': { text: t('statusPickedUp'), color: 'blue' },
+            'return-requested': { text: t('statusReturnRequested'), color: 'yellow' },
             returned: { text: t('statusReturned'), color: 'slate' },
         };
         const currentStatus = statusMap[status] || { text: status, color: 'slate' };
@@ -84,10 +100,16 @@ export function UserBookingsPage({ generateInvoice }) {
                                         <p className={`font-bold text-lg ${isCancelled ? 'line-through' : ''}`}>{booking.total_price.toLocaleString()} DZD</p>
                                         {!isCancelled && (
                                             <>
-                                                <button onClick={() => handleDownload(booking)} disabled={processingInvoice === booking.id} className="mt-2 text-sm text-indigo-600 hover:underline flex items-center justify-end disabled:text-slate-400">
+                                                <button onClick={() => handleDownload(booking)} disabled={processing === booking.id} className="mt-2 text-sm text-indigo-600 hover:underline flex items-center justify-end disabled:text-slate-400">
                                                     <Download size={14} className="mr-1" />
-                                                    {processingInvoice === booking.id ? t('processing') : t('downloadInvoice')}
+                                                    {processing === booking.id ? t('processing') : t('downloadInvoice')}
                                                 </button>
+                                                {booking.status === 'picked-up' && (
+                                                    <button onClick={() => handleReturnRequest(booking.id)} disabled={processing === booking.id} className="mt-2 text-sm text-green-600 hover:underline flex items-center justify-end disabled:text-slate-400">
+                                                        <Undo size={14} className="mr-1" />
+                                                        {processing === booking.id ? t('processing') : t('declareReturn')}
+                                                    </button>
+                                                )}
                                                 {isPastBooking && !hasReview && booking.status === 'returned' && (
                                                     <button
                                                         onClick={() => setShowReviewForm(booking)}
