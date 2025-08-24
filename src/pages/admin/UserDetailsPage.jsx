@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ConfirmationModal, EditUserModal } from '../../components/modals';
 import { User, Mail, Phone, Calendar, Shield, Ban, CheckCircle, Edit, KeyRound, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 export function UserDetailsPage() {
     const { t } = useTranslation();
@@ -15,7 +16,7 @@ export function UserDetailsPage() {
     const [user, setUser] = useState(null);
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [modal, setModal] = useState({ type: null, user: null }); // Single state for all modals
+    const [modal, setModal] = useState({ type: null, user: null });
 
     const fetchUserData = useCallback(async () => {
         if (!isAdmin || !userId) return;
@@ -40,34 +41,58 @@ export function UserDetailsPage() {
     
     const handleAction = async (actionType, payload) => {
         if (!user) return;
+    
+        if (actionType === 'toggleSuspend') {
+            const originalUser = { ...user };
+            // Optimistic UI update
+            setUser(prevUser => ({ ...prevUser, is_suspended: !prevUser.is_suspended }));
+    
+            const { error: suspendError } = await supabase
+                .from('profiles')
+                .update({ is_suspended: !user.is_suspended })
+                .eq('id', user.id);
+    
+            if (suspendError) {
+                // Revert on error
+                setUser(originalUser);
+                toast.error(t('genericError', { message: suspendError.message }));
+            } else {
+                toast.success(t('profileUpdated'));
+            }
+            setModal({ type: null, user: null });
+            return; 
+        }
+    
         let error;
-
+    
         switch(actionType) {
-            case 'toggleSuspend':
-                const { error: suspendError } = await supabase.from('profiles').update({ is_suspended: !user.is_suspended }).eq('id', user.id);
-                error = suspendError;
-                break;
             case 'sendReset':
                 const { error: resetError } = await supabase.functions.invoke('admin-reset-password', { body: { email: user.email } });
-                if (!resetError) alert(t('passwordResetSent'));
+                if (!resetError) toast.success(t('passwordResetSentSuccess'));
                 error = resetError;
                 break;
             case 'deleteUser':
                 const { error: deleteError } = await supabase.functions.invoke('admin-delete-user', { body: { userId: user.id } });
-                if (!deleteError) navigate('/admin/users');
+                if (!deleteError) {
+                    toast.success(t('userDeletionSuccess'));
+                    navigate('/admin/users');
+                }
                 error = deleteError;
                 break;
             case 'updateProfile':
                 const { error: updateError } = await supabase.from('profiles').update(payload).eq('id', user.id);
+                if (!updateError) toast.success(t('profileUpdated'));
                 error = updateError;
                 break;
             default:
                 break;
         }
-
-        if (error) alert(`Error: ${error.message}`);
+    
+        if (error) toast.error(t('genericError', { message: error.message }));
         setModal({ type: null, user: null });
-        fetchUserData();
+        if (actionType !== 'deleteUser' || error) {
+            fetchUserData();
+        }
     };
 
     if (loading) return <DashboardLayout title={t('loading')} description="..." />;
@@ -90,7 +115,19 @@ export function UserDetailsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-1">
                     <div className="bg-white p-6 rounded-lg shadow-md">
-                        {/* User Info Display (same as before) */}
+                         <div className="flex flex-col items-center">
+                            <img src={user.avatar_url || `https://placehold.co/96x96/e2e8f0/64748b?text=${user.full_name?.[0] || 'U'}`} alt="avatar" className="h-24 w-24 rounded-full object-cover" />
+                            <h2 className="mt-4 text-xl font-bold">{user.full_name || 'N/A'}</h2>
+                            <span className={`mt-2 px-3 py-1 text-xs font-semibold rounded-full ${isSuspended ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                                {isSuspended ? t('statusSuspended') : t('statusActive')}
+                            </span>
+                        </div>
+                        <div className="mt-6 space-y-4 text-sm">
+                            <div className="flex items-center"><Mail size={16} className="mr-3 text-slate-400" /><span className="text-slate-600">{user.email}</span></div>
+                            <div className="flex items-center"><Phone size={16} className="mr-3 text-slate-400" /><span className="text-slate-600">{user.phone_number ? `+213${user.phone_number}`: 'N/A'}</span></div>
+                            <div className="flex items-center"><Calendar size={16} className="mr-3 text-slate-400" /><span className="text-slate-600">{t('memberSince')} {new Date(user.created_at).toLocaleDateString()}</span></div>
+                            <div className="flex items-center"><Shield size={16} className="mr-3 text-slate-400" /><span className="font-medium">{user.is_agency_owner ? t('agencyOwner') : t('renter')}</span></div>
+                        </div>
                         <div className="mt-6 border-t border-slate-200 pt-6">
                             <h3 className="text-xs font-semibold uppercase text-slate-400 mb-2">{t('actions')}</h3>
                             <div className="space-y-2">
@@ -106,7 +143,22 @@ export function UserDetailsPage() {
                     </div>
                 </div>
                 <div className="lg:col-span-2">
-                    {/* Booking History (same as before) */}
+                    <div className="bg-white p-6 rounded-lg shadow-md">
+                        <h3 className="text-xl font-bold mb-4">{t('bookingHistory')}</h3>
+                        {bookings.length > 0 ? (
+                            <ul className="space-y-4">
+                                {bookings.map(booking => (
+                                    <li key={booking.id} className="border-b pb-2">
+                                        <p className="font-semibold">{booking.vehicles.make} {booking.vehicles.model}</p>
+                                        <p className="text-sm text-slate-500">{new Date(booking.start_date).toLocaleDateString()} - {new Date(booking.end_date).toLocaleDateString()}</p>
+                                        <p className="text-sm">{booking.total_price} DZD</p>
+                                    </li>
+                                ))}
+                            </ul>
+                        ) : (
+                            <p className="text-slate-500">{t('noBookingsFound')}</p>
+                        )}
+                    </div>
                 </div>
             </div>
         </DashboardLayout>

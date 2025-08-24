@@ -1,49 +1,28 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from '../contexts/LanguageContext';
-import { Search, MapPin, Calendar } from 'lucide-react';
+import { Search, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
+import Datepicker from "react-tailwindcss-datepicker";
 
 export function SearchForm() {
     const navigate = useNavigate();
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
     const [locations, setLocations] = useState({ wilayas: [], cities: [] });
     const [selectedWilaya, setSelectedWilaya] = useState('');
     const [selectedCity, setSelectedCity] = useState('');
     const [filteredCities, setFilteredCities] = useState([]);
-    const [pickupDate, setPickupDate] = useState('');
-    const [returnDate, setReturnDate] = useState('');
-    const today = new Date().toISOString().split('T')[0];
-
-    const pickupDateRef = useRef(null);
-    const returnDateRef = useRef(null);
-
-    // Helper function to format the date for display
-    const formatDate = (dateString, locale) => {
-        if (!dateString) return null;
-        const date = new Date(dateString);
-        // Adjust for timezone to prevent off-by-one day errors in display
-        const userTimezoneOffset = date.getTimezoneOffset() * 60000;
-        const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-        
-        return new Intl.DateTimeFormat(locale, {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-        }).format(adjustedDate);
-    };
+    
+    const [dateValue, setDateValue] = useState({ 
+        startDate: null, 
+        endDate: null 
+    }); 
 
     useEffect(() => {
         const fetchLocations = async () => {
-            const { data: wilayasData, error: wilayasError } = await supabase.from('wilayas').select('id, name').order('name');
-            const { data: citiesData, error: citiesError } = await supabase.from('cities').select('id, name, wilaya_id').order('name');
-
-            if (!wilayasError && !citiesError) {
-                setLocations({
-                    wilayas: wilayasData || [],
-                    cities: citiesData || []
-                });
-            }
+            const { data: wilayasData } = await supabase.from('wilayas').select('id, name').order('name');
+            const { data: citiesData } = await supabase.from('cities').select('id, name, wilaya_id').order('name');
+            setLocations({ wilayas: wilayasData || [], cities: citiesData || [] });
         };
         fetchLocations();
     }, []);
@@ -60,13 +39,17 @@ export function SearchForm() {
         setSelectedCity('');
     }, [selectedWilaya, locations]);
 
+    const handleDateValueChange = (newValue) => {
+        setDateValue(newValue); 
+    } 
+
     const handleSearch = (e) => {
         e.preventDefault();
         const searchParams = new URLSearchParams({
             location: selectedWilaya,
             city: selectedCity,
-            from: pickupDate,
-            to: returnDate
+            from: dateValue.startDate || '',
+            to: dateValue.endDate || ''
         }).toString();
         navigate(`/search?${searchParams}`);
     };
@@ -102,52 +85,19 @@ export function SearchForm() {
                 {/* Divider */}
                 <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
 
-                {/* Pickup Date */}
-                <div className="relative w-full p-2 md:p-4">
-                    <label className="block text-sm font-medium text-slate-700">{t('pickupDate')}</label>
-                    <div 
-                        className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
-                        onClick={() => pickupDateRef.current?.showPicker()}
-                    >
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <span className={`font-medium ${pickupDate ? 'text-slate-800' : 'text-gray-500'}`}>
-                            {pickupDate ? formatDate(pickupDate, t('locale')) : t('pickupDate')}
-                        </span>
-                        <input 
-                            ref={pickupDateRef}
-                            type="date"
-                            min={today} 
-                            value={pickupDate}
-                            onChange={e => setPickupDate(e.target.value)} 
-                            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                        />
-                    </div>
-                </div>
-
-                {/* Divider */}
-                <div className="w-full md:w-px h-px md:h-12 bg-slate-200"></div>
-
-                {/* Return Date */}
-                <div className="relative w-full p-2 md:p-4">
-                    <label className="block text-sm font-medium text-slate-700">{t('returnDate')}</label>
-                     <div 
-                        className="relative mt-1 cursor-pointer flex items-center w-full pl-10 pr-4 py-2 border-none rounded-md focus-within:ring-2 focus-within:ring-indigo-500"
-                        onClick={() => returnDateRef.current?.showPicker()}
-                    >
-                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                        <span className={`font-medium ${returnDate ? 'text-slate-800' : 'text-gray-500'}`}>
-                            {returnDate ? formatDate(returnDate, t('locale')) : t('returnDate')}
-                        </span>
-                        <input 
-                            ref={returnDateRef}
-                            type="date"
-                            min={pickupDate || today} 
-                            value={returnDate} 
-                            onChange={(e) => setReturnDate(e.target.value)} 
-                            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-                            disabled={!pickupDate}
-                        />
-                    </div>
+                {/* Date Range Picker */}
+                <div className="relative w-full p-2 md:p-4 md:w-2/5">
+                     <label className="block text-sm font-medium text-slate-700">{t('pickupDate')} - {t('returnDate')}</label>
+                     <Datepicker 
+                        primaryColor={"indigo"} 
+                        value={dateValue} 
+                        onChange={handleDateValueChange} 
+                        showShortcuts={true} 
+                        placeholder={t('dateRangePickerPlaceholder')}
+                        i18n={language}
+                        minDate={new Date()} 
+                        inputClassName="w-full mt-1 py-2 border-none rounded-md focus:ring-2 focus:ring-indigo-500 bg-transparent"
+                    /> 
                 </div>
 
                 {/* Search Button */}

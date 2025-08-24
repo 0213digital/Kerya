@@ -3,6 +3,7 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { Toaster } from 'react-hot-toast';
 
 // PDF Generation
 import jsPDF from 'jspdf';
@@ -143,6 +144,7 @@ export default function App() {
 
     return (
         <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50">
+            <Toaster position="top-center" reverseOrder={false} />
             {!isSpecialPage && <Navbar />}
             <main className={!isSpecialPage ? "pt-20" : ""}>
                 <Routes>

@@ -6,6 +6,7 @@ import { VehicleCard } from '../components/VehicleCard';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { SlidersHorizontal, Car, Map, List, Star } from 'lucide-react';
 import { carData } from '../data/geoAndCarData';
+import { VehicleCardSkeleton } from '../components/VehicleCardSkeleton';
 
 export function SearchPage() {
     const { search } = useLocation();
@@ -84,13 +85,13 @@ export function SearchPage() {
 
                 // 2. Construire la requête finale pour les véhicules
                 let query = supabase
-  .from('vehicles')
-  .select(`
-    *,
-    agencies!inner(agency_name, city, wilaya, latitude, longitude),
-    reviews:reviews(vehicle_rating)
-  `)
-  .in('agency_id', verifiedAgencyIds);
+                  .from('vehicles')
+                  .select(`
+                    *,
+                    agencies!inner(agency_name, city, wilaya, latitude, longitude),
+                    reviews:reviews(vehicle_rating)
+                  `)
+                  .in('agency_id', verifiedAgencyIds);
                 if (location) query = query.eq('agencies.wilaya', location);
                 if (city) query = query.eq('agencies.city', city);
                 if (availableVehicleIds) query = query.in('id', availableVehicleIds);
@@ -100,13 +101,13 @@ export function SearchPage() {
                 if (vehiclesError) throw vehiclesError;
                 
                 const vehiclesWithAvgRating = data.map(vehicle => {
-  const ratings = (vehicle.reviews ?? []).map(r => r.vehicle_rating ?? 0);
-  const validRatings = ratings.filter(n => typeof n === 'number' && !Number.isNaN(n) && n > 0);
-  const avgRating = validRatings.length > 0
-    ? validRatings.reduce((a, b) => a + b, 0) / validRatings.length
-    : 0;
-  return { ...vehicle, avg_rating: avgRating };
-});
+                  const ratings = (vehicle.reviews ?? []).map(r => r.vehicle_rating ?? 0);
+                  const validRatings = ratings.filter(n => typeof n === 'number' && !Number.isNaN(n) && n > 0);
+                  const avgRating = validRatings.length > 0
+                    ? validRatings.reduce((a, b) => a + b, 0) / validRatings.length
+                    : 0;
+                  return { ...vehicle, avg_rating: avgRating };
+                });
 
                 setVehicles(vehiclesWithAvgRating);
 
@@ -207,7 +208,9 @@ export function SearchPage() {
 
                 <main className="w-full lg:w-3/4 xl:w-4/5">
                     {loading ? (
-                        <div className="flex justify-center items-center h-96"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {[...Array(6)].map((_, i) => <VehicleCardSkeleton key={i} />)}
+                        </div>
                     ) : error ? (
                         <div className="text-center bg-red-100 text-red-700 p-4 rounded-lg">{t('error')}: {error}</div>
                     ) : filteredAndSortedVehicles.length > 0 ? (
