@@ -1,8 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../contexts/LanguageContext'; // CORRECTED
-import { Home, Car, Calendar, MessageSquare, User, Settings, Shield, Users, MapPin, LogOut } from 'lucide-react';
+import { useTranslation } from '../contexts/LanguageContext';
+import { Home, Car, Calendar, MessageSquare, User, Settings, Shield, Users, MapPin, LogOut, Banknote } from 'lucide-react';
 
 const iconProps = {
   className: "h-5 w-5 mr-3",
@@ -11,7 +11,7 @@ const iconProps = {
 
 export function DashboardLayout({ children, title, description }) {
   const { handleLogout, isAgencyOwner, isAdmin } = useAuth();
-  const { t } = useTranslation(); // CORRECTED
+  const { t } = useTranslation();
 
   const getNavLinks = () => {
     const baseLinks = [
@@ -23,7 +23,7 @@ export function DashboardLayout({ children, title, description }) {
         { to: "/dashboard/agency", label: t('agencyDashboard'), icon: <Home {...iconProps} /> },
         { to: "/dashboard/agency/vehicles", label: t('myVehicles'), icon: <Car {...iconProps} /> },
         { to: "/dashboard/agency/bookings", label: t('bookings'), icon: <Calendar {...iconProps} /> },
-        { to: "/dashboard/agency/calendar", label: t('agencyCalendar'), icon: <Calendar {...iconProps} /> }, // AJOUT DU LIEN
+        { to: "/dashboard/agency/calendar", label: t('agencyCalendar'), icon: <Calendar {...iconProps} /> },
         { to: "/dashboard/agency/settings", label: t('agencySettings'), icon: <Settings {...iconProps} /> },
         ...baseLinks,
       ];
@@ -32,6 +32,7 @@ export function DashboardLayout({ children, title, description }) {
       return [
         { to: "/admin/dashboard", label: t('adminDashboard'), icon: <Shield {...iconProps} /> },
         { to: "/admin/users", label: t('userManagement'), icon: <Users {...iconProps} /> },
+        { to: "/admin/finances", label: t('finances'), icon: <Banknote {...iconProps} /> }, // <-- LIEN AJOUTÉ ICI
         { to: "/admin/locations", label: t('locationManagement'), icon: <MapPin {...iconProps} /> },
         ...baseLinks.filter(link => link.to !== '/dashboard/bookings'),
       ];
@@ -53,7 +54,7 @@ export function DashboardLayout({ children, title, description }) {
               <li key={to}>
                 <NavLink
                   to={to}
-                  end={to === "/dashboard/agency" || to === "/admin/dashboard"}
+                  end={['/dashboard/agency', '/admin/dashboard'].includes(to)}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-2.5 my-1 text-sm font-medium rounded-md transition-colors duration-150 ${
                       isActive

@@ -30,19 +30,21 @@ export function AdminDashboardPage() {
             const fetchAllData = async () => {
                  setLoading(true);
 
-                 const [agenciesRes, usersRes, bookingsRes, listingsRes, profilesRes] = await Promise.all([
+                 const [agenciesRes, usersRes, bookingsRes, listingsRes, profilesRes, commissionRes] = await Promise.all([
                      supabase.from('agencies').select('*, profiles(full_name, created_at)'),
                      supabase.from('profiles').select('id', { count: 'exact' }),
                      supabase.from('bookings').select('*, vehicles(make, model, agency_id), profiles(full_name)'),
                      supabase.from('vehicles').select('id', { count: 'exact' }),
-                     supabase.from('profiles').select('full_name, created_at, is_agency_owner').order('created_at', { ascending: false }).limit(5)
+                     supabase.from('profiles').select('full_name, created_at, is_agency_owner').order('created_at', { ascending: false }).limit(5),
+                     supabase.from('platform_settings').select('value').eq('key', 'platform_commission_rate').single()
                  ]);
 
                  const agenciesData = agenciesRes.data || [];
                  const bookingsData = bookingsRes.data || [];
+                 const commissionRate = commissionRes.data ? parseFloat(commissionRes.data.value) : 10; // Default to 10%
 
                  const totalRevenue = bookingsData.reduce((sum, booking) => sum + booking.total_price, 0);
-                 const platformCommission = totalRevenue * 0.10;
+                 const platformCommission = totalRevenue * (commissionRate / 100);
                  const verifiedAgencies = agenciesData.filter(a => a.verification_status === 'verified').length;
                  const verificationRate = agenciesData.length > 0 ? (verifiedAgencies / agenciesData.length) * 100 : 0;
 
@@ -93,7 +95,7 @@ export function AdminDashboardPage() {
         <DashboardLayout title={t('adminDashboardTitle')} description={t('adminDashboardDesc')}>
              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Banknote size={32} className="text-green-500 mr-4" /><div><h3 className="text-slate-500">{t('totalRevenue')}</h3><p className="text-3xl font-bold mt-2">{stats.revenue.toLocaleString()} <span className="text-lg font-normal">DZD</span></p></div></div>
-                <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Banknote size={32} className="text-emerald-500 mr-4" /><div><h3 className="text-slate-500">{t('platformCommission')}</h3><p className="text-3xl font-bold mt-2">{stats.platformCommission.toLocaleString()} <span className="text-lg font-normal">DZD</span></p></div></div>
+                <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Banknote size={32} className="text-emerald-500 mr-4" /><div><h3 className="text-slate-500">{t('platformCommission')}</h3><p className="text-3xl font-bold mt-2">{stats.platformCommission.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} <span className="text-lg font-normal">DZD</span></p></div></div>
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><FileText size={32} className="text-blue-500 mr-4" /><div><h3 className="text-slate-500">{t('totalBookings')}</h3><p className="text-3xl font-bold mt-2">{stats.bookings}</p></div></div>
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Users size={32} className="text-indigo-500 mr-4" /><div><h3 className="text-slate-500">{t('totalUsers')}</h3><p className="text-3xl font-bold mt-2">{stats.users}</p></div></div>
                 <div className="bg-white p-6 rounded-lg shadow-md flex items-center"><Building size={32} className="text-sky-500 mr-4" /><div><h3 className="text-slate-500">{t('totalAgencies')}</h3><p className="text-3xl font-bold mt-2">{stats.agencies}</p></div></div>

@@ -390,6 +390,8 @@ export const translations = {
         declineBookingConfirmTitle: "Decline Booking?",
         declineBookingConfirmText: "This will cancel the booking request. Please provide a reason.",
         declineBookingReasonPrompt: "Reason for declining",
+        finances: "Finances",
+        financesDesc: "Manage platform revenue and settings.",
     },
     fr: {
         appName: "KERYA",
@@ -782,5 +784,7 @@ export const translations = {
         declineBookingConfirmTitle: "Refuser la réservation ?",
         declineBookingConfirmText: "Cela annulera la demande de réservation. Veuillez fournir une raison.",
         declineBookingReasonPrompt: "Raison du refus",
+        finances: "Finances",
+        financesDesc: "Gérez les revenus et les paramètres de la plateforme.",
     }
 };
