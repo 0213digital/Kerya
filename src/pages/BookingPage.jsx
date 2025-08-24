@@ -13,6 +13,7 @@ export function BookingPage() {
     const [searchParams] = useSearchParams();
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
+    const bookingType = searchParams.get('bookingType'); // Nouveau
     const [vehicle, setVehicle] = useState(null);
     const [totalPrice, setTotalPrice] = useState(0);
     const [loading, setLoading] = useState(true);
@@ -21,22 +22,10 @@ export function BookingPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Wait for auth context to initialize
-        if (authLoading) {
-            return;
-        }
-
-        // Redirect if user is not logged in or is an agency owner
-        if (!session) {
-            navigate('/login');
-            return;
-        }
-        if (isAgencyOwner) {
-            navigate('/'); // Redirect agencies away from booking page
-            return;
-        }
-
-        if (!vehicleId || !startDate || !endDate) {
+        if (authLoading) return;
+        if (!session) { navigate('/login'); return; }
+        if (isAgencyOwner) { navigate('/'); return; }
+        if (!vehicleId || !startDate || !endDate || !bookingType) {
             setError(t('missingBookingInfo'));
             setLoading(false);
             return;
@@ -53,14 +42,13 @@ export function BookingPage() {
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 const diffTime = Math.abs(end - start);
-                // Ensure at least 1 day is calculated
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
                 setTotalPrice(diffDays * data.daily_rate_dzd);
             }
             setLoading(false);
         };
         fetchVehicleAndCalculatePrice();
-    }, [vehicleId, startDate, endDate, session, navigate, t, isAgencyOwner, authLoading]);
+    }, [vehicleId, startDate, endDate, bookingType, session, navigate, t, isAgencyOwner, authLoading]);
 
     const handleConfirmBooking = async () => {
         if (!session || !vehicle || isAgencyOwner) return;
@@ -77,6 +65,8 @@ export function BookingPage() {
             setProcessing(false);
             return;
         }
+        
+        const initialStatus = bookingType === 'instant' ? 'confirmed' : 'pending_approval';
 
         const { data: newBooking, error: insertError } = await supabase.from('bookings').insert([{
             vehicle_id: vehicle.id,
@@ -85,7 +75,7 @@ export function BookingPage() {
             end_date: endDate,
             total_price: totalPrice,
             payment_method: paymentMethod,
-            status: 'confirmed'
+            status: initialStatus
         }]).select().single();
 
         if (insertError) {
@@ -99,6 +89,8 @@ export function BookingPage() {
     if (loading || authLoading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
     if (error) return <div className="container mx-auto p-4 text-center text-red-500">{error}</div>;
     if (!vehicle) return <div className="container mx-auto p-4 text-center">{t('noVehiclesFound')}</div>;
+
+    const buttonText = bookingType === 'instant' ? t('confirmAndPay') : t('sendBookingRequest');
 
     return (
         <div className="container mx-auto max-w-2xl py-16 px-4">
@@ -139,7 +131,7 @@ export function BookingPage() {
                 </div>
 
                 <button onClick={handleConfirmBooking} disabled={processing} className="mt-8 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400">
-                    {processing ? t('processing') : t('confirmAndPay')}
+                    {processing ? t('processing') : buttonText}
                 </button>
             </div>
         </div>

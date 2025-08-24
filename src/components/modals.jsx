@@ -119,6 +119,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         security_deposit_dzd: vehicleToEdit?.security_deposit_dzd || 0,
         description: vehicleToEdit?.description || '', image_urls: vehicleToEdit?.image_urls || [],
         car_registration_url: vehicleToEdit?.car_registration_url || '',
+        booking_type: vehicleToEdit?.booking_type || 'request', // AJOUT DE CETTE LIGNE
     });
     const [isUploading, setIsUploading] = useState(false);
     const [models, setModels] = useState([]);
@@ -195,6 +196,14 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
                         <div><label className="block text-sm font-medium">{t('seats')}</label><input name="seats" type="number" value={formState.seats} onChange={handleChange} placeholder={t('seatsPlaceholder')} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white" /></div>
                         <div><label className="block text-sm font-medium">{t('transmission')}</label><select name="transmission" value={formState.transmission} onChange={handleChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="manual">{t('manual')}</option><option value="automatic">{t('automatic')}</option></select></div>
                         <div><label className="block text-sm font-medium">{t('fuelType')}</label><select name="fuel_type" value={formState.fuel_type} onChange={handleChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="gasoline">{t('gasoline')}</option><option value="diesel">{t('diesel')}</option></select></div>
+                         {/* NOUVEAU CHAMP */}
+                        <div className="md:col-span-2">
+                           <label className="block text-sm font-medium">{t('bookingType')}</label>
+                           <select name="booking_type" value={formState.booking_type} onChange={handleChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white">
+                               <option value="request">{t('requestToBook')}</option>
+                               <option value="instant">{t('instantBook')}</option>
+                           </select>
+                        </div>
                     </div>
                     <div><label className="block text-sm font-medium">{t('description')}</label><textarea name="description" value={formState.description} onChange={handleChange} placeholder={t('descriptionPlaceholder')} rows="3" className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"></textarea></div>
                     <FileUploadBox type="car_registration" label={t('carRegistrationCard')} url={formState.car_registration_url} uploading={isUploading} onChange={(e) => handleFileUpload(e, 'car_registration')} />

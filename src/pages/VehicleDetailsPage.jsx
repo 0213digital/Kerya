@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info, ShieldCheck } from 'lucide-react';
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info, ShieldCheck, Zap } from 'lucide-react';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { ReviewList } from '../components/ReviewList'; 
 
@@ -79,7 +79,11 @@ export function VehicleDetailsPage() {
             alert(t('alertSelectDates'));
             return;
         }
-        const searchParams = new URLSearchParams({ startDate, endDate }).toString();
+        const searchParams = new URLSearchParams({ 
+            startDate, 
+            endDate,
+            bookingType: vehicle.booking_type // On passe le type de réservation à la page suivante
+        }).toString();
         navigate(`/book/${vehicle.id}?${searchParams}`);
     };
 
@@ -167,6 +171,13 @@ export function VehicleDetailsPage() {
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
                         <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
                         
+                        {vehicle.booking_type === 'instant' && (
+                            <div className="mb-4 flex items-center gap-2 text-sm text-green-700 bg-green-50 p-3 rounded-md">
+                                <Zap size={16} />
+                                <span className="font-semibold">{t('instantBook')}</span>
+                            </div>
+                        )}
+
                         {vehicle.security_deposit_dzd > 0 && (
                             <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
                                 <p><strong>{t('securityDeposit')}:</strong> {vehicle.security_deposit_dzd.toLocaleString()} DZD</p>
@@ -188,7 +199,7 @@ export function VehicleDetailsPage() {
                             disabled={!startDate || !endDate || isAgencyOwner}
                             className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed"
                         >
-                            {session ? t('requestToBook') : t('loginToBook')}
+                            {session ? (vehicle.booking_type === 'instant' ? t('bookNow') : t('requestToBook')) : t('loginToBook')}
                         </button>
                         
                         {!isOwner && (
