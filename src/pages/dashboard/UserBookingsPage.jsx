@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { supabase } from '../../lib/supabaseClient';
@@ -6,55 +6,61 @@ import { DashboardLayout } from '../../components/DashboardLayout';
 import { Download, AlertTriangle, Undo } from 'lucide-react';
 import { ReviewForm } from '../../components/ReviewForm';
 import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
+// Fonction de fetch des réservations
+const fetchUserBookings = async (userId) => {
+    if (!userId) return [];
+    const { data, error } = await supabase
+        .from('bookings')
+        .select('*, vehicles(*, agencies(*)), profiles(*), reviews(id)')
+        .eq('user_id', userId)
+        .order('start_date', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data || [];
+};
+
+// Fonction de mutation pour la demande de retour
+const requestReturn = async (bookingId) => {
+    const { error } = await supabase
+        .from('bookings')
+        .update({ status: 'return-requested' })
+        .eq('id', bookingId);
+    if (error) throw new Error(error.message);
+};
+
 
 export function UserBookingsPage({ generateInvoice }) {
     const { t } = useTranslation();
     const { session } = useAuth();
-    const [bookings, setBookings] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [processing, setProcessing] = useState(null);
+    const queryClient = useQueryClient();
+
+    const [processingInvoice, setProcessingInvoice] = useState(null);
     const [showReviewForm, setShowReviewForm] = useState(null);
 
-    const handleDownload = async (booking) => {
-        setProcessing(booking.id);
-        await generateInvoice(booking, t);
-        setProcessing(null);
-    };
+    // useQuery pour récupérer les réservations
+    const { data: bookings = [], isLoading, isError } = useQuery({
+        queryKey: ['userBookings', session?.user?.id],
+        queryFn: () => fetchUserBookings(session.user.id),
+        enabled: !!session?.user?.id
+    });
 
-    const fetchBookings = useCallback(async () => {
-        if (!session) return;
-        setLoading(true);
-        const { data, error } = await supabase
-            .from('bookings')
-            .select('*, vehicles(*, agencies(*)), profiles(*), reviews(id)')
-            .eq('user_id', session.user.id)
-            .order('start_date', { ascending: false });
-
-        if (error) {
-            console.error("Error fetching bookings:", error);
-        } else {
-            setBookings(data || []);
-        }
-        setLoading(false);
-    }, [session]);
-
-    useEffect(() => {
-        fetchBookings();
-    }, [fetchBookings]);
-
-    const handleReturnRequest = async (bookingId) => {
-        setProcessing(bookingId);
-        const { error } = await supabase
-            .from('bookings')
-            .update({ status: 'return-requested' })
-            .eq('id', bookingId);
-        
-        if (error) {
+    // useMutation pour la demande de retour
+    const returnMutation = useMutation({
+        mutationFn: requestReturn,
+        onSuccess: () => {
+            // Invalide et refait la requête des réservations pour voir la mise à jour
+            queryClient.invalidateQueries(['userBookings', session?.user?.id]);
+        },
+        onError: (error) => {
             alert(t('error') + ': ' + error.message);
-        } else {
-            fetchBookings();
         }
-        setProcessing(null);
+    });
+
+    const handleDownload = async (booking) => {
+        setProcessingInvoice(booking.id);
+        await generateInvoice(booking, t);
+        setProcessingInvoice(null);
     };
 
     const StatusBadge = ({ status }) => {
@@ -76,7 +82,7 @@ export function UserBookingsPage({ generateInvoice }) {
     return (
         <DashboardLayout title={t('dashboardTitle')} description={t('dashboardDesc')}>
             <div className="space-y-6">
-                {loading ? <p>{t('loading')}</p> : bookings.length > 0 ? (
+                {isLoading ? <p>{t('loading')}</p> : isError ? <p>{t('error')}</p> : bookings.length > 0 ? (
                     bookings.map(booking => {
                         const isPastBooking = new Date(booking.end_date) < new Date();
                         const hasReview = booking.reviews && booking.reviews.length > 0;
@@ -101,14 +107,14 @@ export function UserBookingsPage({ generateInvoice }) {
                                         <p className={`font-bold text-lg ${isCancelled ? 'line-through' : ''}`}>{booking.total_price.toLocaleString()} DZD</p>
                                         {!isCancelled && (
                                             <>
-                                                <button onClick={() => handleDownload(booking)} disabled={processing === booking.id} className="mt-2 text-sm text-indigo-600 hover:underline flex items-center justify-end disabled:text-slate-400">
+                                                <button onClick={() => handleDownload(booking)} disabled={processingInvoice === booking.id} className="mt-2 text-sm text-indigo-600 hover:underline flex items-center justify-end disabled:text-slate-400">
                                                     <Download size={14} className="mr-1" />
-                                                    {processing === booking.id ? t('processing') : t('downloadInvoice')}
+                                                    {processingInvoice === booking.id ? t('processing') : t('downloadInvoice')}
                                                 </button>
                                                 {booking.status === 'picked-up' && (
-                                                    <button onClick={() => handleReturnRequest(booking.id)} disabled={processing === booking.id} className="mt-2 text-sm text-green-600 hover:underline flex items-center justify-end disabled:text-slate-400">
+                                                    <button onClick={() => returnMutation.mutate(booking.id)} disabled={returnMutation.isPending} className="mt-2 text-sm text-green-600 hover:underline flex items-center justify-end disabled:text-slate-400">
                                                         <Undo size={14} className="mr-1" />
-                                                        {processing === booking.id ? t('processing') : t('declareReturn')}
+                                                        {returnMutation.isPending ? t('processing') : t('declareReturn')}
                                                     </button>
                                                 )}
                                                 {isPastBooking && !hasReview && booking.status === 'returned' && (
@@ -147,7 +153,7 @@ export function UserBookingsPage({ generateInvoice }) {
                 <ReviewForm
                     booking={showReviewForm}
                     onClose={() => setShowReviewForm(null)}
-                    onReviewSubmitted={fetchBookings}
+                    onReviewSubmitted={() => queryClient.invalidateQueries(['userBookings', session?.user?.id])}
                 />
             )}
         </DashboardLayout>
