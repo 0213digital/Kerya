@@ -70,7 +70,9 @@ export function SearchPage() {
 
             let query = supabase
                 .from('vehicles')
-                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude), reviews(rating)`)
+                // *** LA CORRECTION EST ICI ***
+                // Ajout de 'verification_status' dans la sélection pour permettre le filtrage
+                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude, verification_status), reviews(rating)`)
                 .eq('agencies.verification_status', 'verified');
 
             if (location) query = query.eq('agencies.wilaya', location);
