@@ -3,8 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
 import { VehicleCard } from '../components/VehicleCard';
-import { InteractiveMap } from '../components/InteractiveMap';
-import { SlidersHorizontal, Car, Map, List, Star } from 'lucide-react';
+import { SlidersHorizontal, Car, List, Star } from 'lucide-react';
 import { carData } from '../data/geoAndCarData';
 import { VehicleCardSkeleton } from '../components/VehicleCardSkeleton';
 
@@ -16,7 +15,6 @@ export function SearchPage() {
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [viewMode, setViewMode] = useState('list');
 
     // --- Advanced Filter States ---
     const [maxPrice, setMaxPrice] = useState(30000);
@@ -173,10 +171,6 @@ export function SearchPage() {
                         <option value="price_desc">{t('priceHighLow')}</option>
                         <option value="rating_desc">{t('ratingHighLow')}</option>
                     </select>
-                    <div className="flex items-center space-x-2 p-1 bg-slate-200 rounded-lg">
-                        <button onClick={() => setViewMode('list')} className={`px-3 py-1 rounded-md flex items-center gap-2 text-sm ${viewMode === 'list' ? 'bg-white shadow' : ''}`}><List size={16} /> {t('list')}</button>
-                        <button onClick={() => setViewMode('map')} className={`px-3 py-1 rounded-md flex items-center gap-2 text-sm ${viewMode === 'map' ? 'bg-white shadow' : ''}`}><Map size={16} /> {t('map')}</button>
-                    </div>
                 </div>
             </div>
 
@@ -214,15 +208,9 @@ export function SearchPage() {
                     ) : error ? (
                         <div className="text-center bg-red-100 text-red-700 p-4 rounded-lg">{t('error')}: {error}</div>
                     ) : filteredAndSortedVehicles.length > 0 ? (
-                        viewMode === 'list' ? (
-                            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                {filteredAndSortedVehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}
-                            </div>
-                        ) : (
-                            <div className="h-[70vh] rounded-lg shadow-md overflow-hidden">
-                                <InteractiveMap vehicles={filteredAndSortedVehicles} />
-                            </div>
-                        )
+                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                            {filteredAndSortedVehicles.map(vehicle => <VehicleCard key={vehicle.id} vehicle={vehicle} />)}
+                        </div>
                     ) : (
                         <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md">
                             <Car size={48} className="mx-auto text-slate-400" />
