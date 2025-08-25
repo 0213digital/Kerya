@@ -1,92 +1,183 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { LanguageProvider } from './contexts/LanguageContext';
-import { SessionProvider } from './contexts/SessionContext';
-import { ProfileProvider } from './contexts/ProfileContext';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { Toaster } from 'react-hot-toast';
+
+// PDF Generation
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
+// Import all page components
 import { HomePage } from './pages/HomePage';
-import { LoginPage } from './pages/LoginPage';
-import { SignUpPage } from './pages/SignUpPage';
-import { SignUpChoicePage } from './pages/SignUpChoicePage';
-import { SignUpClientPage } from './pages/SignUpClientPage';
-import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
 import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
+import { LoginPage } from './pages/LoginPage';
+import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
 import { BookingPage } from './pages/BookingPage';
 import { BookingConfirmationPage } from './pages/BookingConfirmationPage';
-import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
 import { UserBookingsPage } from './pages/dashboard/UserBookingsPage';
 import { ProfilePage } from './pages/dashboard/ProfilePage';
 import { AgencyDashboardPage } from './pages/agency/AgencyDashboardPage';
 import { AgencyVehiclesPage } from './pages/agency/AgencyVehiclesPage';
-import { AgencyOnboardingPage } from './pages/agency/AgencyOnboardingPage';
-import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
 import { AgencyBookingsPage } from './pages/agency/AgencyBookingsPage';
 import { AgencyCalendarPage } from './pages/agency/AgencyCalendarPage';
+import { AgencyOnboardingPage } from './pages/agency/AgencyOnboardingPage';
 import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
+import { AdminAgencyDetailsPage } from './pages/admin/AdminAgencyDetailsPage';
 import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
-import { AdminAgencyDetailsPage } from './pages/admin/AdminAgencyDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
 import { LocationManagementPage } from './pages/admin/LocationManagementPage';
-import { AdminFinancesPage } from './pages/admin/AdminFinancesPage';
-import { generateInvoicePdf } from './lib/invoiceGenerator';
 
-function App() {
+// --- NOUVEAUX IMPORTS ---
+import { SignUpChoicePage } from './pages/SignUpChoicePage';
+import { SignUpClientPage } from './pages/SignUpClientPage';
+import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
+import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
+
+
+const generateInvoice = async (booking, t) => {
+    if (!booking?.profiles || !booking?.vehicles?.agencies) {
+        console.error("Booking data is incomplete for invoice generation.", booking);
+        alert("Sorry, booking data is incomplete for the invoice.");
+        return;
+    }
+
+    try {
+        const doc = new jsPDF();
+        // Utilisation du logo standard et d'une couleur de marque fixe
+        const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
+        const brandColor = '#4f46e5';
+
+        try {
+            const response = await fetch(logoUrl);
+            if (!response.ok) throw new Error('Logo response not ok');
+            const blob = await response.blob();
+            const reader = new FileReader();
+            const dataUrl = await new Promise((resolve, reject) => {
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+            doc.addImage(dataUrl, 'PNG', 19, 12, 32, 24.5);
+        } catch (logoError) {
+            console.warn("Could not load company logo for PDF. Skipping. Error:", logoError);
+        }
+
+        doc.setFontSize(22);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(brandColor);
+        doc.text(t('invoice'), 196, 22, { align: 'right' });
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`${t('bookingId')}: #${booking.id}`, 196, 30, { align: 'right' });
+        doc.text(`${t('date')}: ${new Date().toLocaleDateString(t('locale'))}`, 196, 35, { align: 'right' });
+
+        doc.setLineWidth(0.5);
+        doc.line(14, 45, 196, 45);
+
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(t('rentedFrom'), 14, 55);
+        doc.text(t('rentedBy'), 110, 55);
+
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(10);
+        doc.text(booking.vehicles.agencies.agency_name || 'N/A', 14, 62);
+        doc.text(`${booking.vehicles.agencies.city || ''}, ${booking.vehicles.agencies.wilaya || ''}`, 14, 67);
+        doc.text(booking.profiles.full_name || 'N/A', 110, 62);
+        doc.text(booking.profiles.email || 'N/A', 110, 67);
+
+        doc.line(14, 80, 196, 80);
+
+        const dailyRate = typeof booking.vehicles.daily_rate_dzd === 'number' ? `${booking.vehicles.daily_rate_dzd.toLocaleString(t('locale'))} DZD` : 'N/A';
+        const totalPrice = typeof booking.total_price === 'number' ? `${booking.total_price.toLocaleString(t('locale'))} DZD` : 'N/A';
+        
+        autoTable(doc, {
+            startY: 90,
+            head: [[t('description'), t('rentalPeriod'), t('dailyRate'), t('total')]],
+            body: [[
+                `${booking.vehicles.make || ''} ${booking.vehicles.model || ''} (${booking.vehicles.year || ''})`,
+                `${new Date(booking.start_date).toLocaleDateString(t('locale'))} - ${new Date(booking.end_date).toLocaleDateString(t('locale'))}`,
+                dailyRate,
+                totalPrice
+            ]],
+            theme: 'striped',
+            headStyles: { fillColor: brandColor },
+        });
+
+        const finalY = doc.lastAutoTable.finalY || 120;
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${t('totalPrice')} ${totalPrice}`, 196, finalY + 15, { align: 'right' });
+
+        doc.setFontSize(10);
+        doc.setTextColor(150);
+        const pageCenter = doc.internal.pageSize.width / 2;
+        doc.text(t('invoiceFooter'), pageCenter, 280, { align: 'center' });
+
+        doc.save(`invoice-kerya-${booking.id}.pdf`);
+
+    } catch (error) {
+        console.error("Failed to generate PDF:", error);
+        alert("Sorry, there was an error creating the invoice PDF.");
+    }
+};
+
+export default function App() {
+    const { loading } = useAuth();
+    const location = useLocation();
+    const isSpecialPage = location.pathname.startsWith('/signup') || location.pathname === '/update-password';
+
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-screen bg-slate-50">
+                <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div>
+            </div>
+        );
+    }
+
     return (
-        <LanguageProvider>
-            <Router>
-                <SessionProvider>
-                    <AuthProvider>
-                        <ProfileProvider>
-                            <div className="flex flex-col min-h-screen">
-                                <Navbar />
-                                <main className="flex-grow">
-                                    <Routes>
-                                        <Route path="/" element={<HomePage />} />
-                                        <Route path="/login" element={<LoginPage />} />
-                                        <Route path="/signup" element={<SignUpPage />} />
-                                        <Route path="/signup-choice" element={<SignUpChoicePage />} />
-                                        <Route path="/signup-client" element={<SignUpClientPage />} />
-                                        <Route path="/signup-agency" element={<SignUpAgencyPage />} />
-                                        <Route path="/search" element={<SearchPage />} />
-                                        <Route path="/vehicle/:id" element={<VehicleDetailsPage />} />
-                                        <Route path="/book/:vehicleId" element={<BookingPage />} />
-                                        <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoicePdf} />} />
-                                        <Route path="/update-password" element={<UpdatePasswordPage />} />
-                                        
-                                        {/* User Dashboard */}
-                                        <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoicePdf} />} />
-                                        <Route path="/profile" element={<ProfilePage />} />
-                                        <Route path="/dashboard/messages" element={<MessagesPage />} />
-
-                                        {/* Agency Dashboard */}
-                                        <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
-                                        <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
-                                        <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
-                                        <Route path="/dashboard/agency/calendar" element={<AgencyCalendarPage />} />
-                                        <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
-                                        <Route path="/agency-onboarding" element={<AgencyOnboardingPage />} />
-
-                                        {/* Admin Dashboard */}
-                                        <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
-                                        <Route path="/admin/users" element={<UserManagementPage />} />
-                                        <Route path="/admin/users/:userId" element={<UserDetailsPage />} />
-                                        <Route path="/admin/agency-details/:agencyId" element={<AdminAgencyDetailsPage />} />
-                                        <Route path="/admin/locations" element={<LocationManagementPage />} />
-                                        <Route path="/admin/finances" element={<AdminFinancesPage />} />
-                                    </Routes>
-                                </main>
-                                <Footer />
-                            </div>
-                        </ProfileProvider>
-                    </AuthProvider>
-                </SessionProvider>
-            </Router>
-        </LanguageProvider>
+        <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50">
+            <Toaster position="top-center" reverseOrder={false} />
+            {!isSpecialPage && <Navbar />}
+            <main className={!isSpecialPage ? "pt-20" : ""}>
+                <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/search" element={<SearchPage />} />
+                    <Route path="/vehicle/:id" element={<VehicleDetailsPage />} />
+                    <Route path="/book/:vehicleId" element={<BookingPage />} />
+                    <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
+                    <Route path="/login" element={<LoginPage />} />
+                    
+                    {/* --- NOUVELLES ROUTES D'INSCRIPTION --- */}
+                    <Route path="/signup" element={<SignUpChoicePage />} />
+                    <Route path="/signup/client" element={<SignUpClientPage />} />
+                    <Route path="/signup/agency" element={<SignUpAgencyPage />} />
+                    
+                    <Route path="/update-password" element={<UpdatePasswordPage />} />
+                    <Route path="/profile" element={<ProfilePage />} />
+                    <Route path="/dashboard/bookings" element={<UserBookingsPage generateInvoice={generateInvoice} />} />
+                    <Route path="/dashboard/messages" element={<MessagesPage />} />
+                    <Route path="/dashboard/agency" element={<AgencyDashboardPage />} />
+                    <Route path="/dashboard/agency/vehicles" element={<AgencyVehiclesPage />} />
+                    <Route path="/dashboard/agency/bookings" element={<AgencyBookingsPage />} />
+                    <Route path="/dashboard/agency/calendar" element={<AgencyCalendarPage />} />
+                    <Route path="/dashboard/agency/settings" element={<AgencySettingsPage />} />
+                    <Route path="/dashboard/agency/onboarding" element={<AgencyOnboardingPage />} />
+                    <Route path="/admin/dashboard" element={<AdminDashboardPage />} />
+                    <Route path="/admin/agency-details/:id" element={<AdminAgencyDetailsPage />} />
+                    <Route path="/admin/users" element={<UserManagementPage />} />
+                    <Route path="/admin/users/:id" element={<UserDetailsPage />} />
+                    <Route path="/admin/locations" element={<LocationManagementPage />} />
+                </Routes>
+            </main>
+            {!isSpecialPage && <Footer />}
+        </div>
     );
 }
-
-export default App;
