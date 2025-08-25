@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
-import { Home, Car, Calendar, MessageSquare, User, Settings, Shield, Users, MapPin, LogOut, Banknote } from 'lucide-react';
+import { Home, Car, Calendar, MessageSquare, User, Settings, Shield, Users, MapPin, LogOut, DollarSign } from 'lucide-react';
 
 const iconProps = {
   className: "h-5 w-5 mr-3",
@@ -32,8 +32,8 @@ export function DashboardLayout({ children, title, description }) {
       return [
         { to: "/admin/dashboard", label: t('adminDashboard'), icon: <Shield {...iconProps} /> },
         { to: "/admin/users", label: t('userManagement'), icon: <Users {...iconProps} /> },
-        { to: "/admin/finances", label: t('finances'), icon: <Banknote {...iconProps} /> }, // <-- LIEN AJOUTÉ ICI
         { to: "/admin/locations", label: t('locationManagement'), icon: <MapPin {...iconProps} /> },
+        { to: "/admin/finance", label: 'Finance', icon: <DollarSign {...iconProps} /> },
         ...baseLinks.filter(link => link.to !== '/dashboard/bookings'),
       ];
     }
@@ -54,7 +54,7 @@ export function DashboardLayout({ children, title, description }) {
               <li key={to}>
                 <NavLink
                   to={to}
-                  end={['/dashboard/agency', '/admin/dashboard'].includes(to)}
+                  end={to === "/dashboard/agency" || to === "/admin/dashboard"}
                   className={({ isActive }) =>
                     `flex items-center px-4 py-2.5 my-1 text-sm font-medium rounded-md transition-colors duration-150 ${
                       isActive

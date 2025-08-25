@@ -36,6 +36,7 @@ import { SignUpChoicePage } from './pages/SignUpChoicePage';
 import { SignUpClientPage } from './pages/SignUpClientPage';
 import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
 import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
+import { AdminFinancesPage } from './pages/admin/AdminFinancesPage'; // CORRECTED: Use named import with curly braces
 
 
 const generateInvoice = async (booking, t) => {
@@ -175,6 +176,7 @@ export default function App() {
                     <Route path="/admin/users" element={<UserManagementPage />} />
                     <Route path="/admin/users/:id" element={<UserDetailsPage />} />
                     <Route path="/admin/locations" element={<LocationManagementPage />} />
+                    <Route path="/admin/finance" element={<AdminFinancesPage />} /> {/* CORRECTED: Use correct component name */}
                 </Routes>
             </main>
             {!isSpecialPage && <Footer />}
