@@ -33,7 +33,7 @@ export function DashboardLayout({ children, title, description }) {
         { to: "/admin/dashboard", label: t('adminDashboard'), icon: <Shield {...iconProps} /> },
         { to: "/admin/users", label: t('userManagement'), icon: <Users {...iconProps} /> },
         { to: "/admin/locations", label: t('locationManagement'), icon: <MapPin {...iconProps} /> },
-        { to: "/admin/finance", label: 'Finance', icon: <DollarSign {...iconProps} /> },
+        { to: "/admin/finance", label: 'Finance', icon: <DollarSign {...iconProps} /> }, // ADDED THIS LINE
         ...baseLinks.filter(link => link.to !== '/dashboard/bookings'),
       ];
     }
