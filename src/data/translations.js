@@ -376,6 +376,12 @@ export const translations = {
         agencyCalendarDesc: "View all your vehicle bookings at a glance.",
         avatar: "Avatar",
         errorDeletingUser: "Error deleting user: {message}",
+        punctuality: "Punctuality",
+        confirmationCode: "Confirmation Code",
+        enterConfirmationCode: "Enter Confirmation Code",
+        enterCodeToConfirmPickup: "Please enter the 4-digit code provided by the customer to confirm vehicle pickup.",
+        invalidCode: "The code entered is incorrect. Please try again.",
+        submitCode: "Submit Code",
     },
     fr: {
         appName: "KERYA",
@@ -754,5 +760,11 @@ export const translations = {
         agencyCalendarDesc: "Visualisez toutes les réservations de vos véhicules d'un seul coup d'œil.",
         avatar: "Avatar",
         errorDeletingUser: "Erreur lors de la suppression de l'utilisateur : {message}",
+        punctuality: "Ponctualité",
+        confirmationCode: "Code de Confirmation",
+        enterConfirmationCode: "Saisir le Code de Confirmation",
+        enterCodeToConfirmPickup: "Veuillez saisir le code à 4 chiffres fourni par le client pour confirmer la récupération du véhicule.",
+        invalidCode: "Le code saisi est incorrect. Veuillez réessayer.",
+        submitCode: "Valider le Code",
     }
 };
