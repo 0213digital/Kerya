@@ -70,7 +70,7 @@ export function SearchPage() {
 
             let query = supabase
                 .from('vehicles')
-                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude), reviews(rating)`)
+                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude), reviews(vehicle_rating, service_rating, cleanliness_rating, punctuality_rating)`)
                 .eq('agencies.verification_status', 'verified');
 
             if (location) query = query.eq('agencies.wilaya', location);
@@ -83,8 +83,12 @@ export function SearchPage() {
             } else {
                 // Calculate average rating for each vehicle
                 const vehiclesWithAvgRating = data.map(vehicle => {
-                    const ratings = vehicle.reviews.map(r => r.rating);
-                    const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
+                    const avgRating = vehicle.reviews.length > 0
+                        ? vehicle.reviews.reduce((acc, r) => {
+                            const reviewAvg = (r.vehicle_rating + r.service_rating + r.cleanliness_rating + r.punctuality_rating) / 4;
+                            return acc + reviewAvg;
+                        }, 0) / vehicle.reviews.length
+                        : 0;
                     return { ...vehicle, avg_rating: avgRating };
                 });
                 setVehicles(vehiclesWithAvgRating);

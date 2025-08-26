@@ -52,7 +52,7 @@ export function ReviewList({ vehicleId }) {
                         />
                         <div>
                             <p className="font-semibold">{review.profiles.full_name}</p>
-                            <StarRating rating={review.rating} />
+                            <StarRating rating={Math.round((review.vehicle_rating + review.service_rating + review.cleanliness_rating + review.punctuality_rating) / 4)} />
                         </div>
                     </div>
                     <p className="text-slate-600">{review.comment}</p>
