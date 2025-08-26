@@ -4,7 +4,7 @@ import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 
-// PDF Generation
+// PDF Generation 1
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
