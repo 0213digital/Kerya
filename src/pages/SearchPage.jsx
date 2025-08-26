@@ -49,12 +49,23 @@ export function SearchPage() {
             const from = searchParams.get('from');
             const to = searchParams.get('to');
             const location = searchParams.get('location');
-            const city = searchParams.get('city'); // <-- Récupérer la ville
+            const city = searchParams.get('city');
 
             let availableVehicleIds = null;
 
             if (from && to) {
-                const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', { start_date_in: from, end_date_in: to });
+                // --- FIX ---
+                // The original code was missing `wilaya_in` and `city_in` parameters here.
+                // This caused the backend to receive "undefined" and throw a UUID error.
+                // We now pass the location and city (or null if they don't exist) to the RPC function.
+                const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', {
+                    start_date_in: from,
+                    end_date_in: to,
+                    wilaya_in: location || null,
+                    city_in: city || null
+                });
+                // --- END OF FIX ---
+
                 if (rpcError) {
                     setError(rpcError.message);
                     setLoading(false);
@@ -74,7 +85,7 @@ export function SearchPage() {
                 .eq('agencies.verification_status', 'verified');
 
             if (location) query = query.eq('agencies.wilaya', location);
-            if (city) query = query.eq('agencies.city', city); // <-- Ajouter le filtre par ville
+            if (city) query = query.eq('agencies.city', city);
             if (availableVehicleIds) query = query.in('id', availableVehicleIds);
             
             const { data, error: vehiclesError } = await query;
