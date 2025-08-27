@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import VehicleCard from '../components/VehicleCard';
+import { VehicleCard } from '../components/VehicleCard'; // Corrected import
 import { LanguageContext } from '../contexts/LanguageContext';
 import { translations } from '../data/translations';
 import SearchForm from '../components/SearchForm';
