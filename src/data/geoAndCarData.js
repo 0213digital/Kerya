@@ -1,5 +1,4 @@
 export const algeriaGeoData = {
-
     "Algiers": ["Aïn Benian", "Aïn Taya", "Alger Centre", "Baba Hassen", "Bab El Oued", "Bab Ezzouar", "Bachdjerrah", "Baraki", "Ben Aknoun", "Beni Messous", "Bir Mourad Raïs", "Birkhadem", "Birtouta", "Bologhine", "Bordj El Bahri", "Bordj El Kiffan", "Bourouba", "Bouzaréah", "Casbah", "Chéraga", "Dar El Beïda", "Dely Ibrahim", "Douera", "Draria", "El Achour", "El Biar", "El Harrach", "El Madania", "El Magharia", "El Mouradia", "Gué de Constantine", "Hussein Dey", "Hydra", "Khraicia", "Kouba", "Les Eucalyptus", "Mahelma", "Mohamed Belouizdad", "Mohammadia", "Oued Koriche", "Oued Smar", "Ouled Chebel", "Ouled Fayet", "Rahmania", "Raïs Hamidou", "Reghaïa", "Rouiba", "Saoula", "Sidi M'Hamed", "Sidi Moussa", "Staoueli", "Souidania", "Tessala El Merdja", "Zéralda"],
     "Djelfa": ["Aïn Chouhada", "Aïn El Ibel", "Aïn Feka", "Aïn Maabed", "Aïn Oussera", "Amourah", "Benhar", "Beni Yagoub", "Birine", "Bouira Lahdab", "Brida", "Charef", "Dar Chioukh", "Deldoul", "Djelfa", "Douis", "El Guedid", "El Idrissia", "El Khemis", "Faidh El Botma", "Guernini", "Guettara", "Had-Sahary", "Hassi Bahbah", "Hassi El Euch", "Hassi Fedoul", "M'Liliha", "Messaad", "Moudjebara", "Oum Laadham", "Sed Rahal", "Selmana", "Sidi Baizid", "Sidi Ladjel", "Tadmit", "Zaafrane", "Zaccar"],
     "Jijel": ["Bordj Tahar", "Boucif Ouled Askeur", "Boudriaa Ben Yadjis", "Bouraoui Belhadef", "Chahna", "Chekfa", "Djimla", "El Ancer", "El Aouana", "El Kennar Nouchfi", "El Milia", "Eraguene", "Ghebala", "Jijel", "Kaous", "Kennar", "Khiri Oued Adjoul", "Ouadjana", "Ouled Rabah", "Ouled Yahia Khedrouche", "Selma Benziada", "Settara", "Sidi Abdelaziz", "Sidi Marouf", "Taher", "Texenna", "Ziama Mansouriah"],
@@ -44,6 +43,8 @@ export const algeriaGeoData = {
     "El M'Ghair": ["El M'Ghair", "Djamaa", "M'Rara", "Oum Touyour", "Sidi Khellil", "Still", "Tendla"],
     "El Menia": ["El Menia", "Hassi Gara", "Hassi Fehal"]
 };
+
+export const algeriaWilayas = Object.keys(algeriaGeoData);
 
 export const carData = {
     "Kia": ["Picanto", "Rio", "Cerato", "Sportage", "Seltos", "K5"],
