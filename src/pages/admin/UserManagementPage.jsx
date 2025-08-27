@@ -9,7 +9,7 @@ import { ConfirmationModal } from '../../components/modals';
 
 export function UserManagementPage() {
     const { t } = useTranslation();
-    const { isAdmin, profile } = useAuth();
+    const { isAdmin } = useAuth();
     const navigate = useNavigate();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -23,7 +23,7 @@ export function UserManagementPage() {
     const fetchUsers = useCallback(async () => {
         setLoading(true);
         setFetchError(null);
-        const { data, error } = await supabase.rpc('get_all_users_with_profiles');
+        const { data, error } = await supabase.rpc('get_all_users_with_profiles', {});
         if (error) {
             console.error('Error fetching users via RPC:', error);
             setFetchError(t('failedToFetchUserData'));
@@ -36,10 +36,10 @@ export function UserManagementPage() {
     }, [t]);
 
     useEffect(() => {
-        if (!isAdmin) {
-            navigate('/');
-        } else {
+        if (isAdmin) {
             fetchUsers();
+        } else {
+            navigate('/');
         }
     }, [isAdmin, navigate, fetchUsers]);
 
@@ -107,7 +107,40 @@ export function UserManagementPage() {
             
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                    {/* Search and filter inputs remain the same */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                            type="text"
+                            placeholder={t('searchUsersPlaceholder')}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md"
+                        />
+                    </div>
+                    <div className="relative">
+                        <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md"
+                        >
+                            <option value="all">{t('allStatuses')}</option>
+                            <option value="active">{t('statusActive')}</option>
+                            <option value="suspended">{t('statusSuspended')}</option>
+                        </select>
+                    </div>
+                    <div className="relative">
+                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                        <select
+                            value={roleFilter}
+                            onChange={(e) => setRoleFilter(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md"
+                        >
+                            <option value="all">{t('allRoles')}</option>
+                            <option value="renter">{t('renter')}</option>
+                            <option value="agencyOwner">{t('agencyOwner')}</option>
+                        </select>
+                    </div>
                 </div>
 
                 {/* Mobile Card View */}
