@@ -1,24 +1,36 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { translations } from '../data/translations';
 
-const LanguageContext = createContext();
+// Changed to a named export
+export const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
-    const [language, setLanguage] = useState('fr');
-    
-    const t = (key, params = {}) => {
-        let translation = translations[language][key] || key;
-        Object.keys(params).forEach(p => { 
-            translation = translation.replace(`{${p}}`, params[p]); 
-        });
-        return translation;
-    };
+  const [language, setLanguage] = useState(() => {
+    return localStorage.getItem('language') || 'en';
+  });
 
-    return (
-        <LanguageContext.Provider value={{ language, setLanguage, t }}>
-            {children}
-        </LanguageContext.Provider>
-    );
+  useEffect(() => {
+    localStorage.setItem('language', language);
+  }, [language]);
+
+  const value = {
+    language,
+    setLanguage,
+    t: translations[language],
+  };
+
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
 };
 
-export const useTranslation = () => useContext(LanguageContext);
+// This is the new custom hook that other components can use
+export const useTranslation = () => {
+  const context = useContext(LanguageContext);
+  if (context === undefined) {
+    throw new Error('useTranslation must be used within a LanguageProvider');
+  }
+  return context;
+};
