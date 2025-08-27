@@ -29,32 +29,33 @@ export function UserManagementPage() {
             setFetchError(t('failedToFetchUserData'));
             setUsers([]);
         } else {
-            data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-            setUsers(data || []);
+            const sortedUsers = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            setUsers(sortedUsers || []);
         }
         setLoading(false);
     }, [t]);
 
     useEffect(() => {
-        if (profile === null && !isAdmin) return;
         if (!isAdmin) {
             navigate('/');
-            return;
+        } else {
+            fetchUsers();
         }
-        fetchUsers();
-    }, [profile, isAdmin, navigate, fetchUsers]);
+    }, [isAdmin, navigate, fetchUsers]);
 
     const handleAction = async () => {
         if (!modalState.user || !modalState.action) return;
 
-        if (modalState.action === 'delete') {
+        const { user, action } = modalState;
+
+        if (action === 'delete') {
             const { error } = await supabase.functions.invoke('admin-delete-user', {
-                body: { userId: modalState.user.id },
+                body: { userId: user.id },
             });
             if (error) alert(`Error deleting user: ${error.message}`);
-        } else if (modalState.action === 'suspend' || modalState.action === 'activate') {
-            const newStatus = modalState.action === 'suspend';
-            const { error } = await supabase.from('profiles').update({ is_suspended: newStatus }).eq('id', modalState.user.id);
+        } else if (action === 'suspend' || action === 'activate') {
+            const newStatus = action === 'suspend';
+            const { error } = await supabase.from('profiles').update({ is_suspended: newStatus }).eq('id', user.id);
             if (error) alert(`Error updating user: ${error.message}`);
         }
         

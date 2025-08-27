@@ -10,7 +10,7 @@ const corsHeaders = {
 Deno.serve(async (req) => {
   // Handle the browser's "preflight" check before making the actual request.
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders, status: 204 }); // CORRECTED: Body is null
+    return new Response(null, { headers: corsHeaders, status: 204 });
   }
 
   try {
