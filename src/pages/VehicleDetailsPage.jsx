@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Importer useCallback
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from '../contexts/LanguageContext';
@@ -42,6 +42,7 @@ export function VehicleDetailsPage() {
         fetchVehicle();
     }, [vehicleId]);
 
+    // Utiliser useCallback pour stabiliser la fonction
     const handleDateSelection = useCallback((end, start) => {
         if (start) {
             setStartDate(start.toISOString().split('T')[0]);
@@ -49,17 +50,18 @@ export function VehicleDetailsPage() {
         if (end) {
             setEndDate(end.toISOString().split('T')[0]);
         } else {
-            setEndDate(null);
+            setEndDate(null); // S'assurer de réinitialiser la date de fin si seule la date de début est sélectionnée
         }
-    }, []);
+    }, []); // Pas de dépendances nécessaires ici car setStartDate/setEndDate sont stables
 
 
     const calculateDays = () => {
         if (!startDate || !endDate) return 0;
         const start = new Date(startDate);
         const end = new Date(endDate);
-        if (end < start) return 0;
+        if (end < start) return 0; // Ne pas calculer si la date de fin est avant le début
         const diffTime = Math.abs(end - start);
+        // +1 pour inclure le jour de départ
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         return diffDays > 0 ? diffDays : 1;
     };
@@ -72,7 +74,7 @@ export function VehicleDetailsPage() {
             navigate('/login');
             return;
         }
-        if (isAgencyOwner) return;
+        if (isAgencyOwner) return; // Extra guard
         if (!startDate || !endDate) {
             alert(t('alertSelectDates'));
             return;
@@ -86,7 +88,7 @@ export function VehicleDetailsPage() {
             navigate('/login');
             return;
         }
-        if (isAgencyOwner) return;
+        if (isAgencyOwner) return; // Extra guard
         setIsContacting(true);
         setContactError('');
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
@@ -117,6 +119,7 @@ export function VehicleDetailsPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2">
+                    {/* Image slider and vehicle details */}
                     <div className="relative mb-4">
                         <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
                         {images.length > 1 && (
@@ -159,6 +162,7 @@ export function VehicleDetailsPage() {
                     </div>
                 </div>
 
+                {/* Booking Widget */}
                 <div className="lg:col-span-1">
                     <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
                         <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
