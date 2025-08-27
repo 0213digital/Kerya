@@ -1,161 +1,221 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Importer useCallback
 import { useParams, useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useTranslation } from '../contexts/LanguageContext';
 import { supabase } from '../lib/supabaseClient';
-import Navbar from '../components/Navbar';
-import Footer from '../components/Footer';
-import AvailabilityCalendar from '../components/AvailabilityCalendar';
-import ReviewList from '../components/ReviewList';
-import ReviewForm from '../components/ReviewForm';
+import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info, ShieldCheck } from 'lucide-react';
+import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
+import { ReviewList } from '../components/ReviewList'; 
 
-const VehicleDetailsPage = () => {
-  const { id } = useParams();
-  const navigate = useNavigate();
+export function VehicleDetailsPage() {
+    const { id: vehicleId } = useParams();
+    const navigate = useNavigate();
+    const { session, profile, isAgencyOwner } = useAuth();
+    const { t } = useTranslation();
+    const [vehicle, setVehicle] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [isContacting, setIsContacting] = useState(false);
+    
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
+    const [contactError, setContactError] = useState('');
 
-  const [vehicle, setVehicle] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  
-  // State for handling the booking process
-  const [booking, setBooking] = useState({ startDate: null, endDate: null });
-  const [isBooking, setIsBooking] = useState(false); // To show loading state on the button
-  const [bookingError, setBookingError] = useState(''); // To display availability errors
+    useEffect(() => {
+        const fetchVehicle = async () => {
+            if (!vehicleId) return;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('vehicles')
+                .select('*, agencies(*)')
+                .eq('id', vehicleId)
+                .single();
+            if (error) {
+                console.error("Error fetching vehicle details:", error);
+                setError(error.message);
+            } else {
+                setVehicle(data);
+            }
+            setLoading(false);
+        };
+        fetchVehicle();
+    }, [vehicleId]);
 
-  useEffect(() => {
-    const fetchVehicleDetails = async () => {
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('vehicles')
-          .select(`
-            *,
-            agencies (
-              name,
-              address,
-              contact_info
-            ),
-            reviews (
-              *,
-              profiles (
-                full_name
-              )
-            )
-          `)
-          .eq('id', id)
-          .single();
+    // Utiliser useCallback pour stabiliser la fonction
+    const handleDateSelection = useCallback((end, start) => {
+        if (start) {
+            setStartDate(start.toISOString().split('T')[0]);
+        }
+        if (end) {
+            setEndDate(end.toISOString().split('T')[0]);
+        } else {
+            setEndDate(null); // S'assurer de réinitialiser la date de fin si seule la date de début est sélectionnée
+        }
+    }, []); // Pas de dépendances nécessaires ici car setStartDate/setEndDate sont stables
 
-        if (error) throw error;
-        setVehicle(data);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
+
+    const calculateDays = () => {
+        if (!startDate || !endDate) return 0;
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (end < start) return 0; // Ne pas calculer si la date de fin est avant le début
+        const diffTime = Math.abs(end - start);
+        // +1 pour inclure le jour de départ
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+        return diffDays > 0 ? diffDays : 1;
     };
 
-    fetchVehicleDetails();
-  }, [id]);
+    const rentalDays = calculateDays();
+    const totalPrice = vehicle ? rentalDays * vehicle.daily_rate_dzd : 0;
 
-  // Callback for when the user selects a date range in the calendar
-  const handleDateChange = ({ startDate, endDate }) => {
-    setBooking({ startDate, endDate });
-    setBookingError(''); // Clear any previous error when new dates are selected
-  };
+    const handleBookingRequest = () => {
+        if (!session) {
+            navigate('/login');
+            return;
+        }
+        if (isAgencyOwner) return; // Extra guard
+        if (!startDate || !endDate) {
+            alert(t('alertSelectDates'));
+            return;
+        }
+        const searchParams = new URLSearchParams({ startDate, endDate }).toString();
+        navigate(`/book/${vehicle.id}?${searchParams}`);
+    };
 
-  // **FIX:** This function now checks for availability before navigating.
-  const handleBooking = async () => {
-    // 1. Validate that dates have been selected
-    if (!booking.startDate || !booking.endDate) {
-      setBookingError('Please select a start and end date from the calendar.');
-      return;
-    }
+    const handleContactAgency = async () => {
+        if (!session) {
+            navigate('/login');
+            return;
+        }
+        if (isAgencyOwner) return; // Extra guard
+        setIsContacting(true);
+        setContactError('');
+        const { data, error } = await supabase.rpc('get_or_create_conversation', {
+            p_vehicle_id: vehicle.id,
+            p_user_id: session.user.id
+        });
 
-    setIsBooking(true);
-    setBookingError('');
+        if (error) {
+            console.error('Error starting conversation:', error);
+            setContactError(t('error') + ': ' + error.message);
+        } else {
+            navigate('/dashboard/messages');
+        }
+        setIsContacting(false);
+    };
 
-    try {
-      // 2. Perform a final availability check against the database
-      const { data, error } = await supabase
-        .from('bookings')
-        .select('id')
-        .eq('vehicle_id', id)
-        .eq('status', 'confirmed')
-        // Check for any bookings that overlap with the selected range
-        .lte('start_date', booking.endDate.toISOString().slice(0, 10))
-        .gte('end_date', booking.startDate.toISOString().slice(0, 10));
+    if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
+    if (error) return <div className="container mx-auto p-4 text-center text-red-500">{t('error')}: {error}</div>;
+    if (!vehicle) return <div className="container mx-auto p-4 text-center">{t('noVehiclesFound')}</div>;
 
-      if (error) throw error;
+    const transmissionText = vehicle.transmission === 'manual' ? t('manual') : t('automatic');
+    const fuelText = vehicle.fuel_type === 'gasoline' ? t('gasoline') : t('diesel');
+    const images = vehicle.image_urls && vehicle.image_urls.length > 0 ? vehicle.image_urls : [`https://placehold.co/800x600/e2e8f0/64748b?text=${vehicle.make}+${vehicle.model}`];
+    
+    const isOwner = profile && profile.id === vehicle.agencies.owner_id;
 
-      // If we find any bookings (data.length > 0), the dates are taken
-      if (data && data.length > 0) {
-        setBookingError('Sorry, these dates are no longer available. Please select a different date range.');
-      } else {
-        // 3. If no overlap is found, it's safe to proceed to the booking page
-        navigate('/booking', { state: { vehicle, booking } });
-      }
-    } catch (err) {
-      setBookingError('Could not verify availability. Please try again.');
-      console.error('Error checking booking availability:', err);
-    } finally {
-      setIsBooking(false);
-    }
-  };
+    return (
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    {/* Image slider and vehicle details */}
+                    <div className="relative mb-4">
+                        <img src={images[activeImageIndex]} alt="Main vehicle view" className="w-full h-auto max-h-[500px] object-cover rounded-lg shadow-lg" />
+                        {images.length > 1 && (
+                            <>
+                                <button onClick={() => setActiveImageIndex((activeImageIndex - 1 + images.length) % images.length)} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/80 rounded-full p-2"><ChevronLeft /></button>
+                                <button onClick={() => setActiveImageIndex((activeImageIndex + 1) % images.length)} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/50 hover:bg-white/80 rounded-full p-2"><ChevronRight /></button>
+                            </>
+                        )}
+                    </div>
+                    {images.length > 1 && (
+                        <div className="flex space-x-2 overflow-x-auto">
+                            {images.map((img, index) => (
+                                <img key={index} src={img} onClick={() => setActiveImageIndex(index)} alt={`Thumbnail ${index + 1}`} className={`w-24 h-24 object-cover rounded-md cursor-pointer ${index === activeImageIndex ? 'ring-2 ring-indigo-500' : ''}`} />
+                            ))}
+                        </div>
+                    )}
+                    <div className="mt-8">
+                        <h1 className="text-3xl font-bold text-slate-800">{t('vehicleDetailsTitle', { make: vehicle.make, model: vehicle.model })}</h1>
+                        <p className="text-lg text-slate-500">{vehicle.year}</p>
+                        <div className="mt-6 flex flex-wrap gap-6 text-center">
+                            <div className="flex flex-col items-center"><Users className="text-indigo-500" size={24} /><p className="mt-1 text-sm">{vehicle.seats} {t('seats')}</p></div>
+                            <div className="flex flex-col items-center"><Wind className="text-indigo-500" size={24} /><p className="mt-1 text-sm capitalize">{transmissionText}</p></div>
+                            <div className="flex flex-col items-center"><Droplets className="text-indigo-500" size={24} /><p className="mt-1 text-sm capitalize">{fuelText}</p></div>
+                             {vehicle.security_deposit_dzd > 0 && (
+                                <div className="flex flex-col items-center"><ShieldCheck className="text-indigo-500" size={24} /><p className="mt-1 text-sm">{t('securityDeposit')}</p></div>
+                            )}
+                        </div>
+                        <div className="mt-8">
+                            <h2 className="text-xl font-semibold mb-2">{t('description')}</h2>
+                            <p className="text-slate-600 whitespace-pre-wrap">{vehicle.description || t('noDescription')}</p>
+                        </div>
+                        <div className="mt-8 p-4 bg-slate-100 rounded-lg">
+                            <h2 className="text-xl font-semibold mb-2">{t('agency')}</h2>
+                            <p className="font-bold">{vehicle.agencies.agency_name}</p>
+                            <p className="text-slate-600">{`${vehicle.agencies.city}, ${vehicle.agencies.wilaya}`}</p>
+                        </div>
+                    </div>
+                    <div className="mt-12">
+                        <ReviewList vehicleId={vehicle.id} />
+                    </div>
+                </div>
 
-  if (loading) return <p>Loading vehicle details...</p>;
-  if (error) return <p className="text-red-500">Error: {error}</p>;
-  if (!vehicle) return <p>Vehicle not found.</p>;
+                {/* Booking Widget */}
+                <div className="lg:col-span-1">
+                    <div className="sticky top-28 p-6 bg-white rounded-lg shadow-lg">
+                        <p className="text-2xl font-bold mb-4">{vehicle.daily_rate_dzd.toLocaleString()} <span className="text-base font-normal text-slate-500">{t('dailyRateSuffix')}</span></p>
+                        
+                        {vehicle.security_deposit_dzd > 0 && (
+                            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 text-blue-800 rounded-md text-sm">
+                                <p><strong>{t('securityDeposit')}:</strong> {vehicle.security_deposit_dzd.toLocaleString()} DZD</p>
+                            </div>
+                        )}
 
-  return (
-    <div className="flex flex-col min-h-screen">
-      <Navbar />
-      <main className="flex-grow container mx-auto p-4">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <img src={vehicle.image_urls?.[0] || 'https://placehold.co/600x400'} alt={`${vehicle.make} ${vehicle.model}`} className="w-full h-auto object-cover rounded-lg shadow-lg mb-4" />
-            <h1 className="text-4xl font-bold">{vehicle.make} {vehicle.model} ({vehicle.year})</h1>
-            <p className="text-xl text-gray-700">{vehicle.agencies.name}</p>
-            <p className="text-md text-gray-500 mb-4">{vehicle.agencies.address}</p>
-            
-            <div className="my-6">
-              <h2 className="text-2xl font-semibold mb-2">Features</h2>
-              <ul className="list-disc list-inside grid grid-cols-2 gap-2">
-                {vehicle.features && Object.entries(vehicle.features).map(([key, value]) => (
-                  value && <li key={key}>{key.replace(/_/g, ' ')}</li>
-                ))}
-              </ul>
+                        <AvailabilityCalendar vehicleId={vehicle.id} onDateChange={handleDateSelection} />
+                        
+                        {totalPrice > 0 && (
+                            <div className="mt-6 pt-4 border-t border-slate-200">
+                                <div className="flex justify-between items-center text-lg">
+                                    <span>{t('totalPrice')} ({rentalDays} {rentalDays > 1 ? t('days') : t('day')})</span>
+                                    <span className="font-bold">{totalPrice.toLocaleString()} DZD</span>
+                                </div>
+                            </div>
+                        )}
+                        <button 
+                            onClick={handleBookingRequest} 
+                            disabled={!startDate || !endDate || isAgencyOwner}
+                            className="mt-6 w-full bg-indigo-600 text-white py-3 rounded-md font-semibold hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed"
+                        >
+                            {session ? t('requestToBook') : t('loginToBook')}
+                        </button>
+                        
+                        {!isOwner && (
+                            <button
+                                onClick={handleContactAgency}
+                                disabled={isContacting || isAgencyOwner}
+                                className="mt-4 w-full flex items-center justify-center bg-slate-600 text-white py-3 rounded-md font-semibold hover:bg-slate-700 disabled:bg-slate-400 disabled:cursor-not-allowed"
+                            >
+                                <MessageSquare size={18} className="mr-2" />
+                                {isContacting ? t('loading') : t('contactAgency')}
+                            </button>
+                        )}
+                         {contactError && (
+                            <div className="mt-4 text-red-600 text-sm flex items-center">
+                                <AlertCircle size={16} className="mr-2" />
+                                {contactError}
+                            </div>
+                        )}
+                        {isAgencyOwner && !isOwner && (
+                            <div className="mt-4 text-amber-800 bg-amber-100 p-3 rounded-md text-sm flex items-start">
+                                <Info size={16} className="mr-2 mt-0.5 flex-shrink-0" />
+                                <span>{t('agencyCannotRent')}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
-            
-            <div className="my-6">
-                <h2 className="text-2xl font-semibold mb-2">Reviews</h2>
-                <ReviewList reviews={vehicle.reviews} />
-                <ReviewForm vehicleId={vehicle.id} />
-            </div>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="sticky top-24 bg-white p-6 rounded-lg shadow-md">
-              <p className="text-3xl font-bold mb-4">
-                ${vehicle.price_per_day} <span className="text-lg font-normal">/ day</span>
-              </p>
-              <h3 className="text-xl font-semibold mb-2">Select Dates</h3>
-              <AvailabilityCalendar vehicleId={id} onDateChange={handleDateChange} />
-              
-              {/* Display booking error message here */}
-              {bookingError && <p className="text-red-500 text-sm my-2">{bookingError}</p>}
-              
-              <button
-                onClick={handleBooking}
-                disabled={isBooking}
-                className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition duration-300 disabled:bg-gray-400"
-              >
-                {isBooking ? 'Checking...' : 'Reserve'}
-              </button>
-            </div>
-          </div>
         </div>
-      </main>
-      <Footer />
-    </div>
-  );
-};
-
-export default VehicleDetailsPage;
+    );
+}
