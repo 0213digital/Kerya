@@ -1,7 +1,6 @@
-import React, { useState, useContext } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { translations } from '../data/translations';
+import { useTranslation } from '../contexts/LanguageContext';
 import { algeriaWilayas } from '../data/geoAndCarData';
 
 export function SearchForm() {
@@ -10,17 +9,16 @@ export function SearchForm() {
   const [endDate, setEndDate] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { language } = useContext(LanguageContext);
-  const t = translations[language];
+  const { t } = useTranslation();
 
   const handleSearch = (e) => {
     e.preventDefault();
     if (!location || !startDate || !endDate) {
-      setError(t.searchForm.errorAllFields);
+      setError(t('searchForm.errorAllFields'));
       return;
     }
     if (new Date(startDate) >= new Date(endDate)) {
-      setError(t.searchForm.errorInvalidDate);
+      setError(t('searchForm.errorInvalidDate'));
       return;
     }
     setError('');
@@ -31,14 +29,14 @@ export function SearchForm() {
     <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl mx-auto">
       <form onSubmit={handleSearch} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
         <div className="md:col-span-1">
-          <label htmlFor="location" className="block text-sm font-medium text-gray-700">{t.searchForm.location}</label>
+          <label htmlFor="location" className="block text-sm font-medium text-gray-700">{t('searchForm.location')}</label>
           <select
             id="location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           >
-            <option value="">{t.searchForm.selectLocation}</option>
+            <option value="">{t('searchForm.selectLocation')}</option>
             {algeriaWilayas.map((wilaya) => (
               <option key={wilaya} value={wilaya}>{wilaya}</option>
             ))}
@@ -46,7 +44,7 @@ export function SearchForm() {
         </div>
 
         <div className="md:col-span-1">
-          <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">{t.searchForm.startDate}</label>
+          <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">{t('searchForm.startDate')}</label>
           <input
             type="date"
             id="start-date"
@@ -58,7 +56,7 @@ export function SearchForm() {
         </div>
 
         <div className="md:col-span-1">
-          <label htmlFor="end-date" className="block text-sm font-medium text-gray-700">{t.searchForm.endDate}</label>
+          <label htmlFor="end-date" className="block text-sm font-medium text-gray-700">{t('searchForm.endDate')}</label>
           <input
             type="date"
             id="end-date"
@@ -74,7 +72,7 @@ export function SearchForm() {
             type="submit"
             className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
           >
-            {t.searchForm.search}
+            {t('searchForm.search')}
           </button>
         </div>
       </form>

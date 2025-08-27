@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { VehicleCard } from '../components/VehicleCard';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { translations } from '../data/translations';
+import { useTranslation } from '../contexts/LanguageContext';
 import { SearchForm } from '../components/SearchForm';
 
 function useQuery() {
@@ -19,8 +18,7 @@ export function SearchPage() {
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { language } = useContext(LanguageContext);
-  const t = translations[language];
+  const { t } = useTranslation();
 
   useEffect(() => {
     const fetchAvailableVehicles = async () => {
@@ -40,7 +38,7 @@ export function SearchPage() {
 
       if (rpcError) {
         console.error('Error fetching available vehicles:', rpcError);
-        setError(t.searchPage.errorFetching);
+        setError(t('searchPage.errorFetching'));
         setVehicles([]);
       } else {
         setVehicles(data || []);
@@ -49,17 +47,17 @@ export function SearchPage() {
     };
 
     fetchAvailableVehicles();
-  }, [location, startDate, endDate, t.searchPage.errorFetching]);
+  }, [location, startDate, endDate, t]);
 
   return (
     <div className="container mx-auto p-4 min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">{t.searchPage.title}</h1>
+      <h1 className="text-3xl font-bold mb-6">{t('searchPage.title')}</h1>
       
       <div className="mb-8">
         <SearchForm />
       </div>
 
-      {loading && <p className="text-center">{t.searchPage.loading}</p>}
+      {loading && <p className="text-center">{t('searchPage.loading')}</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {!loading && !error && (
@@ -71,7 +69,7 @@ export function SearchPage() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-600">{t.searchPage.noResults}</p>
+            <p className="text-center text-gray-600">{t('searchPage.noResults')}</p>
           )}
         </div>
       )}
