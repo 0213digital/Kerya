@@ -1,159 +1,214 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../contexts/LanguageContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
-import { Plus, Edit, Trash2, MapPin } from 'lucide-react';
+import { ConfirmationModal } from '../../components/modals';
+import { toast } from 'react-hot-toast';
+import { ToggleLeft, ToggleRight, MapPin, Search, AlertTriangle, LoaderCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { algeriaGeoData } from '../../data/geoAndCarData';
 
-// --- Modal Component (Extracted) ---
-// By defining the modal outside, it won't be re-created on every render of the parent.
-function EditModal({ modalInfo, onClose, onSave }) {
-    const { t } = useTranslation();
-    const [name, setName] = useState('');
-
-    // Update internal state when the modal is opened/re-opened
-    useEffect(() => {
-        if (modalInfo?.data?.name) {
-            setName(modalInfo.data.name);
-        } else {
-            setName('');
-        }
-    }, [modalInfo]);
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        onSave(modalInfo.type, { ...modalInfo.data, name });
-    };
-
-    if (!modalInfo) return null;
-
-    return (
-        <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
-            <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-xl w-full max-w-md p-6 space-y-4">
-                <h3 className="text-xl font-bold">{modalInfo.data.id ? t('edit') : t('add')} {modalInfo.type === 'wilaya' ? t('wilaya') : t('city')}</h3>
-                <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)} // This now updates local state, preventing parent re-render on every keystroke
-                    className="w-full p-2 border border-slate-300 rounded-md"
-                    required
-                    autoFocus
-                />
-                <div className="flex justify-end space-x-2">
-                    <button type="button" onClick={onClose} className="px-4 py-2 text-sm font-medium rounded-md bg-slate-100 hover:bg-slate-200">{t('cancel')}</button>
-                    <button type="submit" className="px-4 py-2 text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">{t('saveChanges')}</button>
-                </div>
-            </form>
-        </div>
-    );
-}
-
-// --- Main Page Component ---
 export function LocationManagementPage() {
     const { t } = useTranslation();
     const { isAdmin } = useAuth();
     const navigate = useNavigate();
-    const [locations, setLocations] = useState([]);
+
+    const [dbWilayas, setDbWilayas] = useState(new Map());
+    const [dbCities, setDbCities] = useState(new Map());
     const [loading, setLoading] = useState(true);
-    const [modalInfo, setModalInfo] = useState(null); // { type: 'wilaya'/'city', data: {} }
+    const [searchTerm, setSearchTerm] = useState('');
+    const [processingId, setProcessingId] = useState(null); // State to track the item being processed
+    const [modal, setModal] = useState({ isOpen: false, data: null });
+
+    const allWilayas = useMemo(() => Object.keys(algeriaGeoData).sort(), []);
 
     const fetchLocations = useCallback(async () => {
         setLoading(true);
-        const { data: wilayas, error: wilayasError } = await supabase.from('wilayas').select('id, name').order('name');
-        const { data: cities, error: citiesError } = await supabase.from('cities').select('id, name, wilaya_id').order('name');
+        const { data: wilayasData, error: wilayasError } = await supabase.from('wilayas').select('id, name');
+        const { data: citiesData, error: citiesError } = await supabase.from('cities').select('id, name, wilaya_id');
 
         if (wilayasError || citiesError) {
+            toast.error(t('dataFetchError'));
             console.error(wilayasError || citiesError);
         } else {
-            const groupedLocations = wilayas.map(wilaya => ({
-                ...wilaya,
-                cities: cities.filter(city => city.wilaya_id === wilaya.id)
-            }));
-            setLocations(groupedLocations);
+            setDbWilayas(new Map(wilayasData.map(w => [w.name, w.id])));
+            setDbCities(new Map(citiesData.map(c => [`${c.name}-${c.wilaya_id}`, c.id])));
         }
         setLoading(false);
-    }, []);
+    }, [t]);
 
     useEffect(() => {
-        if (isAdmin === false) { // Strict check for redirection
-            navigate('/');
-        } else if (isAdmin === true) {
+        if (isAdmin) {
             fetchLocations();
+        } else if (isAdmin === false) {
+            navigate('/');
         }
     }, [isAdmin, navigate, fetchLocations]);
 
-    const handleSave = async (type, data) => {
-        let error;
+    const deactivateWilaya = async (name, wilayaId) => {
+        setProcessingId(`wilaya-${name}`);
+        setModal({ isOpen: false, data: null });
 
-        if (type === 'wilaya') {
-            const { id, name } = data;
-            if (id) { // Update
-                ({ error } = await supabase.from('wilayas').update({ name }).eq('id', id));
-            } else { // Insert
-                ({ error } = await supabase.from('wilayas').insert({ name }));
-            }
-        } else if (type === 'city') {
-            const { id, name, wilaya_id } = data;
-            if (id) { // Update
-                ({ error } = await supabase.from('cities').update({ name }).eq('id', id));
-            } else { // Insert
-                ({ error } = await supabase.from('cities').insert({ name, wilaya_id }));
+        // Deactivate all cities under this wilaya first
+        const citiesToDelete = algeriaGeoData[name].map(cityName => dbCities.get(`${cityName}-${wilayaId}`)).filter(Boolean);
+        if (citiesToDelete.length > 0) {
+            const { error: cityError } = await supabase.from('cities').delete().in('id', citiesToDelete);
+            if (cityError) {
+                toast.error(`Failed to deactivate cities for ${name}: ${cityError.message}`);
+                setProcessingId(null);
+                return;
             }
         }
 
-        if (error) alert(error.message);
-        else {
-            setModalInfo(null);
+        const { error: wilayaError } = await supabase.from('wilayas').delete().eq('id', wilayaId);
+        if (wilayaError) {
+            toast.error(`Failed to deactivate ${name}: ${wilayaError.message}`);
+        } else {
+            toast.success(`${name} and its cities have been deactivated.`);
             fetchLocations();
         }
+        setProcessingId(null);
     };
 
-    const handleDelete = async (type, id) => {
-        // Updated confirmation message to be more generic for both wilayas and cities
-        if (!window.confirm(t('deleteConfirmTextGeneric', "Êtes-vous sûr ? Cette action est irréversible."))) return;
-        const table = type === 'wilaya' ? 'wilayas' : 'cities';
-        const { error } = await supabase.from(table).delete().eq('id', id);
-        if (error) alert(error.message);
-        else fetchLocations();
+    const handleToggleWilaya = async (wilayaName) => {
+        const wilayaId = dbWilayas.get(wilayaName);
+
+        if (wilayaId) {
+            // It's active, so show confirmation modal to deactivate
+            setModal({
+                isOpen: true,
+                data: {
+                    title: `Deactivate ${wilayaName}?`,
+                    text: `This will also deactivate all its cities. This action is irreversible.`,
+                    confirmText: 'Deactivate',
+                    isDestructive: true,
+                    onConfirm: () => deactivateWilaya(wilayaName, wilayaId),
+                }
+            });
+        } else {
+            // It's inactive, activate it directly
+            setProcessingId(`wilaya-${wilayaName}`);
+            const { error } = await supabase.from('wilayas').insert({ name: wilayaName });
+            if (error) {
+                toast.error(error.message);
+            } else {
+                toast.success(`${wilayaName} activated.`);
+                await fetchLocations();
+            }
+            setProcessingId(null);
+        }
+    };
+
+    const handleToggleCity = async (cityName, wilayaName) => {
+        const wilayaId = dbWilayas.get(wilayaName);
+        if (!wilayaId) return;
+
+        setProcessingId(`city-${cityName}-${wilayaId}`);
+        const cityId = dbCities.get(`${cityName}-${wilayaId}`);
+        let error;
+
+        if (cityId) {
+            ({ error } = await supabase.from('cities').delete().eq('id', cityId));
+        } else {
+            ({ error } = await supabase.from('cities').insert({ name: cityName, wilaya_id: wilayaId }));
+        }
+
+        if (error) {
+            toast.error(error.message);
+        } else {
+            await fetchLocations(); // Await the fetch to ensure data is fresh
+        }
+        setProcessingId(null);
     };
     
+    const filteredWilayas = useMemo(() => {
+        if (!searchTerm) return allWilayas;
+        const lowerCaseSearch = searchTerm.toLowerCase();
+        return allWilayas.filter(wilayaName =>
+            wilayaName.toLowerCase().includes(lowerCaseSearch) ||
+            algeriaGeoData[wilayaName].some(cityName => cityName.toLowerCase().includes(lowerCaseSearch))
+        );
+    }, [allWilayas, searchTerm]);
+
+
     return (
         <DashboardLayout title={t('locationManagement')} description={t('locationManagementDesc')}>
-            {modalInfo && <EditModal modalInfo={modalInfo} onClose={() => setModalInfo(null)} onSave={handleSave} />}
-            <div className="flex justify-end mb-4">
-                <button onClick={() => setModalInfo({ type: 'wilaya', data: { name: '' } })} className="flex items-center bg-indigo-600 text-white px-4 py-2 rounded-md font-semibold hover:bg-indigo-700">
-                    <Plus size={16} className="mr-2" /> {t('addWilaya')}
-                </button>
+            {modal.isOpen && (
+                <ConfirmationModal
+                    title={modal.data.title}
+                    text={modal.data.text}
+                    confirmText={modal.data.confirmText}
+                    onConfirm={modal.data.onConfirm}
+                    onCancel={() => setModal({ isOpen: false, data: null })}
+                    isDestructive={modal.data.isDestructive}
+                />
+            )}
+            <div className="mb-4 relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+                <input
+                    type="text"
+                    placeholder="Search for a wilaya or city..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-md"
+                />
             </div>
             {loading ? <p>{t('loading')}</p> : (
-                <div className="space-y-4">
-                    {locations.map(wilaya => (
-                        <div key={wilaya.id} className="bg-white p-4 rounded-lg shadow-md">
-                            <div className="flex justify-between items-center border-b pb-2 mb-2">
-                                <h3 className="text-lg font-bold flex items-center"><MapPin size={18} className="mr-2" /> {wilaya.name}</h3>
-                                <div className="space-x-2">
-                                    <button onClick={() => setModalInfo({ type: 'wilaya', data: wilaya })} className="p-1 text-slate-500 hover:text-indigo-600"><Edit size={16} /></button>
-                                    <button onClick={() => handleDelete('wilaya', wilaya.id)} className="p-1 text-slate-500 hover:text-red-600"><Trash2 size={16} /></button>
-                                </div>
-                            </div>
-                            <div className="pl-6">
-                                {wilaya.cities.map(city => (
-                                    <div key={city.id} className="flex justify-between items-center py-1">
-                                        <span>- {city.name}</span>
-                                        <div className="space-x-2">
-                                            <button onClick={() => setModalInfo({ type: 'city', data: city })} className="p-1 text-slate-500 hover:text-indigo-600"><Edit size={16} /></button>
-                                            <button onClick={() => handleDelete('city', city.id)} className="p-1 text-slate-500 hover:text-red-600"><Trash2 size={16} /></button>
+                <>
+                    {filteredWilayas.length > 0 ? (
+                        <div className="space-y-4">
+                            {filteredWilayas.map(wilayaName => {
+                                const wilayaId = dbWilayas.get(wilayaName);
+                                const isWilayaActive = !!wilayaId;
+                                return (
+                                    <div key={wilayaName} className="bg-white p-4 rounded-lg shadow-md">
+                                        <div className="flex justify-between items-center border-b pb-2 mb-2">
+                                            <h3 className="text-lg font-bold flex items-center"><MapPin size={18} className="mr-2" /> {wilayaName}</h3>
+                                            <div className="w-10 h-6 flex items-center justify-center">
+                                                {processingId === `wilaya-${wilayaName}` ? (
+                                                    <LoaderCircle size={20} className="animate-spin text-slate-400" />
+                                                ) : (
+                                                    <button onClick={() => handleToggleWilaya(wilayaName)} disabled={!!processingId}>
+                                                        {isWilayaActive ? <ToggleRight size={24} className="text-green-500" /> : <ToggleLeft size={24} className="text-slate-400" />}
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
+                                        {isWilayaActive && (
+                                            <div className="pl-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                                {algeriaGeoData[wilayaName].map(cityName => {
+                                                    const isCityActive = dbCities.has(`${cityName}-${wilayaId}`);
+                                                    const cityProcessingId = `city-${cityName}-${wilayaId}`;
+                                                    return (
+                                                        <div key={cityName} className="flex justify-between items-center py-1">
+                                                            <span className="text-sm text-slate-600">- {cityName}</span>
+                                                            <div className="w-8 h-5 flex items-center justify-center">
+                                                                {processingId === cityProcessingId ? (
+                                                                    <LoaderCircle size={16} className="animate-spin text-slate-400" />
+                                                                ) : (
+                                                                    <button onClick={() => handleToggleCity(cityName, wilayaName)} disabled={!!processingId}>
+                                                                        {isCityActive ? <ToggleRight size={20} className="text-green-500" /> : <ToggleLeft size={20} className="text-slate-400" />}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
                                     </div>
-                                ))}
-                                <button onClick={() => setModalInfo({ type: 'city', data: { name: '', wilaya_id: wilaya.id } })} className="text-sm text-indigo-600 hover:underline mt-2 flex items-center">
-                                    <Plus size={14} className="mr-1" /> {t('addCity')}
-                                </button>
-                            </div>
+                                );
+                            })}
                         </div>
-                    ))}
-                </div>
+                    ) : (
+                        <div className="text-center py-16 px-6 bg-white rounded-lg shadow-md">
+                            <AlertTriangle size={48} className="mx-auto text-slate-400" />
+                            <h3 className="mt-4 text-xl font-semibold text-slate-800">No Locations Found</h3>
+                            <p className="mt-2 text-slate-500">No locations matched your search criteria.</p>
+                        </div>
+                    )}
+                </>
             )}
         </DashboardLayout>
     );
