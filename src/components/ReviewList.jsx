@@ -19,7 +19,7 @@ function StarRating({ rating }) {
   );
 }
 
-function ReviewList({ vehicleId }) {
+export function ReviewList({ vehicleId }) {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,6 @@ function ReviewList({ vehicleId }) {
     const fetchReviews = async () => {
       if (!vehicleId) return;
       setLoading(true);
-      // Fetch reviews and join with profiles table to get user's full name
       const { data, error } = await supabase
         .from('reviews')
         .select(`
@@ -82,5 +81,3 @@ function ReviewList({ vehicleId }) {
     </div>
   );
 }
-
-export default ReviewList;

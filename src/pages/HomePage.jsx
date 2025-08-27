@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
-import SearchForm from '../components/SearchForm'; // Corrected import
+import { SearchForm } from '../components/SearchForm';
 import { VehicleCard } from '../components/VehicleCard';
 import { Search, FileText, Car } from 'lucide-react';
 
@@ -22,7 +22,6 @@ export function HomePage() {
 
     return (
         <div>
-            {/* Hero Section with responsive height and typography */}
             <div className="relative min-h-[70vh] md:min-h-[60vh] bg-cover bg-center flex items-center" style={{ backgroundImage: "url('https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/trade_registers/603c677d-4617-44df-be77-030de2f94546/landscape.jpg')" }}>
                 <div className="absolute inset-0 bg-black/50"></div>
                 <div className="relative container mx-auto px-4 sm:px-6 lg:px-8 h-full flex flex-col justify-center items-center text-center">

@@ -4,7 +4,7 @@ import 'react-calendar/dist/Calendar.css';
 import { supabase } from '../lib/supabaseClient';
 import { isWithinInterval, parseISO } from 'date-fns';
 
-function AvailabilityCalendar({ vehicleId }) {
+export function AvailabilityCalendar({ vehicleId, onDateChange }) {
   const [unavailableDates, setUnavailableDates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,7 +16,6 @@ function AvailabilityCalendar({ vehicleId }) {
       setLoading(true);
       setError(null);
       
-      // Fetch both confirmed bookings and manual unavailabilities
       const { data: bookings, error: bookingsError } = await supabase
         .from('bookings')
         .select('start_date, end_date')
@@ -43,23 +42,18 @@ function AvailabilityCalendar({ vehicleId }) {
     fetchUnavailabilities();
   }, [vehicleId]);
 
-  // Function to check if a date should be disabled
   const isDateDisabled = ({ date, view }) => {
     if (view !== 'month') {
       return false;
     }
 
-    // Disable past dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (date < today) {
         return true;
     }
 
-    // Check if the date falls within any unavailable interval
     return unavailableDates.some(interval => {
-      // Supabase returns dates as strings, so we parse them.
-      // The end_date is inclusive, so we don't need to add a day.
       const start = parseISO(interval.start_date);
       const end = parseISO(interval.end_date);
       return isWithinInterval(date, { start, end });
@@ -73,11 +67,11 @@ function AvailabilityCalendar({ vehicleId }) {
     <div className="p-4 border rounded-lg">
       <h3 className="text-xl font-semibold mb-4">Vehicle Availability</h3>
       <Calendar
+        onChange={(value) => onDateChange(value[1], value[0])}
+        selectRange={true}
         tileDisabled={isDateDisabled}
         className="w-full border-0"
       />
     </div>
   );
 }
-
-export default AvailabilityCalendar;

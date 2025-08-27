@@ -1,17 +1,16 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { VehicleCard } from '../components/VehicleCard'; // Corrected import
+import { VehicleCard } from '../components/VehicleCard';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { translations } from '../data/translations';
-import SearchForm from '../components/SearchForm';
+import { SearchForm } from '../components/SearchForm';
 
-// A custom hook to parse query parameters from the URL
 function useQuery() {
   return new URLSearchParams(useLocation().search);
 }
 
-function SearchPage() {
+export function SearchPage() {
   const query = useQuery();
   const location = query.get('location');
   const startDate = query.get('startDate');
@@ -33,7 +32,6 @@ function SearchPage() {
       setLoading(true);
       setError(null);
 
-      // Call the RPC function on Supabase
       const { data, error: rpcError } = await supabase.rpc('search_available_vehicles', {
         wilaya_param: location,
         start_date_param: startDate,
@@ -57,7 +55,6 @@ function SearchPage() {
     <div className="container mx-auto p-4 min-h-screen">
       <h1 className="text-3xl font-bold mb-6">{t.searchPage.title}</h1>
       
-      {/* We can show the search form again for easy modification */}
       <div className="mb-8">
         <SearchForm />
       </div>
@@ -81,5 +78,3 @@ function SearchPage() {
     </div>
   );
 }
-
-export default SearchPage;

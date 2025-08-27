@@ -4,7 +4,7 @@ import { LanguageContext } from '../contexts/LanguageContext';
 import { translations } from '../data/translations';
 import { algeriaWilayas } from '../data/geoAndCarData';
 
-function SearchForm() {
+export function SearchForm() {
   const [location, setLocation] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -24,7 +24,6 @@ function SearchForm() {
       return;
     }
     setError('');
-    // Navigate to the search page with query parameters
     navigate(`/search?location=${location}&startDate=${startDate}&endDate=${endDate}`);
   };
 
@@ -53,7 +52,7 @@ function SearchForm() {
             id="start-date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            min={new Date().toISOString().split('T')[0]} // Prevent selecting past dates
+            min={new Date().toISOString().split('T')[0]}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
@@ -65,7 +64,7 @@ function SearchForm() {
             id="end-date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            min={startDate || new Date().toISOString().split('T')[0]} // Prevent selecting date before start date
+            min={startDate || new Date().toISOString().split('T')[0]}
             className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
@@ -83,5 +82,3 @@ function SearchForm() {
     </div>
   );
 }
-
-export default SearchForm;

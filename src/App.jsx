@@ -3,12 +3,8 @@ import { Routes, Route, useLocation } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-
-// PDF Generation 1
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-
-// Import all page components
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
@@ -29,8 +25,6 @@ import { UserManagementPage } from './pages/admin/UserManagementPage';
 import { UserDetailsPage } from './pages/admin/UserDetailsPage';
 import { MessagesPage } from './pages/dashboard/MessagesPage';
 import { LocationManagementPage } from './pages/admin/LocationManagementPage';
-
-// --- NOUVEAUX IMPORTS ---
 import { SignUpChoicePage } from './pages/SignUpChoicePage';
 import { SignUpClientPage } from './pages/SignUpClientPage';
 import { SignUpAgencyPage } from './pages/SignUpAgencyPage';
@@ -46,7 +40,6 @@ const generateInvoice = async (booking, t) => {
 
     try {
         const doc = new jsPDF();
-        // Utilisation du logo standard et d'une couleur de marque fixe
         const logoUrl = "https://amupkaaxnypendorkkrz.supabase.co/storage/v1/object/public/webpics/public/Lo1.png";
         const brandColor = '#4f46e5';
 
@@ -153,7 +146,6 @@ export default function App() {
                     <Route path="/booking-confirmation/:bookingId" element={<BookingConfirmationPage generateInvoice={generateInvoice} />} />
                     <Route path="/login" element={<LoginPage />} />
                     
-                    {/* --- NOUVELLES ROUTES D'INSCRIPTION --- */}
                     <Route path="/signup" element={<SignUpChoicePage />} />
                     <Route path="/signup/client" element={<SignUpClientPage />} />
                     <Route path="/signup/agency" element={<SignUpAgencyPage />} />
