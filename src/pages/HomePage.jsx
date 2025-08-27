@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useTranslation } from '../contexts/LanguageContext';
-import { SearchForm } from '../components/SearchForm';
+import SearchForm from '../components/SearchForm'; // Corrected import
 import { VehicleCard } from '../components/VehicleCard';
 import { Search, FileText, Car } from 'lucide-react';
 
