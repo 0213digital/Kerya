@@ -89,7 +89,7 @@ export function EditUserModal({ user, onSave, onClose }) {
 }
 
 
-// --- FileUploadBox, VehicleFormModal, DeleteConfirmationModal, RejectionModal, ConfirmationModal (Unchanged) ---
+// --- FileUploadBox ---
 export const FileUploadBox = ({ type, label, url, uploading, onChange }) => {
     const { t } = useTranslation();
     return (
@@ -110,6 +110,8 @@ export const FileUploadBox = ({ type, label, url, uploading, onChange }) => {
         </div>
     );
 };
+
+// --- VehicleFormModal (UPDATED with improvements) ---
 export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
     const { t } = useTranslation();
     const [formState, setFormState] = useState({
@@ -122,7 +124,7 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
     });
     const [isUploading, setIsUploading] = useState(false);
     const [models, setModels] = useState([]);
-    const [error, setError] = useState(''); // State for error messages
+    const [error, setError] = useState(''); // State for all error messages
 
     useEffect(() => {
         if (formState.make) {
@@ -145,15 +147,30 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
     const handleFileUpload = async (e, fileType) => {
         const file = e.target.files[0];
         if (!file || !agencyId) return;
+
+        // --- Improvement: File Type Validation ---
+        const allowedImageTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        const allowedDocTypes = [...allowedImageTypes, 'application/pdf'];
+        const allowedTypes = fileType === 'image' ? allowedImageTypes : allowedDocTypes;
+
+        if (!allowedTypes.includes(file.type)) {
+            setError('Invalid file type. Only images (JPG, PNG, WebP) and PDFs are allowed.');
+            return;
+        }
+        
+        // --- Improvement: Better Error Handling ---
         setIsUploading(true);
-        setError('');
+        setError(''); // Clear previous errors
+
         const bucket = fileType === 'image' ? 'vehicle-images' : 'agency-documents';
         const folder = fileType === 'image' ? 'vehicle_images' : 'car_registrations';
         const fileName = `${agencyId}/${folder}/${Date.now()}-${file.name}`;
         
         const { error: uploadError } = await supabase.storage.from(bucket).upload(fileName, file);
+
         if (uploadError) {
-            setError(uploadError.message);
+            console.error("Upload Error:", uploadError);
+            setError(`Upload failed: ${uploadError.message}`); // Set a user-friendly error
         } else {
             const { data } = supabase.storage.from(bucket).getPublicUrl(fileName);
             if (fileType === 'image') {
@@ -176,8 +193,13 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         const { error: dbError } = vehicleToEdit
             ? await supabase.from('vehicles').update(vehicleData).eq('id', vehicleToEdit.id)
             : await supabase.from('vehicles').insert([vehicleData]);
-        if (dbError) setError(dbError.message);
-        else { onSave(); onClose(); }
+
+        if (dbError) {
+            setError(dbError.message);
+        } else {
+            onSave();
+            onClose();
+        }
     };
 
     return (
@@ -185,7 +207,9 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
             <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-slate-200 flex justify-between items-center"><h3 className="text-xl font-bold">{vehicleToEdit ? t('editVehicleTitle') : t('listNewVehicleTitle')}</h3><button onClick={onClose}><X /></button></div>
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                    {/* --- Improvement: Displaying Errors --- */}
                     {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{error}</div>}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div><label className="block text-sm font-medium">{t('make')}</label><select name="make" value={formState.make} onChange={handleMakeChange} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="">{t('selectAMake')}</option>{Object.keys(carData).map(make => <option key={make} value={make}>{make}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('model')}</label><select name="model" value={formState.model} onChange={handleChange} disabled={!formState.make} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="">{t('selectAModel')}</option>{models.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
@@ -212,6 +236,8 @@ export function VehicleFormModal({ vehicleToEdit, agencyId, onClose, onSave }) {
         </div>
     );
 }
+
+// --- DeleteConfirmationModal, RejectionModal, ConfirmationModal (Unchanged) ---
 export function DeleteConfirmationModal({ item, onCancel, onConfirm }) {
     const { t } = useTranslation();
     if (!item) return null;
@@ -230,6 +256,7 @@ export function DeleteConfirmationModal({ item, onCancel, onConfirm }) {
         </div>
     );
 }
+
 export function RejectionModal({ onCancel, onSubmit, processing }) {
     const { t } = useTranslation();
     const [reason, setReason] = useState('');
@@ -249,6 +276,7 @@ export function RejectionModal({ onCancel, onSubmit, processing }) {
         </div>
     );
 }
+
 export function ConfirmationModal({ title, text, confirmText, onConfirm, onCancel, isDestructive = false }) {
     const { t } = useTranslation();
     return (
