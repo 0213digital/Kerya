@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { translations } from '../data/translations';
 
 export const LanguageContext = createContext();
@@ -12,24 +12,35 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem('language', language);
   }, [language]);
 
-  // The new translation function that handles nested keys
-  const t = (key) => {
+  // FIX: Updated `t` function to handle interpolation
+  const t = useCallback((key, options) => {
     const keys = key.split('.');
-    let result = translations[language];
+    let text = translations[language];
     for (const k of keys) {
-      result = result?.[k];
-      if (result === undefined) {
-        return key; // Return the key itself if not found
+      text = text?.[k];
+      if (text === undefined) {
+        // Improvement: Warn developers about missing keys
+        console.warn(`Translation key not found: ${key}`); 
+        return key; 
       }
     }
-    return result;
-  };
 
-  const value = {
+    // Perform interpolation if options are provided
+    if (options && typeof text === 'string') {
+      return text.replace(/{(\w+)}/g, (placeholder, placeholderKey) => {
+        return options[placeholderKey] !== undefined ? options[placeholderKey] : placeholder;
+      });
+    }
+
+    return text;
+  }, [language]); // Re-create this function only when the language changes
+
+  // IMPROVEMENT: Memoize the context value to prevent unnecessary re-renders
+  const value = useMemo(() => ({
     language,
     setLanguage,
-    t, // Now providing a function as 't'
-  };
+    t,
+  }), [language, t]);
 
   return (
     <LanguageContext.Provider value={value}>
