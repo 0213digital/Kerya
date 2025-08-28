@@ -16,26 +16,17 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
       setLoading(true);
       setError(null);
       
-      const { data: bookings, error: bookingsError } = await supabase
-        .from('bookings')
-        .select('start_date, end_date')
-        .eq('vehicle_id', vehicleId)
-        .in('status', ['confirmed', 'pending']);
+      // Use the new, dedicated RPC for fetching unavailable dates for a single vehicle
+      const { data, error: rpcError } = await supabase.rpc('get_unavailable_dates_for_vehicle', {
+        p_vehicle_id: vehicleId
+      });
 
-      const { data: manualUnavailabilities, error: manualError } = await supabase
-        .from('vehicle_unavailability')
-        .select('start_date, end_date')
-        .eq('vehicle_id', vehicleId);
-
-      if (bookingsError || manualError) {
-        console.error('Error fetching dates:', bookingsError || manualError);
+      if (rpcError) {
+        console.error('Error fetching unavailable dates:', rpcError);
         setError('Failed to load availability.');
-        setLoading(false);
-        return;
+      } else {
+        setUnavailableDates(data || []);
       }
-      
-      const combinedUnavailabilities = [...(bookings || []), ...(manualUnavailabilities || [])];
-      setUnavailableDates(combinedUnavailabilities);
       setLoading(false);
     };
 
@@ -47,12 +38,14 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
       return false;
     }
 
+    // Disable past dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (date < today) {
         return true;
     }
 
+    // Check if the date falls within any of the unavailable intervals
     return unavailableDates.some(interval => {
       const start = parseISO(interval.start_date);
       const end = parseISO(interval.end_date);

@@ -5,23 +5,20 @@ import { useTranslation } from 'react-i18next';
 import { VehicleCard } from '../components/VehicleCard';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { SlidersHorizontal, Car, Map, List, Star } from 'lucide-react';
-import { carData } from '../data/geoAndCarData'; // We need car data for make/model filters
+import { carData } from '../data/geoAndCarData';
 
 export function SearchPage() {
     const { search } = useLocation();
     const { t } = useTranslation();
 
-    // --- State ---
     const [vehicles, setVehicles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [viewMode, setViewMode] = useState('list');
-
-    // --- Advanced Filter States ---
     const [maxPrice, setMaxPrice] = useState(30000);
     const [transmission, setTransmission] = useState('all');
     const [fuelType, setFuelType] = useState('all');
-    const [minSeats, setMinSeats] = useState(2); // Default starts at 2
+    const [minSeats, setMinSeats] = useState(2);
     const [makeFilter, setMakeFilter] = useState('all');
     const [modelFilter, setModelFilter] = useState('all');
     const [minYear, setMinYear] = useState(2010);
@@ -38,7 +35,7 @@ export function SearchPage() {
         } else {
             setAvailableModels([]);
         }
-        setModelFilter('all'); // Reset model when make changes
+        setModelFilter('all');
     }, [makeFilter]);
 
     useEffect(() => {
@@ -49,18 +46,24 @@ export function SearchPage() {
             const from = searchParams.get('from');
             const to = searchParams.get('to');
             const location = searchParams.get('location');
-            const city = searchParams.get('city'); // <-- Récupérer la ville
+            const city = searchParams.get('city');
 
             let availableVehicleIds = null;
 
             if (from && to) {
-                // CORRECTED: Swapped the order of parameters to match the SQL function
-                const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', { start_date_in: from, end_date_in: to });
+                // Use the new, robust SQL function
+                const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', {
+                    start_date_in: from,
+                    end_date_in: to
+                });
+
                 if (rpcError) {
+                    console.error("RPC Error:", rpcError);
                     setError(rpcError.message);
                     setLoading(false);
                     return;
                 }
+                
                 availableVehicleIds = rpcData.map(item => item.vehicle_id);
                 if (availableVehicleIds.length === 0) {
                     setVehicles([]);
@@ -75,14 +78,14 @@ export function SearchPage() {
                 .eq('agencies.verification_status', 'verified');
 
             if (location) query = query.eq('agencies.wilaya', location);
-            if (city) query = query.eq('agencies.city', city); // <-- Ajouter le filtre par ville
+            if (city) query = query.eq('agencies.city', city);
             if (availableVehicleIds) query = query.in('id', availableVehicleIds);
             
             const { data, error: vehiclesError } = await query;
+
             if (vehiclesError) {
                 setError(vehiclesError.message);
             } else {
-                // Calculate average rating for each vehicle
                 const vehiclesWithAvgRating = data.map(vehicle => {
                     const ratings = vehicle.reviews.map(r => r.rating);
                     const avgRating = ratings.length > 0 ? ratings.reduce((a, b) => a + b, 0) / ratings.length : 0;
@@ -123,7 +126,7 @@ export function SearchPage() {
         setMaxPrice(30000);
         setTransmission('all');
         setFuelType('all');
-        setMinSeats(2); // Reset to 2
+        setMinSeats(2);
         setMakeFilter('all');
         setModelFilter('all');
         setMinYear(2010);
@@ -160,22 +163,13 @@ export function SearchPage() {
                             <button onClick={resetFilters} className="text-sm text-indigo-600 hover:underline">{t('clearFilters')}</button>
                         </div>
                         
-                        {/* New Filters */}
                         <div><label className="block text-sm font-medium">{t('make')}</label><select value={makeFilter} onChange={e => setMakeFilter(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="all">{t('all')}</option>{Object.keys(carData).map(make => <option key={make} value={make}>{make}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('model')}</label><select value={modelFilter} onChange={e => setModelFilter(e.target.value)} disabled={makeFilter === 'all'} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="all">{t('all')}</option>{availableModels.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
-
-                        {/* Existing Filters */}
                         <div><label className="block text-sm font-medium">{t('priceRange')}</label><input type="range" min="3000" max="30000" step="1000" value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} className="w-full mt-2" /><div className="text-sm text-right">{maxPrice.toLocaleString()} DZD</div></div>
                         <div><label className="block text-sm font-medium">{t('transmission')}</label><select value={transmission} onChange={e => setTransmission(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="all">{t('all')}</option><option value="manual">{t('manual')}</option><option value="automatic">{t('automatic')}</option></select></div>
                         <div><label className="block text-sm font-medium">{t('fuelType')}</label><select value={fuelType} onChange={e => setFuelType(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="all">{t('all')}</option><option value="gasoline">{t('gasoline')}</option><option value="diesel">{t('diesel')}</option></select></div>
-                        
-                        {/* Modified Seats Filter */}
                         <div><label className="block text-sm font-medium">{t('seats')}</label><select value={minSeats} onChange={e => setMinSeats(Number(e.target.value))} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white">{[2,3,4,5,6,7,8,9].map(s => <option key={s} value={s}>{s}+</option>)}</select></div>
-
-                        {/* Year Range Filter */}
                         <div><label className="block text-sm font-medium">{t('yearRange')}</label><div className="flex items-center gap-2 mt-1"><input type="number" value={minYear} onChange={e => setMinYear(Number(e.target.value))} className="w-full p-2 border border-slate-300 rounded-md" /><span className="text-slate-500">-</span><input type="number" value={maxYear} onChange={e => setMaxYear(Number(e.target.value))} className="w-full p-2 border border-slate-300 rounded-md" /></div></div>
-
-                        {/* Rating Filter */}
                         <div>
                             <label className="block text-sm font-medium mb-2">{t('minRating')}</label>
                             <div className="flex">
