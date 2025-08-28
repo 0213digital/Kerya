@@ -31,15 +31,30 @@ export function AdminDashboardPage() {
                  setLoading(true);
 
                  const [agenciesRes, usersRes, bookingsRes, listingsRes, profilesRes] = await Promise.all([
-                     supabase.from('agencies').select('*, profiles(full_name, created_at)'),
+                     supabase.from('agencies').select('*'),
                      supabase.from('profiles').select('id', { count: 'exact' }),
-                     supabase.from('bookings').select('*, vehicles(make, model, agency_id), profiles(full_name)'),
-                     supabase.from('vehicles').select('id', { count: 'exact' }),
-                     supabase.from('profiles').select('full_name, created_at, is_agency_owner').order('created_at', { ascending: false }).limit(5)
+                     supabase.from('bookings').select('*'),
+                     supabase.from('vehicles').select('id, agency_id, make, model'),
+                     supabase.from('profiles').select('id, full_name, created_at, is_agency_owner').order('created_at', { ascending: false })
                  ]);
 
                  const agenciesData = agenciesRes.data || [];
                  const bookingsData = bookingsRes.data || [];
+                 const vehiclesData = listingsRes.data || [];
+                 const profilesData = profilesRes.data || [];
+
+                 const profilesMap = new Map(profilesData.map(p => [p.id, p]));
+
+                 const agenciesWithProfiles = agenciesData.map(agency => ({
+                     ...agency,
+                     profiles: profilesMap.get(agency.owner_id)
+                 }));
+
+                 const bookingsWithDetails = bookingsData.map(booking => ({
+                     ...booking,
+                     vehicles: vehiclesData.find(v => v.id === booking.vehicle_id),
+                     profiles: profilesMap.get(booking.user_id)
+                 }));
 
                  const totalRevenue = bookingsData.reduce((sum, booking) => sum + booking.total_price, 0);
                  const platformCommission = totalRevenue * 0.10;
@@ -50,27 +65,27 @@ export function AdminDashboardPage() {
                      users: usersRes.count || 0,
                      agencies: agenciesData.length,
                      bookings: bookingsData.length,
-                     listings: listingsRes.count || 0,
+                     listings: vehiclesData.length,
                      revenue: totalRevenue,
                      platformCommission: platformCommission,
                      verificationRate: verificationRate.toFixed(1),
                  });
 
-                 const agenciesWithRevenue = agenciesData.map(agency => {
-                    const agencyBookings = bookingsData.filter(b => b.vehicles?.agency_id === agency.id);
+                 const agenciesWithRevenue = agenciesWithProfiles.map(agency => {
+                    const agencyBookings = bookingsWithDetails.filter(b => b.vehicles?.agency_id === agency.id);
                     const revenue = agencyBookings.reduce((sum, b) => sum + b.total_price, 0);
                     return { ...agency, revenue, bookingCount: agencyBookings.length };
                  });
                  agenciesWithRevenue.sort((a,b) => b.revenue - a.revenue);
                  setAgencies(agenciesWithRevenue);
 
-                 const newBookingsActivity = bookingsData.slice(0, 3).map(b => ({
+                 const newBookingsActivity = bookingsWithDetails.slice(0, 3).map(b => ({
                      type: 'new_booking',
                      description: t('activityNewBooking', {user: b.profiles?.full_name, make: b.vehicles?.make, model: b.vehicles?.model}),
                      timestamp: b.created_at,
                  }));
 
-                 const newUsersActivity = (profilesRes.data || []).slice(0, 3).map(p => ({
+                 const newUsersActivity = profilesData.slice(0, 3).map(p => ({
                      type: p.is_agency_owner ? 'new_agency' : 'new_user',
                      description: p.is_agency_owner ? t('activityNewAgency', {name: p.full_name}) : t('activityNewUser', {name: p.full_name}),
                      timestamp: p.created_at,
