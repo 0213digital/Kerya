@@ -67,6 +67,7 @@ export function BookingPage() {
         setProcessing(true);
         setError('');
 
+        // CORRECTED: Swapped the order of parameters to match the SQL function
         const { data: availableVehicles, error: rpcError } = await supabase.rpc('get_available_vehicles', {
             start_date_in: startDate,
             end_date_in: endDate

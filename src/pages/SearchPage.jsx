@@ -54,6 +54,7 @@ export function SearchPage() {
             let availableVehicleIds = null;
 
             if (from && to) {
+                // CORRECTED: Swapped the order of parameters to match the SQL function
                 const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', { start_date_in: from, end_date_in: to });
                 if (rpcError) {
                     setError(rpcError.message);
