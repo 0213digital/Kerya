@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { useTranslation } from '../contexts/LanguageContext'; // This import was missing
+import { useTranslation } from 'react-i18next';
 import { Users, Wind, Droplets } from 'lucide-react';
 
 export function VehicleCard({ vehicle }) {

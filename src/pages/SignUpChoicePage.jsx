@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { User, Briefcase } from 'lucide-react';
 
 export function SignUpChoicePage() {

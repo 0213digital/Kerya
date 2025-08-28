@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { RejectionModal } from '../../components/modals';
 import { CheckCircle, XCircle } from 'lucide-react';

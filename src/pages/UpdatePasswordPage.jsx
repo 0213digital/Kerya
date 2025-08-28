@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useSession } from '../contexts/SessionContext';
 
 export function UpdatePasswordPage() {

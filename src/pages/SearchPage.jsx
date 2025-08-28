@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { VehicleCard } from '../components/VehicleCard';
 import { InteractiveMap } from '../components/InteractiveMap';
 import { SlidersHorizontal, Car, Map, List, Star } from 'lucide-react';

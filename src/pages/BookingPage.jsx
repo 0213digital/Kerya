@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useSearchParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabaseClient';
 import { CreditCard, Banknote } from 'lucide-react';
 

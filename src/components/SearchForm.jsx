@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Search, MapPin, Calendar } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 

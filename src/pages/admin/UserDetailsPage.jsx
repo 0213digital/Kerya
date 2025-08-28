@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { ConfirmationModal, EditUserModal } from '../../components/modals';

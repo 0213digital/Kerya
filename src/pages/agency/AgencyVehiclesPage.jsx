@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { VehicleFormModal, DeleteConfirmationModal } from '../../components/modals';
 import { Plus, Edit, Trash2, RefreshCw } from 'lucide-react';

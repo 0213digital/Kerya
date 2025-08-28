@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { SearchForm } from '../components/SearchForm';
 import { VehicleCard } from '../components/VehicleCard';
 import { Search, FileText, Car } from 'lucide-react';

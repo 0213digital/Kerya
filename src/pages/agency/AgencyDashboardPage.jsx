@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabaseClient';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { MonthlyRevenueChart } from '../../components/dashboard/MonthlyRevenueChart';

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../../lib/supabaseClient';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Download, AlertTriangle, Undo } from 'lucide-react';

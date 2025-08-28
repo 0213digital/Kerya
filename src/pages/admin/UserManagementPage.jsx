@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Users, Search, AlertTriangle, Filter, MoreVertical, Trash2, Ban, CheckCircle, Edit } from 'lucide-react';

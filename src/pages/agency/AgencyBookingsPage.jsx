@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { CancellationModal, ConfirmationModal } from '../../components/modals';
 import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar';
