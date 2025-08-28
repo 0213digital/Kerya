@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export function ConversationList({ conversations, activeConversationId, onSelect, currentUserId }) {
     const { t } = useTranslation();

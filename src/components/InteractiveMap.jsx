@@ -1,33 +1,27 @@
 import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
-// It's a good practice to handle potential issues with Leaflet's CSS in React.
-// This ensures the map renders correctly.
 import 'leaflet/dist/leaflet.css';
 
 export function InteractiveMap({ vehicles }) {
     const { t } = useTranslation();
 
-    // Default position (Algiers) if no vehicles are available or have coordinates
     const defaultPosition = [36.776, 3.058];
 
-    // Find the first vehicle with valid coordinates to center the map, otherwise use default
     const firstVehicleWithCoords = vehicles.find(v => v.agencies && v.agencies.latitude && v.agencies.longitude);
     const mapCenter = firstVehicleWithCoords 
         ? [firstVehicleWithCoords.agencies.latitude, firstVehicleWithCoords.agencies.longitude]
         : defaultPosition;
 
     return (
-        // The key forces a re-render if the center changes, which can be useful.
         <MapContainer key={mapCenter.toString()} center={mapCenter} zoom={6} style={{ height: '100%', width: '100%' }}>
             <TileLayer
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             />
             {vehicles.map(vehicle => {
-                // Ensure the vehicle has an agency with valid latitude and longitude
                 if (vehicle.agencies && typeof vehicle.agencies.latitude === 'number' && typeof vehicle.agencies.longitude === 'number') {
                     return (
                         <Marker key={vehicle.id} position={[vehicle.agencies.latitude, vehicle.agencies.longitude]}>
@@ -49,7 +43,6 @@ export function InteractiveMap({ vehicles }) {
                         </Marker>
                     );
                 }
-                // Return null if there are no valid coordinates for a vehicle
                 return null;
             })}
         </MapContainer>

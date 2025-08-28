@@ -1,15 +1,18 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useTranslation } from '../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { User, LogIn, LogOut, ChevronDown, ChevronUp, Globe, MessageSquare, Home, Search, User as UserIcon, Briefcase, Car, Shield, Power, Users, MapPin, Settings } from 'lucide-react';
 
 export function Navbar() {
     const { profile, handleLogout, isAuthenticated, isAgencyOwner, isAdmin } = useAuth();
-    const { t, language, setLanguage } = useTranslation();
+    const { t, i18n } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    const toggleLanguage = () => setLanguage(language === 'en' ? 'fr' : 'en');
+    const toggleLanguage = () => {
+        const newLang = i18n.language === 'en' ? 'fr' : 'en';
+        i18n.changeLanguage(newLang);
+    };
     const closeMenu = () => setIsMenuOpen(false);
 
     const MobileNavLink = ({ to, icon, children }) => (
@@ -38,7 +41,7 @@ export function Navbar() {
                         <Link to="/search" className="hover:text-indigo-500">{t('navSearch')}</Link>
                     </nav>
                     <div className="hidden md:flex items-center space-x-4">
-                        <button onClick={toggleLanguage} className="flex items-center p-2 rounded-full text-slate-600 hover:bg-slate-100"><Globe size={20} /><span className="ml-2 font-semibold text-sm">{language.toUpperCase()}</span></button>
+                        <button onClick={toggleLanguage} className="flex items-center p-2 rounded-full text-slate-600 hover:bg-slate-100"><Globe size={20} /><span className="ml-2 font-semibold text-sm">{i18n.language.toUpperCase()}</span></button>
                         {isAuthenticated ? (
                             <div className="relative">
                                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="flex items-center space-x-2 p-2 rounded-md hover:bg-slate-100">
