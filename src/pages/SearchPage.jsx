@@ -50,7 +50,6 @@ export function SearchPage() {
 
             let availableVehicleIds = null;
 
-            // Helper function to validate date strings
             const isValidDateString = (dateStr) => {
                 return dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
             };
@@ -67,7 +66,7 @@ export function SearchPage() {
                     setLoading(false);
                     return;
                 }
-                
+
                 availableVehicleIds = rpcData.map(item => item.vehicle_id);
                 if (availableVehicleIds.length === 0) {
                     setVehicles([]);
@@ -86,13 +85,11 @@ export function SearchPage() {
             if (availableVehicleIds) {
                 query = query.in('id', availableVehicleIds);
             } else if (from && to) {
-                // This case handles when dates are provided but the RPC returns no vehicles.
-                // We set vehicles to an empty array to avoid fetching all vehicles.
                 setVehicles([]);
                 setLoading(false);
                 return;
             }
-            
+
             const { data, error: vehiclesError } = await query;
 
             if (vehiclesError) {
@@ -111,7 +108,7 @@ export function SearchPage() {
     }, [searchParams]);
 
     const filteredAndSortedVehicles = useMemo(() => {
-        const filtered = vehicles.filter(v => 
+        const filtered = vehicles.filter(v =>
             v.daily_rate_dzd <= maxPrice &&
             (transmission === 'all' || v.transmission === transmission) &&
             (fuelType === 'all' || v.fuel_type === fuelType) &&
@@ -174,7 +171,7 @@ export function SearchPage() {
                             <h2 className="text-xl font-bold flex items-center"><SlidersHorizontal size={20} className="mr-2"/> {t('filters')}</h2>
                             <button onClick={resetFilters} className="text-sm text-indigo-600 hover:underline">{t('clearFilters')}</button>
                         </div>
-                        
+
                         <div><label className="block text-sm font-medium">{t('make')}</label><select value={makeFilter} onChange={e => setMakeFilter(e.target.value)} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white"><option value="all">{t('all')}</option>{Object.keys(carData).map(make => <option key={make} value={make}>{make}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('model')}</label><select value={modelFilter} onChange={e => setModelFilter(e.target.value)} disabled={makeFilter === 'all'} className="mt-1 w-full p-2 border border-slate-300 rounded-md bg-white disabled:bg-slate-100"><option value="all">{t('all')}</option>{availableModels.map(model => <option key={model} value={model}>{model}</option>)}</select></div>
                         <div><label className="block text-sm font-medium">{t('priceRange')}</label><input type="range" min="3000" max="30000" step="1000" value={maxPrice} onChange={e => setMaxPrice(Number(e.target.value))} className="w-full mt-2" /><div className="text-sm text-right">{maxPrice.toLocaleString()} DZD</div></div>

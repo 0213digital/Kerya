@@ -15,8 +15,7 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
     const fetchUnavailabilities = async () => {
       setLoading(true);
       setError(null);
-      
-      // Use the new, dedicated RPC for fetching unavailable dates for a single vehicle
+
       const { data, error: rpcError } = await supabase.rpc('get_unavailable_dates_for_vehicle', {
         p_vehicle_id: vehicleId
       });
@@ -38,14 +37,12 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
       return false;
     }
 
-    // Disable past dates
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     if (date < today) {
         return true;
     }
 
-    // Check if the date falls within any of the unavailable intervals
     return unavailableDates.some(interval => {
       const start = parseISO(interval.start_date);
       const end = parseISO(interval.end_date);
