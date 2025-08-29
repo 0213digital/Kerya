@@ -42,10 +42,13 @@ export function VehicleDetailsPage() {
         fetchVehicle();
     }, [vehicleId]);
 
-    const handleDateSelection = useCallback((end, start) => {
+    const handleDateSelection = useCallback((start, end) => {
         if (start) {
             setStartDate(start.toISOString().split('T')[0]);
+        } else {
+            setStartDate(null);
         }
+        
         if (end) {
             setEndDate(end.toISOString().split('T')[0]);
         } else {
@@ -75,6 +78,10 @@ export function VehicleDetailsPage() {
         if (isAgencyOwner) return;
         if (!startDate || !endDate) {
             alert(t('alertSelectDates'));
+            return;
+        }
+        if (new Date(endDate) < new Date(startDate)) {
+            alert("La date de retour ne peut pas être antérieure à la date de départ.");
             return;
         }
         const searchParams = new URLSearchParams({ startDate, endDate }).toString();

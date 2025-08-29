@@ -48,11 +48,16 @@ export function SearchPage() {
             const location = searchParams.get('location');
             const city = searchParams.get('city');
 
-            let availableVehicleIds = null;
+            let query = supabase
+                .from('vehicles')
+                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude), reviews(rating)`)
+                .eq('agencies.verification_status', 'verified');
 
-            const isValidDateString = (dateStr) => {
-                return dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
-            };
+            if (location) query = query.eq('agencies.wilaya', location);
+            if (city) query = query.eq('agencies.city', city);
+            
+            // **CORRECTION PRINCIPALE : On appelle la fonction RPC uniquement si les dates sont valides.**
+            const isValidDateString = (dateStr) => dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
 
             if (isValidDateString(from) && isValidDateString(to)) {
                 const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', {
@@ -67,27 +72,13 @@ export function SearchPage() {
                     return;
                 }
 
-                availableVehicleIds = rpcData.map(item => item.vehicle_id);
+                const availableVehicleIds = rpcData.map(item => item.vehicle_id);
                 if (availableVehicleIds.length === 0) {
                     setVehicles([]);
                     setLoading(false);
                     return;
                 }
-            }
-
-            let query = supabase
-                .from('vehicles')
-                .select(`*, agencies!inner(agency_name, city, wilaya, latitude, longitude), reviews(rating)`)
-                .eq('agencies.verification_status', 'verified');
-
-            if (location) query = query.eq('agencies.wilaya', location);
-            if (city) query = query.eq('agencies.city', city);
-            if (availableVehicleIds) {
                 query = query.in('id', availableVehicleIds);
-            } else if (from && to) {
-                setVehicles([]);
-                setLoading(false);
-                return;
             }
 
             const { data, error: vehiclesError } = await query;

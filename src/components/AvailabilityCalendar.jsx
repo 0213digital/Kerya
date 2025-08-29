@@ -44,6 +44,7 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
     }
 
     return unavailableDates.some(interval => {
+      if (!interval || !interval.start_date || !interval.end_date) return false;
       const start = parseISO(interval.start_date);
       const end = parseISO(interval.end_date);
       return isWithinInterval(date, { start, end });
@@ -57,7 +58,7 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
     <div className="p-4 border rounded-lg">
       <h3 className="text-xl font-semibold mb-4">Vehicle Availability</h3>
       <Calendar
-        onChange={(value) => onDateChange(value[1], value[0])}
+        onChange={(value) => onDateChange(value[0], value[1])}
         selectRange={true}
         tileDisabled={isDateDisabled}
         className="w-full border-0"
