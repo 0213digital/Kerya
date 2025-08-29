@@ -19,18 +19,36 @@ export function BookingConfirmationPage({ generateInvoice }) {
                 return;
             }
             setLoading(true);
-            const { data, error } = await supabase
+
+            // Step 1: Fetch the booking data along with vehicle and agency details
+            const { data: bookingData, error: bookingError } = await supabase
                 .from('bookings')
-                .select('*, vehicles(*, agencies(*)), profiles(*)') // <-- MODIFICATION ICI
+                .select('*, vehicles(*, agencies(*))') // Fetch vehicles and agencies
                 .eq('id', bookingId)
                 .single();
             
-            if (error || !data) {
-                console.error("Could not fetch booking confirmation:", error);
+            if (bookingError || !bookingData) {
+                console.error("Could not fetch booking confirmation:", bookingError);
                 navigate('/');
-            } else {
-                setBooking(data);
+                return;
             }
+
+            // Step 2: Fetch the profile data separately using the user_id from the booking
+            const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', bookingData.user_id)
+                .single();
+
+            if (profileError) {
+                console.error("Could not fetch renter's profile:", profileError);
+                // Set booking data even if profile fetch fails, so the page can still render something
+                setBooking(bookingData);
+            } else {
+                // Step 3: Combine the booking and profile data into one object
+                setBooking({ ...bookingData, profiles: profileData });
+            }
+
             setLoading(false);
         };
 

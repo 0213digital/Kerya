@@ -10,7 +10,11 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!vehicleId) return;
+    // FIX: Add a guard clause to prevent running with an undefined vehicleId.
+    if (!vehicleId) {
+      setLoading(false);
+      return;
+    }
 
     const fetchUnavailabilities = async () => {
       setLoading(true);
@@ -30,7 +34,7 @@ export function AvailabilityCalendar({ vehicleId, onDateChange }) {
     };
 
     fetchUnavailabilities();
-  }, [vehicleId]);
+  }, [vehicleId]); // Dependency array is correct
 
   const isDateDisabled = ({ date, view }) => {
     if (view !== 'month') {

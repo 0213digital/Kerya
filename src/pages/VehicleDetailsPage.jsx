@@ -22,25 +22,28 @@ export function VehicleDetailsPage() {
     const [endDate, setEndDate] = useState(null);
     const [contactError, setContactError] = useState('');
 
-    useEffect(() => {
-        const fetchVehicle = async () => {
-            if (!vehicleId) return;
-            setLoading(true);
+    const fetchVehicle = useCallback(async () => {
+        if (!vehicleId) return;
+        setLoading(true);
+        try {
             const { data, error } = await supabase
                 .from('vehicles')
                 .select('*, agencies(*)')
                 .eq('id', vehicleId)
                 .single();
-            if (error) {
-                console.error("Error fetching vehicle details:", error);
-                setError(error.message);
-            } else {
-                setVehicle(data);
-            }
+            if (error) throw error;
+            setVehicle(data);
+        } catch (err) {
+            console.error("Error fetching vehicle details:", err);
+            setError(err.message);
+        } finally {
             setLoading(false);
-        };
-        fetchVehicle();
+        }
     }, [vehicleId]);
+
+    useEffect(() => {
+        fetchVehicle();
+    }, [fetchVehicle]);
 
     const handleDateSelection = useCallback((start, end) => {
         if (start) {
