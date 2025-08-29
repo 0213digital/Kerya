@@ -21,18 +21,15 @@ export function BookingPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
-        // Wait for auth context to initialize
         if (authLoading) {
             return;
         }
-
-        // Redirect if user is not logged in or is an agency owner
         if (!session) {
             navigate('/login');
             return;
         }
         if (isAgencyOwner) {
-            navigate('/'); // Redirect agencies away from booking page
+            navigate('/');
             return;
         }
 
@@ -53,8 +50,7 @@ export function BookingPage() {
                 const start = new Date(startDate);
                 const end = new Date(endDate);
                 const diffTime = Math.abs(end - start);
-                // Ensure at least 1 day is calculated
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // Always at least 1 day
                 setTotalPrice(diffDays * data.daily_rate_dzd);
             }
             setLoading(false);
@@ -67,7 +63,6 @@ export function BookingPage() {
         setProcessing(true);
         setError('');
 
-        // CORRECTED: Swapped the order of parameters to match the SQL function
         const { data: availableVehicles, error: rpcError } = await supabase.rpc('get_available_vehicles', {
             start_date_in: startDate,
             end_date_in: endDate

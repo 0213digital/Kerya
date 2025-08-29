@@ -50,8 +50,12 @@ export function SearchPage() {
 
             let availableVehicleIds = null;
 
-            if (from && to) {
-                // Use the new, robust SQL function
+            // Helper function to validate date strings
+            const isValidDateString = (dateStr) => {
+                return dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr);
+            };
+
+            if (isValidDateString(from) && isValidDateString(to)) {
                 const { data: rpcData, error: rpcError } = await supabase.rpc('get_available_vehicles', {
                     start_date_in: from,
                     end_date_in: to
@@ -79,7 +83,15 @@ export function SearchPage() {
 
             if (location) query = query.eq('agencies.wilaya', location);
             if (city) query = query.eq('agencies.city', city);
-            if (availableVehicleIds) query = query.in('id', availableVehicleIds);
+            if (availableVehicleIds) {
+                query = query.in('id', availableVehicleIds);
+            } else if (from && to) {
+                // This case handles when dates are provided but the RPC returns no vehicles.
+                // We set vehicles to an empty array to avoid fetching all vehicles.
+                setVehicles([]);
+                setLoading(false);
+                return;
+            }
             
             const { data, error: vehiclesError } = await query;
 
