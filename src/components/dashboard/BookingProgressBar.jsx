@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTranslation } from '../../contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 
 export const BookingProgressBar = ({ status }) => {
     const { t } = useTranslation();

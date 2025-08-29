@@ -9,7 +9,7 @@ import { BookingProgressBar } from '../../components/dashboard/BookingProgressBa
 
 export function UserBookingsPage({ generateInvoice }) {
     const { t } = useTranslation();
-    const { session } = useAuth();
+    const { session, profile } = useAuth(); // Destructure profile from useAuth
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(null);
@@ -22,21 +22,27 @@ export function UserBookingsPage({ generateInvoice }) {
     };
 
     const fetchBookings = useCallback(async () => {
-        if (!session) return;
+        if (!session || !profile) return; // Wait for session and profile
         setLoading(true);
         const { data, error } = await supabase
             .from('bookings')
-            .select('*, vehicles(*, agencies(*)), profiles(*), reviews(id)')
+            .select('*, vehicles(*, agencies(*)), reviews(id)') // Simplified select statement
             .eq('user_id', session.user.id)
             .order('start_date', { ascending: false });
 
         if (error) {
             console.error("Error fetching bookings:", error);
+            setBookings([]);
         } else {
-            setBookings(data || []);
+            // Attach the user's profile to each booking for the invoice generation
+            const bookingsWithProfile = data.map(booking => ({
+                ...booking,
+                profiles: profile
+            }));
+            setBookings(bookingsWithProfile || []);
         }
         setLoading(false);
-    }, [session]);
+    }, [session, profile]); // Add profile to dependency array
 
     useEffect(() => {
         fetchBookings();
