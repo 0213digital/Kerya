@@ -1,3 +1,12 @@
+// THIS FILE IS DEPRECATED AND WILL BE REMOVED.
+// The application has been standardized to use `react-i18next` for all translations.
+// Please use the `useTranslation` hook from `react-i18next` instead of this context.
+//
+// Example:
+// import { useTranslation } from 'react-i18next';
+// const { t } = useTranslation();
+// return <h1>{t('myTranslationKey')}</h1>
+
 import React, { createContext, useState, useEffect, useContext, useCallback, useMemo } from 'react';
 import { translations } from '../data/translations';
 
@@ -12,30 +21,27 @@ export const LanguageProvider = ({ children }) => {
     localStorage.setItem('language', language);
   }, [language]);
 
-  // FIX: Updated `t` function to handle interpolation
   const t = useCallback((key, options) => {
     const keys = key.split('.');
     let text = translations[language];
     for (const k of keys) {
-      text = text?.[k];
-      if (text === undefined) {
-        // Improvement: Warn developers about missing keys
-        console.warn(`Translation key not found: ${key}`); 
-        return key; 
+      if (text) {
+        text = text[k];
+      } else {
+        console.warn(`Translation key not found: ${key}`);
+        return key;
       }
     }
 
-    // Perform interpolation if options are provided
     if (options && typeof text === 'string') {
       return text.replace(/{(\w+)}/g, (placeholder, placeholderKey) => {
         return options[placeholderKey] !== undefined ? options[placeholderKey] : placeholder;
       });
     }
 
-    return text;
-  }, [language]); // Re-create this function only when the language changes
+    return text || key;
+  }, [language]);
 
-  // IMPROVEMENT: Memoize the context value to prevent unnecessary re-renders
   const value = useMemo(() => ({
     language,
     setLanguage,

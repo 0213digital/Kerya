@@ -1,13 +1,11 @@
-import React, { useReducer, useEffect, useState, useContext } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useReducer, useEffect, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabaseClient';
-import { VehicleCard } from '../components/VehicleCard'; // Corrected import
-import { InteractiveMap } from '../components/InteractiveMap'; // Corrected import
+import { VehicleCard } from '../components/VehicleCard';
 import { carData } from '../data/geoAndCarData';
-import { LanguageContext } from '../contexts/LanguageContext';
-import { translations } from '../data/translations';
+import { SlidersHorizontal } from 'lucide-react';
 
-// Initial state for filters
+// Initial state for filters, now includes sorting
 const initialState = {
   isFilterVisible: false,
   priceRange: [0, 50000],
@@ -16,8 +14,7 @@ const initialState = {
   selectedYear: '',
   selectedTransmission: '',
   selectedFuelType: '',
-  showAllBrands: false,
-  showAllModels: false,
+  sortBy: 'price_asc', // Default sort
   showAllYears: false,
 };
 
@@ -29,7 +26,7 @@ function filterReducer(state, action) {
     case 'SET_PRICE_RANGE':
       return { ...state, priceRange: action.payload };
     case 'SET_BRAND':
-      return { ...state, selectedBrand: action.payload, selectedModel: '' }; // Reset model when brand changes
+      return { ...state, selectedBrand: action.payload, selectedModel: '' };
     case 'SET_MODEL':
       return { ...state, selectedModel: action.payload };
     case 'SET_YEAR':
@@ -38,206 +35,198 @@ function filterReducer(state, action) {
       return { ...state, selectedTransmission: action.payload };
     case 'SET_FUEL_TYPE':
       return { ...state, selectedFuelType: action.payload };
-    case 'TOGGLE_SHOW_ALL_BRANDS':
-      return { ...state, showAllBrands: !state.showAllBrands };
-    case 'TOGGLE_SHOW_ALL_MODELS':
-      return { ...state, showAllModels: !state.showAllModels };
+    case 'SET_SORT_BY':
+      return { ...state, sortBy: action.payload };
     case 'TOGGLE_SHOW_ALL_YEARS':
       return { ...state, showAllYears: !state.showAllYears };
     case 'RESET_FILTERS':
       return {
         ...initialState,
-        isFilterVisible: state.isFilterVisible // Keep the filter visibility state
+        isFilterVisible: state.isFilterVisible,
       };
     default:
       throw new Error();
   }
 }
 
-const SearchPage = () => {
-  const location = useLocation();
-  const { language } = useContext(LanguageContext);
-  const t = translations[language];
+// Reusable component for filter options
+const FilterOption = ({ label, isSelected, onClick }) => (
+  <button
+    onClick={onClick}
+    className={`w-full text-left px-3 py-2 text-sm rounded-md transition-colors ${
+      isSelected
+        ? 'bg-indigo-600 text-white font-semibold'
+        : 'text-slate-700 hover:bg-indigo-50'
+    }`}
+  >
+    {label}
+  </button>
+);
 
+// Reusable component for grouping filters
+const FilterGroup = ({ title, children }) => (
+  <div className="py-4 border-b border-slate-200">
+    <h3 className="text-sm font-semibold text-slate-800 mb-3">{title}</h3>
+    <div className="space-y-2">{children}</div>
+  </div>
+);
+
+const SearchPage = () => {
+  const { t } = useTranslation();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const [filterState, dispatch] = useReducer(filterReducer, initialState);
 
   const {
-    isFilterVisible,
-    priceRange,
-    selectedBrand,
-    selectedModel,
-    selectedYear,
-    selectedTransmission,
-    selectedFuelType,
-    showAllBrands,
-    showAllModels,
+    isFilterVisible, priceRange, selectedBrand, selectedModel,
+    selectedYear, selectedTransmission, selectedFuelType, sortBy,
     showAllYears,
   } = filterState;
 
-  useEffect(() => {
-    const fetchVehicles = async () => {
-      setLoading(true);
-      try {
-        let query = supabase.from('vehicles').select(`
-          *,
-          agencies (
-            name,
-            address,
-            latitude,
-            longitude
-          )
-        `);
+  const fetchVehicles = useCallback(async () => {
+    setLoading(true);
+    try {
+      let query = supabase.from('vehicles').select(`*, agencies (agency_name, address, latitude, longitude)`);
+      
+      // Apply filters
+      query = query.gte('daily_rate_dzd', priceRange[0]);
+      query = query.lte('daily_rate_dzd', priceRange[1]);
+      if (selectedBrand) query = query.eq('make', selectedBrand);
+      if (selectedModel) query = query.eq('model', selectedModel);
+      if (selectedYear) query = query.eq('year', selectedYear);
+      if (selectedTransmission) query = query.eq('transmission', selectedTransmission);
+      if (selectedFuelType) query = query.eq('fuel_type', selectedFuelType);
 
-        // Apply filters
-        query = query.gte('price_per_day', priceRange[0]);
-        query = query.lte('price_per_day', priceRange[1]);
-
-        if (selectedBrand) {
-          query = query.eq('brand', selectedBrand);
-        }
-        if (selectedModel) {
-          query = query.eq('model', selectedModel);
-        }
-        if (selectedYear) {
-          query = query.eq('year', selectedYear);
-        }
-        if (selectedTransmission) {
-          query = query.eq('transmission', selectedTransmission);
-        }
-        if (selectedFuelType) {
-          query = query.eq('fuel_type', selectedFuelType);
-        }
-
-        const { data, error } = await query;
-
-        if (error) {
-          throw error;
-        }
-        setVehicles(data);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+      // Apply sorting
+      const [sortField, sortDirection] = sortBy.split('_');
+      if (sortField === 'price') {
+        query = query.order('daily_rate_dzd', { ascending: sortDirection === 'asc' });
+      } else if (sortField === 'rating') {
+        // Placeholder for rating sort if you add it later
+        // query = query.order('rating', { ascending: false });
       }
-    };
 
+      const { data, error } = await query;
+      if (error) throw error;
+      setVehicles(data || []);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [priceRange, selectedBrand, selectedModel, selectedYear, selectedTransmission, selectedFuelType, sortBy]);
+
+  useEffect(() => {
     fetchVehicles();
-  }, [priceRange, selectedBrand, selectedModel, selectedYear, selectedTransmission, selectedFuelType]);
+  }, [fetchVehicles]);
 
   const brands = [...new Set(Object.keys(carData))];
   const models = selectedBrand ? [...new Set(carData[selectedBrand])] : [];
   const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - i);
-
-  const displayedBrands = showAllBrands ? brands : brands.slice(0, 10);
-  const displayedModels = showAllModels ? models : models.slice(0, 10);
   const displayedYears = showAllYears ? years : years.slice(0, 10);
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen">
-      <aside className={`w-full lg:w-1/4 p-4 bg-gray-50 border-r ${isFilterVisible ? 'block' : 'hidden'} lg:block`}>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
+      <aside className={`w-full lg:w-80 flex-shrink-0 p-6 bg-white border-r border-slate-200 ${isFilterVisible ? 'block' : 'hidden'} lg:block`}>
         <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">{t.filters}</h2>
-            <button
-                onClick={() => dispatch({ type: 'RESET_FILTERS' })}
-                className="text-sm text-blue-600 hover:underline"
-            >
-                {t.resetFilters}
-            </button>
+          <h2 className="text-lg font-bold flex items-center"><SlidersHorizontal size={20} className="mr-2 text-slate-500" />{t('filters')}</h2>
+          <button onClick={() => dispatch({ type: 'RESET_FILTERS' })} className="text-sm font-medium text-indigo-600 hover:underline">{t('clearFilters')}</button>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">{t.priceRange}</label>
+        <FilterGroup title={t('sortBy')}>
+            <FilterOption label={t('priceLowHigh')} isSelected={sortBy === 'price_asc'} onClick={() => dispatch({ type: 'SET_SORT_BY', payload: 'price_asc' })} />
+            <FilterOption label={t('priceHighLow')} isSelected={sortBy === 'price_desc'} onClick={() => dispatch({ type: 'SET_SORT_BY', payload: 'price_desc' })} />
+            {/* <FilterOption label={t('ratingHighLow')} isSelected={sortBy === 'rating_desc'} onClick={() => dispatch({ type: 'SET_SORT_BY', payload: 'rating_desc' })} /> */}
+        </FilterGroup>
+
+        <FilterGroup title={t('priceRange')}>
           <input
             type="range"
             min="0"
             max="50000"
-            value={priceRange[0]}
-            onChange={(e) => dispatch({ type: 'SET_PRICE_RANGE', payload: [Number(e.target.value), priceRange[1]] })}
-            className="w-full"
-          />
-           <input
-            type="range"
-            min="0"
-            max="50000"
+            step="1000"
             value={priceRange[1]}
-            onChange={(e) => dispatch({ type: 'SET_PRICE_RANGE', payload: [priceRange[0], Number(e.target.value)] })}
-            className="w-full"
+            onChange={(e) => dispatch({ type: 'SET_PRICE_RANGE', payload: [0, Number(e.target.value)] })}
+            className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
           />
-          <div className="flex justify-between text-xs text-gray-500">
-            <span>{priceRange[0]} {t.currency}</span>
-            <span>{priceRange[1]} {t.currency}</span>
+          <div className="flex justify-between text-xs text-slate-500 mt-2">
+            <span>0 {t('dailyRateSuffix')}</span>
+            <span>{priceRange[1].toLocaleString()} {t('dailyRateSuffix')}</span>
           </div>
-        </div>
+        </FilterGroup>
 
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">{t.brand}</label>
-            {displayedBrands.map(brand => (
-                <button key={brand} onClick={() => dispatch({ type: 'SET_BRAND', payload: brand })} className={`w-full text-left p-1 rounded ${selectedBrand === brand ? 'bg-blue-500 text-white' : ''}`}>{brand}</button>
+        <FilterGroup title={t('make')}>
+          <select
+            value={selectedBrand}
+            onChange={(e) => dispatch({ type: 'SET_BRAND', payload: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            <option value="">{t('all')}</option>
+            {brands.map(brand => (
+              <option key={brand} value={brand}>{brand}</option>
             ))}
-            {brands.length > 10 && (
-                <button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ALL_BRANDS' })} className="text-blue-500 text-sm">{showAllBrands ? t.showLess : t.showMore}</button>
-            )}
-        </div>
+          </select>
+        </FilterGroup>
 
         {selectedBrand && (
-            <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700">{t.model}</label>
-                {displayedModels.map(model => (
-                    <button key={model} onClick={() => dispatch({ type: 'SET_MODEL', payload: model })} className={`w-full text-left p-1 rounded ${selectedModel === model ? 'bg-blue-500 text-white' : ''}`}>{model}</button>
+            <FilterGroup title={t('model')}>
+                <select
+                value={selectedModel}
+                onChange={(e) => dispatch({ type: 'SET_MODEL', payload: e.target.value })}
+                className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                <option value="">{t('all')}</option>
+                {models.map(model => (
+                    <option key={model} value={model}>{model}</option>
                 ))}
-                {models.length > 10 && (
-                    <button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ALL_MODELS' })} className="text-blue-500 text-sm">{showAllModels ? t.showLess : t.showMore}</button>
-                )}
-            </div>
+                </select>
+            </FilterGroup>
         )}
+        
+        <FilterGroup title={t('transmission')}>
+            <div className="flex gap-2">
+                {['automatic', 'manual'].map(type => (
+                     <button key={type} onClick={() => dispatch({ type: 'SET_TRANSMISSION', payload: type })} className={`flex-1 px-3 py-2 text-sm rounded-md transition-colors border capitalize ${selectedTransmission === type ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}`}>
+                        {t(type)}
+                    </button>
+                ))}
+            </div>
+        </FilterGroup>
 
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">{t.year}</label>
-            {displayedYears.map(year => (
-                <button key={year} onClick={() => dispatch({ type: 'SET_YEAR', payload: year })} className={`w-full text-left p-1 rounded ${selectedYear === year ? 'bg-blue-500 text-white' : ''}`}>{year}</button>
-            ))}
-            {years.length > 10 && (
-                <button onClick={() => dispatch({ type: 'TOGGLE_SHOW_ALL_YEARS' })} className="text-blue-500 text-sm">{showAllYears ? t.showLess : t.showMore}</button>
-            )}
-        </div>
+        <FilterGroup title={t('fuelType')}>
+            <div className="grid grid-cols-2 gap-2">
+                {['gasoline', 'diesel'].map(type => (
+                    <button key={type} onClick={() => dispatch({ type: 'SET_FUEL_TYPE', payload: type })} className={`px-3 py-2 text-sm rounded-md transition-colors border capitalize ${selectedFuelType === type ? 'bg-indigo-600 text-white border-indigo-600 font-semibold' : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'}`}>
+                        {t(type)}
+                    </button>
+                ))}
+            </div>
+        </FilterGroup>
 
-        <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700">{t.transmission}</label>
-            {['Automatic', 'Manual'].map(type => (
-                <button key={type} onClick={() => dispatch({ type: 'SET_TRANSMISSION', payload: type })} className={`w-full text-left p-1 rounded ${selectedTransmission === type ? 'bg-blue-500 text-white' : ''}`}>{t[type.toLowerCase()]}</button>
-            ))}
-        </div>
-
-        <div>
-            <label className="block text-sm font-medium text-gray-700">{t.fuelType}</label>
-            {['Gasoline', 'Diesel', 'Electric', 'Hybrid'].map(type => (
-                <button key={type} onClick={() => dispatch({ type: 'SET_FUEL_TYPE', payload: type })} className={`w-full text-left p-1 rounded ${selectedFuelType === type ? 'bg-blue-500 text-white' : ''}`}>{t[type.toLowerCase()]}</button>
-            ))}
-        </div>
       </aside>
 
-      <main className="w-full lg:w-3/4 p-4">
-        <button
-          onClick={() => dispatch({ type: 'TOGGLE_FILTERS' })}
-          className="lg:hidden mb-4 w-full bg-gray-200 p-2 rounded"
-        >
-          {isFilterVisible ? t.hideFilters : t.showFilters}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <button onClick={() => dispatch({ type: 'TOGGLE_FILTERS' })} className="lg:hidden mb-4 w-full flex items-center justify-center gap-2 bg-white p-3 rounded-md shadow-sm border border-slate-200">
+          <SlidersHorizontal size={16} />{isFilterVisible ? t('hideFilters') : t('showFilters')}
         </button>
-        <div className="h-64 mb-4">
-          <InteractiveMap vehicles={vehicles} />
-        </div>
-        {loading && <p>{t.loading}</p>}
-        {error && <p className="text-red-500">{t.error}: {error}</p>}
+
+        {loading && <p>{t('loading')}</p>}
+        {error && <p className="text-red-500">{t('error')}: {error}</p>}
+        
         {!loading && !error && (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-            {vehicles.map(vehicle => (
-              <VehicleCard key={vehicle.id} vehicle={vehicle} />
-            ))}
-          </div>
+            <>
+                <p className="mb-4 text-slate-600">{t('showingResults', { count: vehicles.length })}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {vehicles.map(vehicle => (<VehicleCard key={vehicle.id} vehicle={vehicle} />))}
+                </div>
+                {vehicles.length === 0 && (
+                    <div className="text-center py-16">
+                        <h3 className="text-xl font-semibold text-slate-700">{t('noVehiclesFound')}</h3>
+                        <p className="text-slate-500 mt-2">{t('tryAdjustingFilters')}</p>
+                    </div>
+                )}
+            </>
         )}
       </main>
     </div>
@@ -245,3 +234,4 @@ const SearchPage = () => {
 };
 
 export default SearchPage;
+
