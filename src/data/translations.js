@@ -382,6 +382,7 @@ export const translations = {
         enterCodeToConfirmPickup: "Please enter the 4-digit code provided by the customer to confirm vehicle pickup.",
         invalidCode: "The code entered is incorrect. Please try again.",
         submitCode: "Submit Code",
+        statusUpdated: "Status updated successfully!",
     },
     fr: {
         appName: "KERYA",
@@ -766,5 +767,6 @@ export const translations = {
         enterCodeToConfirmPickup: "Veuillez saisir le code à 4 chiffres fourni par le client pour confirmer la récupération du véhicule.",
         invalidCode: "Le code saisi est incorrect. Veuillez réessayer.",
         submitCode: "Valider le Code",
+        statusUpdated: "Statut mis à jour avec succès !",
     }
 };

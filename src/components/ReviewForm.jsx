@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuth } from '../contexts/AuthContext';
+import { toast } from 'react-hot-toast';
+import { useTranslation } from 'react-i18next';
 
 export function ReviewForm({ booking, onClose, onReviewSubmitted }) {
+  const { t } = useTranslation();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const { session } = useAuth();
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
     setSubmitting(true);
 
     if (rating === 0) {
-      setError('Please select a rating.');
+      toast.error(t('selectARating'));
       setSubmitting(false);
       return;
     }
@@ -32,17 +31,16 @@ export function ReviewForm({ booking, onClose, onReviewSubmitted }) {
 
     if (insertError) {
       console.error('Error submitting review:', insertError);
-      setError(insertError.message.includes('unique_user_booking_review') 
+      const errorMessage = insertError.message.includes('unique_user_booking_review')
         ? 'You have already submitted a review for this booking.'
-        : 'Failed to submit review. Please try again.');
+        : 'Failed to submit review. Please try again.';
+      toast.error(errorMessage);
     } else {
-      setSuccess('Thank you for your review!');
-      setRating(0);
-      setComment('');
+      toast.success('Thank you for your review!');
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
-      setTimeout(() => onClose(), 2000); // Close modal after 2s
+      setTimeout(() => onClose(), 1500);
     }
     setSubmitting(false);
   };
@@ -51,10 +49,10 @@ export function ReviewForm({ booking, onClose, onReviewSubmitted }) {
     <div className="fixed inset-0 bg-black/50 z-50 flex justify-center items-center p-4">
         <div className="relative p-6 bg-white rounded-lg shadow-xl w-full max-w-md">
             <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-slate-800">&times;</button>
-            <h3 className="text-2xl font-bold mb-4">Leave a Review</h3>
+            <h3 className="text-2xl font-bold mb-4">{t('reviewFormTitle')}</h3>
             <form onSubmit={handleSubmit}>
             <div className="mb-4">
-                <label className="block mb-2 font-semibold">Your Rating</label>
+                <label className="block mb-2 font-semibold">{t('yourRating')}</label>
                 <div className="flex">
                 {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -75,14 +73,14 @@ export function ReviewForm({ booking, onClose, onReviewSubmitted }) {
                 </div>
             </div>
             <div className="mb-4">
-                <label htmlFor="comment" className="block mb-2 font-semibold">Your Comment</label>
+                <label htmlFor="comment" className="block mb-2 font-semibold">{t('yourCommentOptional')}</label>
                 <textarea
                 id="comment"
                 rows="4"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
                 className="w-full p-2 border rounded-md"
-                placeholder="Share your experience..."
+                placeholder={t('howWasYourExperience')}
                 ></textarea>
             </div>
             <button
@@ -90,10 +88,8 @@ export function ReviewForm({ booking, onClose, onReviewSubmitted }) {
                 disabled={submitting}
                 className="bg-indigo-600 text-white py-2 px-5 rounded-md hover:bg-indigo-700 disabled:bg-indigo-400"
             >
-                {submitting ? 'Submitting...' : 'Submit Review'}
+                {submitting ? t('processing') : t('submitReview')}
             </button>
-            {error && <p className="text-red-500 mt-2">{error}</p>}
-            {success && <p className="text-green-500 mt-2">{success}</p>}
             </form>
         </div>
     </div>

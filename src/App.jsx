@@ -5,6 +5,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { Toaster } from 'react-hot-toast'; // Import Toaster
 import { HomePage } from './pages/HomePage';
 import { SearchPage } from './pages/SearchPage';
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
@@ -34,7 +35,7 @@ import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
 const generateInvoice = async (booking, t) => {
     if (!booking?.profiles || !booking?.vehicles?.agencies) {
         console.error("Booking data is incomplete for invoice generation.", booking);
-        alert("Sorry, booking data is incomplete for the invoice.");
+        toast.error("Sorry, booking data is incomplete for the invoice.");
         return;
     }
 
@@ -116,7 +117,7 @@ const generateInvoice = async (booking, t) => {
 
     } catch (error) {
         console.error("Failed to generate PDF:", error);
-        alert("Sorry, there was an error creating the invoice PDF.");
+        toast.error("Sorry, there was an error creating the invoice PDF.");
     }
 };
 
@@ -136,6 +137,7 @@ export default function App() {
 
     return (
         <div className="min-h-screen font-sans transition-colors duration-300 bg-slate-50">
+            <Toaster position="bottom-right" />
             {!isSpecialPage && <Navbar />}
             <main className={!isSpecialPage ? "pt-20" : ""}>
                 <Routes>

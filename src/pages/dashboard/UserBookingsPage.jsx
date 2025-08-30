@@ -6,10 +6,11 @@ import { DashboardLayout } from '../../components/DashboardLayout';
 import { Download, AlertTriangle, Undo } from 'lucide-react';
 import { ReviewForm } from '../../components/ReviewForm';
 import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar';
+import { toast } from 'react-hot-toast';
 
 export function UserBookingsPage({ generateInvoice }) {
     const { t } = useTranslation();
-    const { session, profile } = useAuth(); // Destructure profile from useAuth
+    const { session, profile } = useAuth();
     const [bookings, setBookings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(null);
@@ -22,11 +23,11 @@ export function UserBookingsPage({ generateInvoice }) {
     };
 
     const fetchBookings = useCallback(async () => {
-        if (!session || !profile) return; // Wait for session and profile
+        if (!session || !profile) return;
         setLoading(true);
         const { data, error } = await supabase
             .from('bookings')
-            .select('*, vehicles(*, agencies(*)), reviews(id)') // Simplified select statement
+            .select('*, vehicles(*, agencies(*)), reviews(id)')
             .eq('user_id', session.user.id)
             .order('start_date', { ascending: false });
 
@@ -34,7 +35,6 @@ export function UserBookingsPage({ generateInvoice }) {
             console.error("Error fetching bookings:", error);
             setBookings([]);
         } else {
-            // Attach the user's profile to each booking for the invoice generation
             const bookingsWithProfile = data.map(booking => ({
                 ...booking,
                 profiles: profile
@@ -42,7 +42,7 @@ export function UserBookingsPage({ generateInvoice }) {
             setBookings(bookingsWithProfile || []);
         }
         setLoading(false);
-    }, [session, profile]); // Add profile to dependency array
+    }, [session, profile]);
 
     useEffect(() => {
         fetchBookings();
@@ -56,8 +56,9 @@ export function UserBookingsPage({ generateInvoice }) {
             .eq('id', bookingId);
         
         if (error) {
-            alert(t('error') + ': ' + error.message);
+            toast.error(t('error') + ': ' + error.message);
         } else {
+            toast.success('Return requested successfully!');
             fetchBookings();
         }
         setProcessing(null);

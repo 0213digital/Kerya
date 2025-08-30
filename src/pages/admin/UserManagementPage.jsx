@@ -6,6 +6,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { Users, Search, AlertTriangle, Filter, MoreVertical, Trash2, Ban, CheckCircle, Edit } from 'lucide-react';
 import { ConfirmationModal } from '../../components/modals';
+import { toast } from 'react-hot-toast';
 
 export function UserManagementPage() {
     const { t } = useTranslation();
@@ -14,7 +15,6 @@ export function UserManagementPage() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [fetchError, setFetchError] = useState(null);
     const [statusFilter, setStatusFilter] = useState('all');
     const [roleFilter, setRoleFilter] = useState('all');
     const [activeDropdown, setActiveDropdown] = useState(null);
@@ -22,11 +22,10 @@ export function UserManagementPage() {
 
     const fetchUsers = useCallback(async () => {
         setLoading(true);
-        setFetchError(null);
         const { data, error } = await supabase.rpc('get_all_users_with_profiles', {});
         if (error) {
             console.error('Error fetching users via RPC:', error);
-            setFetchError(t('failedToFetchUserData'));
+            toast.error(t('failedToFetchUserData'));
             setUsers([]);
         } else {
             const sortedUsers = data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -47,20 +46,33 @@ export function UserManagementPage() {
         if (!modalState.user || !modalState.action) return;
 
         const { user, action } = modalState;
+        
+        const actionPromise = new Promise(async (resolve, reject) => {
+            let error;
+            if (action === 'delete') {
+                const { error: deleteError } = await supabase.functions.invoke('admin-delete-user', {
+                    body: { userId: user.id },
+                });
+                error = deleteError;
+            } else if (action === 'suspend' || action === 'activate') {
+                const newStatus = action === 'suspend';
+                const { error: updateError } = await supabase.from('profiles').update({ is_suspended: newStatus }).eq('id', user.id);
+                error = updateError;
+            }
+            if (error) reject(error);
+            else resolve();
+        });
 
-        if (action === 'delete') {
-            const { error } = await supabase.functions.invoke('admin-delete-user', {
-                body: { userId: user.id },
-            });
-            if (error) alert(`Error deleting user: ${error.message}`);
-        } else if (action === 'suspend' || action === 'activate') {
-            const newStatus = action === 'suspend';
-            const { error } = await supabase.from('profiles').update({ is_suspended: newStatus }).eq('id', user.id);
-            if (error) alert(`Error updating user: ${error.message}`);
-        }
+        toast.promise(actionPromise, {
+            loading: t('processing'),
+            success: () => {
+                fetchUsers();
+                return t('statusUpdated');
+            },
+            error: (err) => `${t('error')}: ${err.message}`,
+        });
         
         setModalState({ isOpen: false, user: null, action: null });
-        fetchUsers();
     };
 
     const openModal = (user, action) => {
@@ -103,7 +115,6 @@ export function UserManagementPage() {
                     isDestructive={modalState.action !== 'activate'}
                 />
             )}
-            {fetchError && <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6" role="alert"><p className="font-bold">{t('dataFetchError')}</p><p className="text-sm">{fetchError}</p></div>}
             
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">

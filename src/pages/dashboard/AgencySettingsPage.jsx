@@ -3,23 +3,22 @@ import { supabase } from '../../lib/supabaseClient';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
-import { Settings } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function AgencySettingsPage() {
-    const { profile } = useAuth(); // Correction : on utilise profile
+    const { profile } = useAuth();
     const { t } = useTranslation();
     const [agency, setAgency] = useState(null);
     const [invoiceLogoUrl, setInvoiceLogoUrl] = useState('');
-    const [invoiceBrandColor, setInvoiceBrandColor] = useState('#4f46e5'); // Valeur par défaut
+    const [invoiceBrandColor, setInvoiceBrandColor] = useState('#4f46e5');
     const [invoiceTerms, setInvoiceTerms] = useState('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
-    const [message, setMessage] = useState('');
 
     useEffect(() => {
         const fetchAgency = async () => {
-            if (profile?.id) { // On vérifie si le profil est chargé
+            if (profile?.id) {
                 try {
                     const { data, error } = await supabase
                         .from('agencies')
@@ -48,7 +47,6 @@ export function AgencySettingsPage() {
     const handleSave = async (e) => {
         e.preventDefault();
         setSaving(true);
-        setMessage('');
 
         try {
             const { error } = await supabase
@@ -61,10 +59,10 @@ export function AgencySettingsPage() {
                 .eq('id', agency.id);
 
             if (error) throw error;
-            setMessage(t('invoiceSettingsSaved'));
+            toast.success(t('invoiceSettingsSaved'));
         } catch (error) {
             console.error('Error saving settings:', error);
-            setMessage(`${t('error')}: ${error.message}`);
+            toast.error(`${t('error')}: ${error.message}`);
         } finally {
             setSaving(false);
         }
@@ -78,7 +76,6 @@ export function AgencySettingsPage() {
         const fileName = `${profile.id}/${Date.now()}-${file.name}`;
         
         try {
-            // Le bucket doit être 'agency-logos' pour correspondre à la politique de sécurité
             const { data, error } = await supabase.storage
                 .from('agency-logos') 
                 .upload(fileName, file);
@@ -92,13 +89,12 @@ export function AgencySettingsPage() {
             setInvoiceLogoUrl(publicURLData.publicUrl);
         } catch (error) {
             console.error('Error uploading logo:', error);
-            setMessage(`${t('error')}: ${error.message}`);
+            toast.error(`${t('error')}: ${error.message}`);
         } finally {
             setUploading(false);
         }
     };
     
-    // On met à jour le DashboardLayout pour qu'il soit plus générique
     if (loading) {
         return <DashboardLayout title={t('agencySettings')} description=""><div className="p-4">{t('loading')}...</div></DashboardLayout>;
     }
@@ -110,8 +106,6 @@ export function AgencySettingsPage() {
                 <div className="bg-white p-6 rounded-lg shadow-md">
                     <h2 className="text-2xl font-semibold text-slate-700 mb-4 border-b pb-2">{t('invoiceCustomization')}</h2>
                     
-                    {message && <div className={`mb-4 p-3 rounded-md ${message.startsWith(t('error')) ? 'bg-red-100 text-red-700' : 'bg-indigo-100 text-indigo-700'}`}>{message}</div>}
-
                     <form onSubmit={handleSave}>
                         <div className="space-y-6">
                             <div>

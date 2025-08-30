@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { User, Edit } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const AVATARS_BUCKET = 'avatars';
 
@@ -16,8 +17,6 @@ export function ProfilePage() {
     const [fullName, setFullName] = useState('');
     const [phoneNumber, setPhoneNumber] = useState('');
     const [avatarUrl, setAvatarUrl] = useState(null);
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
 
     useEffect(() => {
         if (profile) {
@@ -32,8 +31,6 @@ export function ProfilePage() {
         if (!file || !profile) return;
 
         setUploading(true);
-        setSuccessMessage('');
-        setErrorMessage('');
         const filePath = `${profile.id}/${Date.now()}`;
 
         const { error: uploadError } = await supabase.storage
@@ -41,7 +38,7 @@ export function ProfilePage() {
             .upload(filePath, file);
 
         if (uploadError) {
-            setErrorMessage(uploadError.message);
+            toast.error(uploadError.message);
         } else {
             const { data } = supabase.storage
                 .from(AVATARS_BUCKET)
@@ -54,9 +51,9 @@ export function ProfilePage() {
                     .eq('id', profile.id);
 
                 if (updateError) {
-                    setErrorMessage(updateError.message);
+                    toast.error(updateError.message);
                 } else {
-                    setSuccessMessage(t('profileUpdated'));
+                    toast.success(t('profileUpdated'));
                     fetchProfile(session.user);
                 }
             }
@@ -67,8 +64,6 @@ export function ProfilePage() {
     const handleUpdateProfile = async (e) => {
         e.preventDefault();
         setLoading(true);
-        setSuccessMessage('');
-        setErrorMessage('');
         const { error } = await supabase
             .from('profiles')
             .update({
@@ -78,9 +73,9 @@ export function ProfilePage() {
             .eq('id', profile.id);
 
         if (error) {
-            setErrorMessage(error.message);
+            toast.error(error.message);
         } else {
-            setSuccessMessage(t('profileUpdated'));
+            toast.success(t('profileUpdated'));
             fetchProfile(session.user);
         }
         setLoading(false);
@@ -101,8 +96,6 @@ export function ProfilePage() {
         <DashboardLayout title={t('profileTitle')} description={t('profileDesc')}>
             <div className="max-w-xl mx-auto bg-white p-8 rounded-lg shadow-md">
                 <form onSubmit={handleUpdateProfile} className="space-y-6">
-                    {successMessage && <div className="bg-green-100 text-green-700 p-3 rounded-md mb-4">{successMessage}</div>}
-                    {errorMessage && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4">{errorMessage}</div>}
                     <div>
                         <label className="block text-sm font-medium text-center">{t('profilePicture')}</label>
                         <div className="mt-2 flex justify-center">

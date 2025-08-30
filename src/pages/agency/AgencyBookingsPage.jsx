@@ -6,6 +6,7 @@ import { DashboardLayout } from '../../components/DashboardLayout';
 import { CancellationModal, ConfirmationModal } from '../../components/modals';
 import { BookingProgressBar } from '../../components/dashboard/BookingProgressBar';
 import { Ban, Check, Undo } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function AgencyBookingsPage() {
     const { t } = useTranslation();
@@ -40,8 +41,9 @@ export function AgencyBookingsPage() {
             p_new_status: newStatus,
         });
         if (error) {
-            alert(t('error') + ': ' + error.message);
+            toast.error(t('error') + ': ' + error.message);
         } else {
+            toast.success(t('statusUpdated'));
             setShowConfirmModal(null);
             fetchBookings();
         }
@@ -56,8 +58,9 @@ export function AgencyBookingsPage() {
             p_reason: reason,
         });
         if (error) {
-            alert(t('error') + ': ' + error.message);
+            toast.error(t('error') + ': ' + error.message);
         } else {
+            toast.success(t('bookingCancelled'));
             setShowCancelModal(null);
             fetchBookings();
         }

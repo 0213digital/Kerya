@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DashboardLayout } from '../../components/DashboardLayout';
 import { RejectionModal } from '../../components/modals';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function AdminAgencyDetailsPage() {
     const { t } = useTranslation();
@@ -28,16 +29,26 @@ export function AdminAgencyDetailsPage() {
 
     const handleApprove = async () => {
         setProcessing(true);
-        await supabase.from('agencies').update({ verification_status: 'verified', rejection_reason: null }).eq('id', id);
-        navigate('/admin/dashboard');
+        const { error } = await supabase.from('agencies').update({ verification_status: 'verified', rejection_reason: null }).eq('id', id);
+        if (error) {
+            toast.error(error.message);
+        } else {
+            toast.success('Agency approved successfully!');
+            navigate('/admin/dashboard');
+        }
         setProcessing(false);
     };
 
     const handleReject = async (reason) => {
         setProcessing(true);
-        await supabase.from('agencies').update({ verification_status: 'rejected', rejection_reason: reason }).eq('id', id);
-        setShowRejectionModal(false);
-        navigate('/admin/dashboard');
+        const { error } = await supabase.from('agencies').update({ verification_status: 'rejected', rejection_reason: reason }).eq('id', id);
+        if (error) {
+            toast.error(error.message);
+        } else {
+            toast.success('Agency rejected.');
+            setShowRejectionModal(false);
+            navigate('/admin/dashboard');
+        }
         setProcessing(false);
     };
 

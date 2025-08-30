@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabaseClient';
 import { CreditCard, Banknote } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 export function BookingPage() {
     const { session, isAgencyOwner, loading: authLoading } = useAuth();
@@ -18,7 +19,6 @@ export function BookingPage() {
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState('cash');
-    const [error, setError] = useState('');
 
     useEffect(() => {
         if (authLoading) {
@@ -34,7 +34,7 @@ export function BookingPage() {
         }
 
         if (!vehicleId || !startDate || !endDate) {
-            setError(t('missingBookingInfo'));
+            toast.error(t('missingBookingInfo'));
             setLoading(false);
             return;
         }
@@ -44,7 +44,7 @@ export function BookingPage() {
             const { data, error } = await supabase.from('vehicles').select('*, agencies(*)').eq('id', vehicleId).single();
             if (error) {
                 console.error("Error fetching vehicle for booking:", error);
-                setError(error.message);
+                toast.error(error.message);
             } else {
                 setVehicle(data);
                 const start = new Date(startDate);
@@ -61,7 +61,6 @@ export function BookingPage() {
     const handleConfirmBooking = async () => {
         if (!session || !vehicle || isAgencyOwner) return;
         setProcessing(true);
-        setError('');
 
         const { data: availableVehicles, error: rpcError } = await supabase.rpc('get_available_vehicles', {
             start_date_in: startDate,
@@ -69,7 +68,7 @@ export function BookingPage() {
         });
 
         if (rpcError || !availableVehicles.some(v => v.vehicle_id === vehicle.id)) {
-            setError(t('vehicleUnavailable'));
+            toast.error(t('vehicleUnavailable'));
             setProcessing(false);
             return;
         }
@@ -85,7 +84,7 @@ export function BookingPage() {
         }]).select().single();
 
         if (insertError) {
-            setError(t('error') + ': ' + insertError.message);
+            toast.error(t('error') + ': ' + insertError.message);
         } else if (newBooking) {
             navigate(`/booking-confirmation/${newBooking.id}`);
         }
@@ -93,7 +92,6 @@ export function BookingPage() {
     };
 
     if (loading || authLoading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-b-2 border-indigo-500"></div></div>;
-    if (error) return <div className="container mx-auto p-4 text-center text-red-500">{error}</div>;
     if (!vehicle) return <div className="container mx-auto p-4 text-center">{t('noVehiclesFound')}</div>;
 
     return (
@@ -102,8 +100,6 @@ export function BookingPage() {
                 <h1 className="text-3xl font-bold text-center mb-2">{t('confirmBookingTitle')}</h1>
                 <p className="text-center text-slate-500 mb-8">{t('fromAgency', { agencyName: vehicle.agencies.agency_name, city: vehicle.agencies.city })}</p>
                 
-                {error && <div className="bg-red-100 text-red-700 p-3 rounded-md mb-4 text-center">{error}</div>}
-
                 <div className="flex items-center space-x-4 mb-6">
                     <img src={vehicle.image_urls[0]} alt={vehicle.model} className="w-32 h-20 object-cover rounded-md"/>
                     <div>

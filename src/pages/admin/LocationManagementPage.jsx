@@ -18,7 +18,7 @@ export function LocationManagementPage() {
     const [dbCities, setDbCities] = useState(new Map());
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
-    const [processingId, setProcessingId] = useState(null); // State to track the item being processed
+    const [processingId, setProcessingId] = useState(null);
     const [modal, setModal] = useState({ isOpen: false, data: null });
 
     const allWilayas = useMemo(() => Object.keys(algeriaGeoData).sort(), []);
@@ -50,7 +50,6 @@ export function LocationManagementPage() {
         setProcessingId(`wilaya-${name}`);
         setModal({ isOpen: false, data: null });
 
-        // Deactivate all cities under this wilaya first
         const citiesToDelete = algeriaGeoData[name].map(cityName => dbCities.get(`${cityName}-${wilayaId}`)).filter(Boolean);
         if (citiesToDelete.length > 0) {
             const { error: cityError } = await supabase.from('cities').delete().in('id', citiesToDelete);
@@ -75,7 +74,6 @@ export function LocationManagementPage() {
         const wilayaId = dbWilayas.get(wilayaName);
 
         if (wilayaId) {
-            // It's active, so show confirmation modal to deactivate
             setModal({
                 isOpen: true,
                 data: {
@@ -87,7 +85,6 @@ export function LocationManagementPage() {
                 }
             });
         } else {
-            // It's inactive, activate it directly
             setProcessingId(`wilaya-${wilayaName}`);
             const { error } = await supabase.from('wilayas').insert({ name: wilayaName });
             if (error) {
@@ -117,7 +114,7 @@ export function LocationManagementPage() {
         if (error) {
             toast.error(error.message);
         } else {
-            await fetchLocations(); // Await the fetch to ensure data is fresh
+            await fetchLocations();
         }
         setProcessingId(null);
     };

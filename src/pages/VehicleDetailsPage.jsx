@@ -6,6 +6,7 @@ import { supabase } from '../lib/supabaseClient';
 import { Users, Wind, Droplets, ChevronLeft, ChevronRight, MessageSquare, AlertCircle, Info, ShieldCheck } from 'lucide-react';
 import { AvailabilityCalendar } from '../components/AvailabilityCalendar';
 import { ReviewList } from '../components/ReviewList'; 
+import { toast } from 'react-hot-toast';
 
 export function VehicleDetailsPage() {
     const { id: vehicleId } = useParams();
@@ -20,7 +21,6 @@ export function VehicleDetailsPage() {
     
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
-    const [contactError, setContactError] = useState('');
 
     const fetchVehicle = useCallback(async () => {
         if (!vehicleId) return;
@@ -80,11 +80,11 @@ export function VehicleDetailsPage() {
         }
         if (isAgencyOwner) return;
         if (!startDate || !endDate) {
-            alert(t('alertSelectDates'));
+            toast.error(t('alertSelectDates'));
             return;
         }
         if (new Date(endDate) < new Date(startDate)) {
-            alert("La date de retour ne peut pas être antérieure à la date de départ.");
+            toast.error("La date de retour ne peut pas être antérieure à la date de départ.");
             return;
         }
         const searchParams = new URLSearchParams({ startDate, endDate }).toString();
@@ -98,7 +98,6 @@ export function VehicleDetailsPage() {
         }
         if (isAgencyOwner) return;
         setIsContacting(true);
-        setContactError('');
         const { data, error } = await supabase.rpc('get_or_create_conversation', {
             p_vehicle_id: vehicle.id,
             p_user_id: session.user.id
@@ -106,7 +105,7 @@ export function VehicleDetailsPage() {
 
         if (error) {
             console.error('Error starting conversation:', error);
-            setContactError(t('error') + ': ' + error.message);
+            toast.error(t('error') + ': ' + error.message);
         } else {
             navigate('/dashboard/messages');
         }
@@ -206,12 +205,6 @@ export function VehicleDetailsPage() {
                                 <MessageSquare size={18} className="mr-2" />
                                 {isContacting ? t('loading') : t('contactAgency')}
                             </button>
-                        )}
-                         {contactError && (
-                            <div className="mt-4 text-red-600 text-sm flex items-center">
-                                <AlertCircle size={16} className="mr-2" />
-                                {contactError}
-                            </div>
                         )}
                         {isAgencyOwner && !isOwner && (
                             <div className="mt-4 text-amber-800 bg-amber-100 p-3 rounded-md text-sm flex items-start">
