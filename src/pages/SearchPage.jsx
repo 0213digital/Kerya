@@ -1,13 +1,13 @@
 import React, { useReducer, useEffect, useState, useContext } from 'react';
 import { useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import VehicleCard from '../components/VehicleCard';
-import InteractiveMap from '../components/InteractiveMap';
+import { VehicleCard } from '../components/VehicleCard'; // Corrected import
+import { InteractiveMap } from '../components/InteractiveMap'; // Corrected import
 import { carData } from '../data/geoAndCarData';
 import { LanguageContext } from '../contexts/LanguageContext';
 import { translations } from '../data/translations';
 
-// État initial pour les filtres
+// Initial state for filters
 const initialState = {
   isFilterVisible: false,
   priceRange: [0, 50000],
@@ -21,7 +21,7 @@ const initialState = {
   showAllYears: false,
 };
 
-// Le reducer qui gère les actions de mise à jour de l'état des filtres
+// Reducer to manage filter state updates
 function filterReducer(state, action) {
   switch (action.type) {
     case 'TOGGLE_FILTERS':
@@ -29,7 +29,7 @@ function filterReducer(state, action) {
     case 'SET_PRICE_RANGE':
       return { ...state, priceRange: action.payload };
     case 'SET_BRAND':
-      return { ...state, selectedBrand: action.payload, selectedModel: '' }; // Réinitialise le modèle si la marque change
+      return { ...state, selectedBrand: action.payload, selectedModel: '' }; // Reset model when brand changes
     case 'SET_MODEL':
       return { ...state, selectedModel: action.payload };
     case 'SET_YEAR':
@@ -47,7 +47,7 @@ function filterReducer(state, action) {
     case 'RESET_FILTERS':
       return {
         ...initialState,
-        isFilterVisible: state.isFilterVisible // Garde la visibilité du filtre ouverte
+        isFilterVisible: state.isFilterVisible // Keep the filter visibility state
       };
     default:
       throw new Error();
@@ -92,7 +92,7 @@ const SearchPage = () => {
           )
         `);
 
-        // Appliquer les filtres
+        // Apply filters
         query = query.gte('price_per_day', priceRange[0]);
         query = query.lte('price_per_day', priceRange[1]);
 
@@ -128,21 +128,16 @@ const SearchPage = () => {
     fetchVehicles();
   }, [priceRange, selectedBrand, selectedModel, selectedYear, selectedTransmission, selectedFuelType]);
 
-  const brands = [...new Set(carData.map(car => car.brand))];
-  const models = selectedBrand ? [...new Set(carData.filter(car => car.brand === selectedBrand).map(car => car.model))] : [];
+  const brands = [...new Set(Object.keys(carData))];
+  const models = selectedBrand ? [...new Set(carData[selectedBrand])] : [];
   const years = Array.from({ length: 20 }, (_, i) => new Date().getFullYear() - i);
 
   const displayedBrands = showAllBrands ? brands : brands.slice(0, 10);
   const displayedModels = showAllModels ? models : models.slice(0, 10);
   const displayedYears = showAllYears ? years : years.slice(0, 10);
 
-  const handlePriceChange = (event, newValue) => {
-    dispatch({ type: 'SET_PRICE_RANGE', payload: newValue });
-  };
-
   return (
     <div className="flex flex-col lg:flex-row min-h-screen">
-      {/* Section des filtres */}
       <aside className={`w-full lg:w-1/4 p-4 bg-gray-50 border-r ${isFilterVisible ? 'block' : 'hidden'} lg:block`}>
         <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold">{t.filters}</h2>
@@ -154,7 +149,6 @@ const SearchPage = () => {
             </button>
         </div>
 
-        {/* Filtre par prix */}
         <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700">{t.priceRange}</label>
           <input
@@ -179,8 +173,6 @@ const SearchPage = () => {
           </div>
         </div>
 
-        {/* Filtres par Marque, Modèle, Année etc. */}
-        {/* Marque */}
         <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">{t.brand}</label>
             {displayedBrands.map(brand => (
@@ -191,7 +183,6 @@ const SearchPage = () => {
             )}
         </div>
 
-        {/* Modèle */}
         {selectedBrand && (
             <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700">{t.model}</label>
@@ -204,7 +195,6 @@ const SearchPage = () => {
             </div>
         )}
 
-        {/* Année */}
         <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">{t.year}</label>
             {displayedYears.map(year => (
@@ -215,7 +205,6 @@ const SearchPage = () => {
             )}
         </div>
 
-        {/* Transmission */}
         <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700">{t.transmission}</label>
             {['Automatic', 'Manual'].map(type => (
@@ -223,7 +212,6 @@ const SearchPage = () => {
             ))}
         </div>
 
-        {/* Type de carburant */}
         <div>
             <label className="block text-sm font-medium text-gray-700">{t.fuelType}</label>
             {['Gasoline', 'Diesel', 'Electric', 'Hybrid'].map(type => (
@@ -232,7 +220,6 @@ const SearchPage = () => {
         </div>
       </aside>
 
-      {/* Section principale avec les résultats et la carte */}
       <main className="w-full lg:w-3/4 p-4">
         <button
           onClick={() => dispatch({ type: 'TOGGLE_FILTERS' })}

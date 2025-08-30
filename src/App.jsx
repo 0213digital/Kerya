@@ -5,9 +5,9 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Toaster } from 'react-hot-toast'; // Import Toaster
+import { Toaster, toast } from 'react-hot-toast';
 import { HomePage } from './pages/HomePage';
-import { SearchPage } from './pages/SearchPage';
+import SearchPage from './pages/SearchPage'; // Corrected import
 import { VehicleDetailsPage } from './pages/VehicleDetailsPage';
 import { LoginPage } from './pages/LoginPage';
 import { UpdatePasswordPage } from './pages/UpdatePasswordPage';
@@ -35,7 +35,7 @@ import { AgencySettingsPage } from './pages/dashboard/AgencySettingsPage';
 const generateInvoice = async (booking, t) => {
     if (!booking?.profiles || !booking?.vehicles?.agencies) {
         console.error("Booking data is incomplete for invoice generation.", booking);
-        toast.error("Sorry, booking data is incomplete for the invoice.");
+        toast.error(t('invoiceIncompleteData'));
         return;
     }
 
@@ -117,7 +117,7 @@ const generateInvoice = async (booking, t) => {
 
     } catch (error) {
         console.error("Failed to generate PDF:", error);
-        toast.error("Sorry, there was an error creating the invoice PDF.");
+        toast.error(t('invoicePdfError'));
     }
 };
 
